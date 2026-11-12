@@ -82,6 +82,20 @@ Then the cardio block: type, duration, distance, optional steps. Each user also 
 | 3 | Chest | Dumbbell bench press, push-up, cable fly |
 | 4 to 7 | Whatever is furthest below its weekly set target | Drawn from the Day A, B and C pools |
 
+## Core finisher (every strength day)
+
+Days A, B and D each end with a short core finisher: 2 exercises, 2 sets each, about 8 minutes. Either of us can add a third exercise on the day. Day C remains the full core session. The finisher is separate from the accessory count and is never the slot that gets dropped for time.
+
+Each day's finisher covers different core roles, so across a week every part of the trunk is trained at least twice:
+
+| Day | Finisher roles | Pool (about half rotate each block) |
+|---|---|---|
+| A Legs & Lower Back | Rotation; side of the trunk | Pallof press, cable woodchop, landmine rotation; side plank, suitcase carry, dumbbell side bend |
+| B Arms, Upper Back & Shoulders | Loaded flexion (upper abs); lower abs | Cable crunch, decline dumbbell sit-up; reverse crunch, lying leg raise |
+| D Full Body | Holding position under tension; rotation | Hollow hold, plank, dead bug; landmine rotation, cable woodchop |
+
+With Day C, this comes to roughly 16 to 24 hard core sets in a four-session week. That is plenty to build the abdominal muscles. It does not by itself reduce belly fat: fat cannot be burned from one area by training that area, so visible abs depend on overall fat loss.
+
 ## First block (Foundation, 4 weeks)
 
 - Main lifts: 3 sets. Accessories: 2 sets, rising to 3 sets from the Build block so each muscle group reaches about 10 hard sets a week.
