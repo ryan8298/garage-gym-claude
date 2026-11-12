@@ -1,6 +1,6 @@
 # Progress
 
-## Phase 1: foundation (built, waiting on the iPhone checklist)
+## Phase 1: foundation (done; iPhone checklist passed on Ryan's phone 2026-11-12)
 
 Done:
 - Design system as tokens in `src/index.css`, following the approved mockups (dark ground, lime accent, blue for the coach, Space Grotesk numerals, Inter text).
@@ -44,6 +44,12 @@ Program direction (decided 2026-11-12, applies from phase 2):
 9. Try to pinch-zoom, double-tap zoom and pull down to refresh: none of them work.
 10. Settings, This phone: note which items show a warning.
 
+## Phase 1 result
+
+Ryan ran the checklist: installed full screen, stayed signed in, number pad shown, saved offline, survived an offline restart, synced on reconnect (one daily log row arrived exactly once), no browser behaviour, no capability warnings. Still to do: Stella signing in on her phone.
+
 ## Next
+
+`PROGRAM_PROPOSAL.md` is written and waiting for approval.
 
 Phase 2: exercise library and the program. Starts with the gap analysis, slot pools and proposed main lifts for approval.
