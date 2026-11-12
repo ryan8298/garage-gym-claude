@@ -27,6 +27,10 @@ Infrastructure:
 Not done yet in this phase:
 - The two user accounts (created by hand in the Supabase dashboard).
 
+Program direction (decided 2026-11-12, applies from phase 2):
+- Free weights first. Ryan and Stella train together almost every session, so a spotter is present. Main lifts default to the free barbell (squat in the rack with safety arms, deadlifts on bumpers, bench, overhead press, row); accessories prefer dumbbell and barbell versions.
+- The Smith bar is used where it is the better tool (hip thrust, calf raise) and as the "training alone today" swap for each main lift.
+
 ## iPhone checklist for phase 1
 
 1. Open the address in Safari. The Add to Home Screen guide appears.
