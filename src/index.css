@@ -1,0 +1,121 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/space-grotesk';
+
+/* Design tokens. Every colour, font and radius in the app comes from here. */
+@theme {
+  --color-bg: #0d0f11;
+  --color-bar: #12151a;
+  --color-surface: #171a1e;
+  --color-raised: #20242a;
+  --color-line: #2a2f36;
+  --color-line-strong: #3a414a;
+  --color-ink: #f3f5f6;
+  --color-muted: #9ba4ad;
+  --color-faint: #5a6470;
+  --color-accent: #c8f250;
+  --color-accent-ink: #0d0f11;
+  --color-accent-dim: #2e3a16;
+  --color-coach: #8ec5ff;
+  --color-coach-dim: #14202c;
+  --color-coach-line: #2f4257;
+  --color-warn: #ffb454;
+  --color-danger: #ff9a8a;
+
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-display: 'Space Grotesk Variable', 'Inter Variable', system-ui, sans-serif;
+
+  --radius-card: 18px;
+  --radius-control: 14px;
+}
+
+/* Native feel: remove everything that gives away a browser. */
+html,
+body,
+#root {
+  height: 100%;
+}
+html {
+  background: var(--color-bg);
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  font-size: 16px; /* below 16px iOS zooms the page on focus */
+}
+button {
+  font-family: inherit;
+  touch-action: manipulation;
+}
+button:active:not(:disabled),
+a:active {
+  opacity: 0.7;
+}
+.scroll-y {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-y::-webkit-scrollbar {
+  display: none;
+}
+.num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 14px);
+}
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 10px);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes push-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+.sheet {
+  animation: sheet-up 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.backdrop {
+  animation: fade-in 0.2s ease-out;
+}
+.push {
+  animation: push-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .backdrop,
+  .push {
+    animation: none;
+  }
+}
