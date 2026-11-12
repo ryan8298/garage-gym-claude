@@ -31,7 +31,7 @@ The deadlift runs lower reps in every phase: high-rep sets from the floor tire t
 
 ## Gap analysis and accessory slots
 
-Each slot is a role. The exercise filling it rotates at the start of each 4-week block. Slots are listed in priority order; a session with 3 accessories uses slots 1 to 3, a session with 7 uses all of them.
+Each slot is a role. About half of the slots change exercise at the start of each 4-week block, so every accessory runs for roughly 8 weeks: long enough to progress on it, short enough to stay fresh. Slots are listed in priority order; a session with 3 accessories uses slots 1 to 3, a session with 7 uses all of them.
 
 ### Day A: what squat plus Romanian deadlift leave out
 
@@ -69,7 +69,9 @@ Each slot is a role. The exercise filling it rotates at the start of each 4-week
 
 Both main lifts scale by person. The hanging leg raise starts with bent knees and progresses to straight legs, then toes toward the bar. The barbell rollout starts from the knees over a short range and lengthens as it gets easier; it is the hardest lift on this day, so stop a set as soon as the lower back starts to sag.
 
-Then the cardio block: type, duration, distance, optional steps.
+Top-up strength slots: Day C also carries two or three compound "top-up" slots, placed after the two core main lifts. They are filled from whichever muscle groups have had the fewest hard sets in the last 7 days (typically one leg lift, one push and one pull, taken from the Day A, B and D pools). This is what keeps every major muscle group trained at least twice a week when we only manage three sessions.
+
+Then the cardio block: type, duration, distance, optional steps. Each user also has a weekly cardio target, defaulting to 150 minutes of moderate activity; walking counts.
 
 ### Day D: full body after deadlift plus overhead press
 
@@ -82,8 +84,9 @@ Then the cardio block: type, duration, distance, optional steps.
 
 ## First block (Foundation, 4 weeks)
 
-- Main lifts: 3 sets. Accessories: 2 sets.
-- Accessory count per session: week 1 has 4, week 2 has 5, week 3 has 6, week 4 (recovery) has 3.
+- Main lifts: 3 sets. Accessories: 2 sets, rising to 3 sets from the Build block so each muscle group reaches about 10 hard sets a week.
+- Accessory count per session: week 1 has 4, week 2 has 5, week 3 has 5, week 4 has 6. There is no lighter week in the first block, because its volume is already low.
+- Lighter recovery week: every eighth week (the end of every second block), or earlier if a user's logs show stalled lifts together with poor sleep or high soreness. It uses 3 accessories and stops every set well short of failure.
 - Main lifts stop with about 2 reps left; accessories with 1 to 2.
 - Session 1 of each day is a guided weight-finding session: start light and add weight each set until the target reps feel like 2 are left.
 - Small accessories are paired as supersets once a session has 5 or more, to stay within 45 to 70 minutes.
@@ -96,6 +99,27 @@ Then the cardio block: type, duration, distance, optional steps.
 - One barbell: Day B uses it for bench, rows and curls in sequence. The engine orders the day to keep plate changes small.
 - These set and rep numbers come from general training practice, not from a study lookup, and can be tuned.
 
+## Evidence review (2026-11-12)
+
+The plan was compared with the 2026 ACSM resistance training position stand (as reported in summaries), the US Physical Activity Guidelines, and meta-analyses on volume, frequency, effort, exercise variation, free weights versus machines, deloads and training in a calorie deficit. Most sources were read as summaries, not the original papers.
+
+Matches the evidence, unchanged:
+- Effort: stopping 1 to 3 reps short of failure is enough; failure is not required.
+- Rep ranges: a wide range of loads builds muscle when effort is high; heavier sets around 5 to 8 reps suit the strength phase.
+- Main lifts held steady for 8 to 12 weeks, with planned (not random) accessory variation.
+- Progressive overload through double progression.
+
+Changed because of the review:
+1. Twice-weekly frequency. The guidelines call for every major muscle group at least twice a week. With four days in rotation and three sessions in some weeks, legs or upper body would sometimes be trained once. Day C now carries top-up strength slots.
+2. Volume. About 10 hard sets per muscle per week is the commonly cited target for muscle growth. Accessories rise to 3 sets from the Build block to reach it.
+3. Recovery weeks. The evidence for frequent deloads is thin and mixed, so the lighter week moved from every fourth week to every eighth, or when the logs call for it.
+4. Rotation pace. Rotating every accessory every four weeks is more variation than the evidence supports. Half the slots rotate per block.
+5. Cardio. The public-health target is 150 minutes of moderate activity a week; this is now the default weekly cardio target.
+
+What the evidence does not support:
+- Free weights building more muscle than machines. The one meta-analysis found no difference in muscle growth; strength improves most in the style you train. Free weights first remains a sound choice by preference and for free-weight strength.
+- Fast muscle gain while losing fat. In a calorie deficit, strength still improves but muscle gain is slowed, so the realistic outcome is getting stronger and leaner while holding or slowly adding muscle.
+
 ## Decisions made (2026-11-12)
 
 - Day B pull: pull-ups for Ryan, lat pulldown plus pull-up practice for Stella. Rows are the second accessory slot.
@@ -106,4 +130,5 @@ Then the cardio block: type, duration, distance, optional steps.
 
 ## Still to confirm
 
-- First-block accessory counts: 4, 5, 6, then 3 per session across the four weeks.
+- First-block accessory counts: 4, 5, 5, then 6 per session across the four weeks.
+- The five evidence-review changes above.
