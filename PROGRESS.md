@@ -19,8 +19,12 @@ Decisions:
 - iOS splash screens are left for the polish phase; the launch background already matches the app.
 - Stack-style push transitions and swipe-back are basic for now (a short slide on navigation); the full version comes with the workout flow in phase 3.
 
+Infrastructure:
+- GitHub: `ryan8298/garage-gym-claude`. Every push to `main` deploys.
+- Vercel: project `garage-gym-claude` in the Demo Hub team, with the two Supabase environment variables set.
+- Supabase: project `garage-gym` (ref `kfmxfnayiaxducmcexye`).
+
 Not done yet in this phase:
-- GitHub repo, Vercel project and first deployment (waiting on an empty repo to push to).
 - The two user accounts (created by hand in the Supabase dashboard).
 
 ## iPhone checklist for phase 1
