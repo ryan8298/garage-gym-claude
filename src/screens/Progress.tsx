@@ -118,12 +118,12 @@ export function Progress() {
                 <span className="h-2 flex-1 overflow-hidden rounded-full bg-raised">
                   <span className={cx('block h-full rounded-full', levelBar[levelOf(n, WEEKLY_SET_TARGET)])} style={{ width: `${Math.min(100, (n / WEEKLY_SET_TARGET) * 100)}%` }} />
                 </span>
-                <span className="num w-5 text-right text-xs font-semibold">{n}</span>
+                <span className="num w-7 text-right text-xs font-semibold">{Number.isInteger(n) ? n : n.toFixed(1)}</span>
               </div>
             )
           })}
         </div>
-        <span className="text-xs text-muted">Hard sets in the last 7 days. Warm-up sets are not counted.</span>
+        <span className="text-xs text-muted">From the sets you logged this week: a full set for a lift's main muscle, half for each muscle that helps. Warm-ups are not counted.</span>
       </Card>
 
       <Card className="flex flex-col gap-2.5">

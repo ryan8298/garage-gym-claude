@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, save, type BodyMeasurement, type CardioEntry, type DailyLog, type Goal, type SessionExercise, type SetRow, type WorkoutSession } from './db'
 import { addDays, localDate, weekStart } from './dates'
-import { exercise, hasExercise } from './exercises'
+import { exercise, hasExercise, muscleCredit } from './exercises'
 import { estimatedMax } from './progression'
 import type { Point } from './stats'
 import { requestSync } from './syncRunner'
@@ -73,8 +73,8 @@ export function weekStats(start: string, sessions: DoneSession[], logs: DailyLog
   for (const s of mine)
     for (const l of s.lifts) {
       if (!hasExercise(l.lift.exercise_key)) continue
-      const g = exercise(l.lift.exercise_key).group
-      setsByGroup[g] = (setsByGroup[g] ?? 0) + l.sets.length
+      // A full set for the main muscle, half for each one that helps.
+      for (const [g, share] of Object.entries(muscleCredit(exercise(l.lift.exercise_key)))) setsByGroup[g] = (setsByGroup[g] ?? 0) + l.sets.length * share
     }
   const steps = logs.filter((l) => inWeek(l.log_date) && l.steps !== null).map((l) => l.steps as number)
   const c = cardio.filter((x) => inWeek(x.log_date))

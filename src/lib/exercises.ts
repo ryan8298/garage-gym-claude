@@ -163,3 +163,23 @@ export function matchesQuery(e: Exercise, query: string): boolean {
   // "back lat" style aliases mean either word is enough for that term.
   return q.split(' ').every((word) => h.includes(word) || (word.length > 3 && word.endsWith('s') && h.includes(word.slice(0, -1))))
 }
+
+// The library's muscle names, mapped to the groups we count weekly sets for.
+const MUSCLE_GROUP: Record<string, string> = {
+  quads: 'quads', hamstrings: 'hamstrings', glutes: 'glutes', calves: 'calves', chest: 'chest', shoulders: 'shoulders',
+  biceps: 'biceps', triceps: 'triceps', forearms: 'forearms', abs: 'core', 'lower back': 'lower_back', lats: 'back',
+  'mid back': 'back', traps: 'back', 'inner hip': 'hips', 'outer hip': 'hips', neck: 'neck',
+}
+
+/**
+ * What one set of an exercise counts toward each muscle group: a full set for
+ * its main group, half a set for each group that helps.
+ */
+export function muscleCredit(e: Exercise): Record<string, number> {
+  const credit: Record<string, number> = { [e.group]: 1 }
+  for (const m of e.secondary) {
+    const g = MUSCLE_GROUP[m]
+    if (g && !(g in credit)) credit[g] = 0.5
+  }
+  return credit
+}

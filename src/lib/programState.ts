@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, save, type ProgramState } from './db'
 import { daysBetween, localDate, weekStart, addDays } from './dates'
 import { blockPosition, planSession, type SessionPlan, type UserSettings } from './engine'
-import { exercise } from './exercises'
+import { exercise, muscleCredit } from './exercises'
 import { programDef, type DayKey, type ProgramDef } from './program'
 import { requestSync } from './syncRunner'
 import { activeGym } from './gym'
@@ -72,8 +72,7 @@ export function useSetsByGroup(userId: string): Record<string, number> {
         const key = groupOf.get(s.session_exercise_id)
         if (!key) continue
         try {
-          const g = exercise(key).group
-          totals[g] = (totals[g] ?? 0) + 1
+          for (const [g, share] of Object.entries(muscleCredit(exercise(key)))) totals[g] = (totals[g] ?? 0) + share
         } catch {
           /* a custom or retired exercise: not counted */
         }

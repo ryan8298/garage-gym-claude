@@ -200,10 +200,13 @@ export function Session() {
         const doneHere = view.sets.filter((x) => x.done || x.id === s.id).length
         const doneThere = match.sets.filter((x) => x.done).length
         if (doneThere >= doneHere && s.set_type !== 'warmup') startRest(restOf(program)[view.target.kind])
+        // That was this person's last set of the lift: stay, so they can say how hard it was. The card passes the turn.
+        if (view.sets.every((x) => x.done || x.id === s.id)) return setPicked(view.lift.id)
         setPicked(match.lift.id)
         setWho(session === mine ? 'partner' : 'me')
         return
       }
+      if (view.sets.every((x) => x.done || x.id === s.id)) setPicked(view.lift.id)
       if (s.set_type !== 'warmup') startRest(restOf(program)[view.target.kind])
       return
     }
@@ -231,6 +234,12 @@ export function Session() {
     other && session !== mine
       ? { fill: 'bg-coach', card: 'border-coach-line bg-coach-dim', line: 'border-coach-line', ring: 'border-coach', label: 'coach' as const }
       : { fill: 'bg-accent', card: 'border-line bg-surface', line: 'border-line-strong', ring: 'border-accent', label: 'accent' as const }
+  // The other person's copy of this lift, if they still have sets to do on it.
+  const waiting = (() => {
+    if (!other || !otherLifts || !current) return null
+    const match = otherLifts.find((v) => v.lift.exercise_key === current.lift.exercise_key) ?? otherLifts.find((v) => v.lift.position === current.lift.position && v.target.kind === current.target.kind)
+    return match && !match.lift.skipped && match.sets.some((x) => !x.done) ? match : null
+  })()
   const turnNote = (() => {
     if (!other || !otherLifts || !current || !focus) return ''
     const match = otherLifts.find((v) => v.lift.exercise_key === current.lift.exercise_key) ?? otherLifts.find((v) => v.lift.position === current.lift.position)
@@ -418,24 +427,36 @@ export function Session() {
               )}
 
               {allDone && (
-                <div className="flex flex-col gap-2.5 rounded-card border border-line bg-surface p-3.5">
-                  <span className="text-sm font-medium">Reps left in the tank on the last set?</span>
+                <div className={cx('flex flex-col gap-2.5 rounded-card border p-3.5', tone.card)}>
+                  <span className="text-sm font-medium">{other ? `${session === mine ? myName : partnerName}: reps left in the tank on the last set?` : 'Reps left in the tank on the last set?'}</span>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[0, 1, 2, 3].map((n) => (
                       <button
                         key={n}
                         aria-pressed={current.target.rir === n}
                         onClick={() => void updateLift(current.lift, { target: { ...current.target, rir: n } })}
-                        className={cx('num h-11 rounded-[10px] border text-[15px] font-semibold', current.target.rir === n ? 'border-accent bg-accent-dim text-accent' : 'border-line bg-raised text-muted')}
+                        className={cx('num h-11 rounded-[10px] border text-[15px] font-semibold', current.target.rir === n ? cx(tone.ring, tone.fill, 'text-accent-ink') : cx(tone.line, 'bg-bg text-muted'))}
                       >
                         {n === 3 ? '3+' : n}
                       </button>
                     ))}
                   </div>
-                  {upNext && (
-                    <Button variant="primary" className="!h-12 !text-base" onClick={() => setPicked(upNext.lift.id)}>
-                      Next: {upNext.lift.name}
-                    </Button>
+                  {waiting ? (
+                    <button
+                      className={cx('h-12 rounded-2xl font-display text-base font-bold text-accent-ink', session === mine ? 'bg-coach' : 'bg-accent')}
+                      onClick={() => {
+                        setPicked(waiting.lift.id)
+                        setWho(session === mine ? 'partner' : 'me')
+                      }}
+                    >
+                      Now {session === mine ? partnerName : myName}
+                    </button>
+                  ) : (
+                    upNext && (
+                      <button className={cx('h-12 rounded-2xl font-display text-base font-bold text-accent-ink', tone.fill)} onClick={() => setPicked(upNext.lift.id)}>
+                        Next: {upNext.lift.name}
+                      </button>
+                    )
                   )}
                 </div>
               )}
@@ -742,7 +763,7 @@ export function Session() {
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="truncate text-[15px] font-semibold">{e.name}</span>
                   <span className="text-xs text-muted">
-                    {groupLabels[g.group]}: {g.sets} of {WEEKLY_SET_TARGET} sets this week · {equipLabels[e.equip]}
+                    {groupLabels[g.group]}: {Number.isInteger(g.sets) ? g.sets : g.sets.toFixed(1)} of {WEEKLY_SET_TARGET} sets this week · {equipLabels[e.equip]}
                   </span>
                 </span>
                 <span className="shrink-0 text-sm font-semibold text-accent">+ Add</span>

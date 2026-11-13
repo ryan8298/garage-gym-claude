@@ -531,7 +531,7 @@ Still to build from the mockups: the one-set-at-a-time workout screen, the queue
 7. Plan tab: tap a day and the editor opens on that day. Tap Public gym, then Home gym: "Here now" moves. Exercise library opens the Library with a back button.
 8. Start a workout from Today and finish it: nothing else has changed yet.
 
-### Part 2: workout screen, Progress figure, shared styles (built, waiting on the iPhone checklist)
+### Part 2: workout screen, Progress figure, shared styles (done; iPhone checklist passed 2026-11-14 with the two fixes below)
 
 Ryan's feedback on part 1: it worked, but screens outside the ones just rebuilt still had the old look. And the first body figure in the mockup "looked horrible"; it was redrawn as a faceted muscle figure (39 pieces, front and back, mirrored from one half) and Ryan was sent a preview.
 
@@ -555,6 +555,11 @@ Not built yet from the mockups: swap suggestions opening in place inside the lif
 7. The Swap button next to the lift name opens the swap choices.
 8. Progress: the body figure shows, front and back, coloured where you have trained this week, with the bars beneath in matching colours.
 9. Settings has a "Program and places" link to the Plan tab.
+
+### Fixes after the part 2 checklist (waiting on a recheck)
+
+- Training together, the turn no longer passes when someone finishes their last set of a lift. Their "reps left in the tank" card stays, in their own colour, with a "Now <partner>" button that passes the turn. After the second person's card, "Next: <lift>" moves on.
+- The body figure and bars now count what was actually worked: one set gives a full set to the lift's main muscle and half a set to each muscle that helps (squats now show on glutes and hamstrings as well as quads). The same counting feeds the gap suggestions and the plan's top-ups, so the numbers agree everywhere. Half sets show as, for example, 4.5.
 
 ## Next
 
