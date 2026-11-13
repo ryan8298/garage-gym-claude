@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -99,7 +99,7 @@ function InstallGuide({ children }: { children: ReactNode }) {
   const [skipped, setSkipped] = useState(() => sessionStorage.getItem('gg.skipInstall') === '1')
   if (isStandalone() || !isIOS() || skipped) return <>{children}</>
   return (
-    <div className="pt-safe pb-safe flex h-full flex-col gap-6 px-6">
+    <div className="pt-safe pb-safe flex min-h-dvh flex-col gap-6 px-6">
       <div className="mt-10 flex flex-col gap-2">
         <span className="text-xs font-semibold tracking-[1px] text-accent">ONE-TIME SETUP</span>
         <h1 className="font-display text-[32px] leading-[1.05] font-bold tracking-[-0.6px]">Add Garage Gym to your Home Screen</h1>
@@ -259,6 +259,21 @@ function Shell() {
   const gear = JSON.stringify(gearOf(activeGym(program)))
   useEffect(() => setGear(JSON.parse(gear)), [gear])
 
+  // Every screen opens at its top. The page scrolls as a whole, so nothing resets it for us.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [path])
+  // The tabs are fixed over the page; the page ends with room for them, however tall they are.
+  const bar = useRef<HTMLDivElement>(null)
+  const [barHeight, setBarHeight] = useState(76)
+  useEffect(() => {
+    const el = bar.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const watch = new ResizeObserver(() => setBarHeight(el.offsetHeight + 8))
+    watch.observe(el)
+    return () => watch.disconnect()
+  })
+
   // First-run setup: only for someone with no workouts, and only once the first
   // sync has finished, so a returning user on a new phone is not asked again.
   const sync = useSyncStatus()
@@ -276,8 +291,8 @@ function Shell() {
       </Routes>
     )
   return (
-    <div className="flex h-full flex-col">
-      <main key={location.pathname} data-swipe className={cx(motion, 'scroll-y pt-safe min-h-0 flex-1')}>
+    <div>
+      <main key={location.pathname} data-swipe className={cx(motion, 'pt-safe')} style={{ paddingBottom: barHeight }}>
         <Routes location={location}>
           <Route path="/" element={<Today />} />
           <Route path="/library" element={<Library />} />
@@ -296,30 +311,12 @@ function Shell() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <UpdatePrompt />
-      <ResumeBar />
-      <TabBar />
+      <div ref={bar} className="fixed inset-x-0 bottom-0 z-20 bg-bg">
+        <UpdatePrompt />
+        <ResumeBar />
+        <TabBar />
+      </div>
     </div>
-  )
-}
-
-/**
- * Tap the very top of the screen (the clock and battery strip) to jump back
- * to the top of a long page, as in any iPhone app.
- */
-function TapToTop() {
-  return (
-    <button
-      aria-label="Scroll to top"
-      tabIndex={-1}
-      className="fixed inset-x-0 top-0 z-30"
-      style={{ height: 'env(safe-area-inset-top)' }}
-      onClick={() => {
-        if (document.querySelector('[role="dialog"]')) return
-        const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        document.querySelectorAll('.scroll-y').forEach((el) => el.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' }))
-      }}
-    />
   )
 }
 
@@ -340,10 +337,5 @@ export default function App() {
     void navigator.storage?.persist?.().catch(() => undefined)
   }, [])
 
-  return (
-    <InstallGuide>
-      <TapToTop />
-      {user ? <Shell /> : <Login />}
-    </InstallGuide>
-  )
+  return <InstallGuide>{user ? <Shell /> : <Login />}</InstallGuide>
 }

@@ -84,12 +84,23 @@ export const icons = {
   share: 'M12 15V3M8 7l4-4 4 4M5 12v8h14v-8',
 }
 
+let openSheets = 0
+
 /** Bottom sheet. Tap the backdrop or drag the handle area down to close. */
 export function Sheet({ open, onClose, children }: { open: boolean; onClose(): void; children: ReactNode }) {
   const [dragY, setDragY] = useState(0)
   const [startY, setStartY] = useState<number | null>(null)
   useEffect(() => {
     if (!open) setDragY(0)
+  }, [open])
+  // The page behind must not scroll while a sheet is up.
+  useEffect(() => {
+    if (!open) return
+    openSheets++
+    document.documentElement.classList.add('locked')
+    return () => {
+      if (--openSheets === 0) document.documentElement.classList.remove('locked')
+    }
   }, [open])
   if (!open) return null
   return createPortal(

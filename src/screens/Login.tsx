@@ -19,7 +19,7 @@ export function Login() {
 
   const field = 'h-[52px] rounded-control border border-line bg-surface px-4 text-ink outline-none focus:border-accent'
   return (
-    <form onSubmit={submit} className="pt-safe pb-safe flex h-full flex-col gap-4 px-6">
+    <form onSubmit={submit} className="pt-safe pb-safe flex min-h-dvh flex-col gap-4 px-6">
       <div className="mt-16 mb-4 flex flex-col gap-2">
         <span className="text-xs font-semibold tracking-[1px] text-accent">GARAGE GYM</span>
         <h1 className="font-display text-[34px] leading-[1.05] font-bold tracking-[-0.6px]">Sign in to start training</h1>

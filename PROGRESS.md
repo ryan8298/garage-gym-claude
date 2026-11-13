@@ -424,6 +424,18 @@ Tests: 92 unit tests (8 new: plans for full, dumbbell-only and no equipment; sea
 
 Recheck on the iPhone: add a place, rename it, Clear all, switch on Dumbbell; "+ Add your own" is at the top of the Library; scroll far down the Library and tap the clock.
 
+## Whole-page scrolling (built, waiting on the iPhone check)
+
+Ryan asked for the native "tap the top of the screen to scroll up". The first attempt (an invisible button over the status bar) did nothing on the iPhone, because iOS keeps status-bar taps for itself and only scrolls the page as a whole. The tab screens used a scrolling box inside a fixed page, which iOS ignores.
+
+Change: the tab screens (Today, Library, Log, Progress, Us and everything opened from them) now scroll the page itself, with the tab bar, resume bar and update prompt fixed over the bottom. Sheets hold the page still while open. Each screen still opens at its top.
+
+Not covered: the workout screen, the coach and the finish screen keep their own scrolling areas (they have fixed bars inside them), so the status-bar tap does not apply there.
+
+Risks to watch on the iPhone: the fixed tab bar while the keyboard is open, and any rubber-band bounce at the top or bottom of a page.
+
+Recheck: scroll far down the Library and tap the clock; open and close a sheet on a scrolled page; type in the Library search and in a Log note with the keyboard up; swipe back from Settings.
+
 ## Next
 
 Release C in BACKLOG.md: program builder (epic 5) and groups (epic 6). Left over from release B: kg units, a finer machine list, a review of the added exercise names and text, self-hosted pictures, the library in the database, and letting the coach use the wider library.

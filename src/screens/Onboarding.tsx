@@ -36,7 +36,7 @@ export function Onboarding({ suggestedName }: { suggestedName: string }) {
   }
 
   return (
-    <div className="scroll-y pt-safe pb-safe flex h-full flex-col gap-5 px-6">
+    <div className="scroll-y pt-safe pb-safe flex h-dvh flex-col gap-5 px-6">
       <div className="mt-6 flex flex-col gap-2">
         <span className="text-xs font-semibold tracking-[1px] text-accent">WELCOME</span>
         <h1 className="font-display text-[32px] leading-[1.05] font-bold tracking-[-0.6px]">A few quick questions, then you train</h1>

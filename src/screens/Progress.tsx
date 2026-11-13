@@ -57,7 +57,7 @@ export function Progress() {
   const monthAgo = trend.filter((p) => p.date <= addDays(localDate(), -28)).pop()
   const volumeChange = change(now.volume, before.volume)
   const liftChange = series.length > 1 ? series[series.length - 1].value - series[0].value : null
-  const groups = Object.keys(groupLabels).filter((g) => g !== 'forearms' && g !== 'hips' && g !== 'lower_back')
+  const groups = Object.keys(groupLabels).filter((g) => g !== 'forearms' && g !== 'hips' && g !== 'lower_back' && g !== 'neck')
 
   // The last 26 weeks, one column per week, Monday at the top.
   const firstWeek = addDays(weekStart(localDate()), -25 * 7)

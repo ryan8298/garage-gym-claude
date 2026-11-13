@@ -219,7 +219,7 @@ export function Session() {
   let working = 0
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-dvh flex-col">
       <div className="scroll-y pt-safe min-h-0 flex-1">
         <div className="flex flex-col gap-3.5 px-5 pt-3 pb-6">
           <header className="flex items-center gap-2.5">

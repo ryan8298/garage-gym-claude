@@ -30,12 +30,12 @@
 }
 
 /* Native feel: remove everything that gives away a browser. */
-html,
-body,
-#root {
-  height: 100%;
-}
+/* The page itself scrolls, as iOS expects: that is what makes a tap on the
+   status bar jump back to the top. Full-screen flows set their own height. */
 html {
+  height: 100%;
+  overscroll-behavior: none;
+  scrollbar-width: none;
   background: var(--color-bg);
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation;
@@ -45,13 +45,25 @@ body {
   background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  overflow: hidden;
+  min-height: 100%;
+  overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
   -webkit-font-smoothing: antialiased;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+#root {
+  min-height: 100dvh;
+}
+/* While a sheet is open the page behind it stays put. */
+html.locked,
+html.locked body {
+  overflow: hidden;
 }
 input,
 textarea {

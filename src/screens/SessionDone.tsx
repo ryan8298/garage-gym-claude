@@ -31,7 +31,7 @@ export function SessionDone() {
   if (session === null || session.deleted) return <Navigate to="/" replace />
 
   return (
-    <div className="scroll-y pt-safe pb-safe flex h-full flex-col gap-4 px-5">
+    <div className="scroll-y pt-safe pb-safe flex h-dvh flex-col gap-4 px-5">
       <div className="mt-4 flex flex-col gap-1">
         <Label tone="accent">Workout complete</Label>
         <h1 className="font-display text-[32px] leading-[1.05] font-bold tracking-[-0.6px]">{session.title}</h1>

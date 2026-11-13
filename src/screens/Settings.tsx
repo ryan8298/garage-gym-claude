@@ -269,7 +269,7 @@ export function Settings() {
           </Button>
         )}
         {pushNote && <span className="text-[13px] text-muted">{pushNote}</span>}
-        <span className="text-xs text-muted">Rest timers do not use notifications. A weekly summary and a nudge after a few days off are not built yet.</span>
+        <span className="text-xs text-muted">Rest timers do not use notifications. You can also get a Sunday summary and a nudge after four days off.</span>
       </Card>
 
       <Card className="flex flex-col gap-3">

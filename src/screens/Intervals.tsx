@@ -60,7 +60,7 @@ export function Intervals() {
   if (now) {
     const tone = now.phase === 'work' ? 'text-accent' : now.phase === 'rest' ? 'text-coach' : 'text-ink'
     return (
-      <div className="flex min-h-full flex-col gap-4 px-5 pt-3 pb-6">
+      <div className="flex min-h-[78dvh] flex-col gap-4 px-5 pt-3 pb-6">
         <header className="flex items-center gap-2.5">
           <RoundButton
             label="Stop"
