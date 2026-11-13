@@ -204,7 +204,7 @@ Decisions and known gaps:
 6. Settings, My data: export everything. The share sheet opens; save to Files and open the file.
 7. Stella, if she has no workouts yet: she sees the first-run questions once after updating.
 
-## Phase 7: AI coach (built; needs the API key, then the iPhone checklist)
+## Phase 7: AI coach (done; iPhone checklist passed 2026-11-13)
 
 Done:
 - Coach screen, opened from the button in the Today header, the finish screen and the Progress tab. Chat with suggested prompts, a post-workout debrief on request, and a weekly review.
@@ -219,7 +219,7 @@ Done:
 
 Decisions and known gaps:
 - Replies arrive whole, not word by word. Streaming and schema-checked output did not combine simply, and correct proposals mattered more.
-- The coach has never been called for real: there was no API key during the build. The first real question is the test.
+- After the first real use, replies were changed from long paragraphs to one lead sentence plus short labelled bullets, with tighter word limits; the app renders the bullets and bold labels.
 - Weights mentioned in the coach's text are guided by a note on what can be loaded, not enforced. Proposals carry no weights; set-by-set numbers stay with the rule-based engine.
 - Server-side refusal fallback to another model is not enabled; a declined request returns a plain "try asking another way".
 - The weekly review is on request. A scheduled Sunday review with a push notification is not built.

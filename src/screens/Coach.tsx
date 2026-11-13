@@ -10,6 +10,43 @@ import { unlockSound } from '../lib/rest'
 import { useActiveSession } from '../lib/session'
 import { Button, Icon, Label, RoundButton, cx, icons } from '../components/ui'
 
+/** Bold text between pairs of asterisks. */
+function bold(line: string) {
+  return line.split('**').map((part, i) => (i % 2 ? <b key={i} className="font-semibold text-ink">{part}</b> : part))
+}
+
+/** The coach's reply: short paragraphs, bullet lines that start with "- ", and bold labels. */
+function Reply({ text }: { text: string }) {
+  const blocks: { bullets: boolean; lines: string[] }[] = []
+  for (const raw of text.split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+    const bullet = /^[-•*]\s+/.test(line)
+    const last = blocks[blocks.length - 1]
+    const clean = bullet ? line.replace(/^[-•*]\s+/, '') : line.replace(/^#+\s*/, '')
+    if (bullet && last?.bullets) last.lines.push(clean)
+    else blocks.push({ bullets: bullet, lines: [clean] })
+  }
+  return (
+    <>
+      {blocks.map((b, i) =>
+        b.bullets ? (
+          <ul key={i} className="flex flex-col gap-1.5">
+            {b.lines.map((l, j) => (
+              <li key={j} className="flex gap-2">
+                <span aria-hidden className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-coach" />
+                <span>{bold(l)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p key={i}>{bold(b.lines[0])}</p>
+        ),
+      )}
+    </>
+  )
+}
+
 const nameOf = (key: string | null) => (key && hasExercise(key) ? exercise(key).name : (key ?? ''))
 
 function describe(p: ProposalState, program: ProgramData): { title: string; from?: string; to: string } {
@@ -172,7 +209,9 @@ export function Coach() {
             ) : (
               <div key={m.id} className="flex max-w-[88%] flex-col gap-2.5 self-start">
                 {m.kind !== 'chat' && <Label tone="coach">{m.kind === 'debrief' ? 'Workout debrief' : 'Weekly review'}</Label>}
-                <div className="rounded-[20px_20px_20px_6px] border border-coach-line bg-coach-dim px-3.5 py-3 text-[15px] leading-relaxed whitespace-pre-line select-text">{m.body}</div>
+                <div className="flex flex-col gap-2 rounded-[20px_20px_20px_6px] border border-coach-line bg-coach-dim px-3.5 py-3 text-[15px] leading-snug select-text">
+                  <Reply text={m.body} />
+                </div>
                 <Proposals message={m} program={program} userId={user!.id} />
                 {m.quick_workout ? <Quick quick={m.quick_workout as QuickWorkout} program={program} userId={user!.id} /> : null}
               </div>
