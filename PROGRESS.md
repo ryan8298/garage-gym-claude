@@ -387,7 +387,7 @@ Tests: 84 unit tests (9 new for the library, gyms and gym-specific plate math). 
 7. Switch back to Home gym: 315 on the barbell loads with your own plates again, and Smith lifts go back to the 33 lb bar.
 8. Settings, Where I train, Add a place: name it, switch equipment on and off, and it appears in the Today picker.
 
-## Release B, part 2: the plan follows the place, your own exercises, better search (built, waiting on the iPhone checklist)
+## Release B, part 2: the plan follows the place, your own exercises, better search (iPhone checklist passed 2026-11-13 except editing a new place, fixed below)
 
 Backlog 3.6, 3.7, 4.4, 4.6.
 
@@ -414,6 +414,15 @@ Tests: 92 unit tests (8 new: plans for full, dumbbell-only and no equipment; sea
 6. Library, "+ Add your own exercise": add one (for example "Belt squat", Quads, Machine). It shows in the Library marked "yours".
 7. In a workout, "+ Add exercise", search your new exercise and add it. Log a set. After a sync it also shows in the other phone's Library.
 8. Open your exercise in the Library and remove it. The workout you logged keeps it in history.
+
+## Fixes after the release B, part 2 checklist (waiting on a recheck)
+
+- A newly added place could not be edited: its page redirected to Settings before the saved list had been read. Fixed, with a browser test.
+- Quick edits to a place could overwrite each other. Each change is now applied to the latest saved copy, in order.
+- "+ Add your own" moved to the top of the Library.
+- Tapping the strip at the very top of the screen (clock and battery) scrolls the page back to the top.
+
+Recheck on the iPhone: add a place, rename it, Clear all, switch on Dumbbell; "+ Add your own" is at the top of the Library; scroll far down the Library and tap the clock.
 
 ## Next
 
