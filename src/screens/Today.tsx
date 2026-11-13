@@ -175,7 +175,7 @@ export function Today() {
             >
               <span className="text-[15px] font-semibold">{g.name}</span>
               <span className="text-xs text-muted">
-                {g.kind === 'home' ? 'Home' : 'Public'} · {g.equipment.length} kinds of equipment
+                {g.kind === 'home' ? 'Home' : 'Public'} · {g.equipment.length} {g.equipment.length === 1 ? 'kind' : 'kinds'} of equipment
               </span>
             </button>
           ))}

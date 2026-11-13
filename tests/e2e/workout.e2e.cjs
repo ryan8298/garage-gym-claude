@@ -171,6 +171,20 @@ async function main() {
     assert.match(firstAccessory, /calf raise/i, 'the reordered slot comes first')
     await page.goto(URL)
 
+    // A newly added place opens in its editor and can be changed.
+    await page.goto(`${URL}/settings`)
+    await page.getByRole('button', { name: '+ Add a place' }).click()
+    await page.getByRole('heading', { name: 'New gym' }).waitFor()
+    await page.getByRole('button', { name: 'Clear all' }).click()
+    await page.getByRole('button', { name: 'Has everything' }).waitFor()
+    await page.getByRole('switch').nth(1).check()
+    await page.getByLabel('Name').fill('Hotel')
+    await page.getByLabel('Name').blur()
+    await page.getByRole('heading', { name: 'Hotel' }).waitFor()
+    await page.getByRole('button', { name: 'Back' }).click()
+    await page.getByText('1 kind of equipment').waitFor()
+    await page.goto(URL)
+
     // The coach fails politely when it cannot be reached, and nothing else is affected.
     await page.getByRole('link', { name: 'Open coach' }).click()
     await page.getByPlaceholder('Ask about your training').fill('Why am I stuck on squat?')

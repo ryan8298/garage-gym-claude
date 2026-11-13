@@ -45,7 +45,18 @@ export function Library() {
 
   return (
     <div className="flex flex-col gap-3 px-5 pt-3 pb-6">
-      <h1 className="font-display text-[28px] font-bold tracking-[-0.5px]">Library</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="font-display text-[28px] font-bold tracking-[-0.5px]">Library</h1>
+        <button
+          className="h-11 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-accent"
+          onClick={() => {
+            setDraft((d) => ({ ...d, name: query.trim() }))
+            setAdding(true)
+          }}
+        >
+          + Add your own
+        </button>
+      </div>
       <label className="flex flex-col">
         <span className="sr-only">Search exercises</span>
         <input
@@ -97,14 +108,6 @@ export function Library() {
         ))}
       </div>
       {list.length > shown && <Button onClick={() => setShown(shown + 100)}>Show more ({list.length - shown} left)</Button>}
-      <Button
-        onClick={() => {
-          setDraft((d) => ({ ...d, name: query.trim() }))
-          setAdding(true)
-        }}
-      >
-        + Add your own exercise
-      </Button>
 
       <Sheet open={adding} onClose={() => setAdding(false)}>
         <div className="scroll-y flex max-h-[80vh] flex-col gap-3 pb-3 [&>*]:shrink-0">

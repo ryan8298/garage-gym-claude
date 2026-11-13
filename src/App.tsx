@@ -303,6 +303,26 @@ function Shell() {
   )
 }
 
+/**
+ * Tap the very top of the screen (the clock and battery strip) to jump back
+ * to the top of a long page, as in any iPhone app.
+ */
+function TapToTop() {
+  return (
+    <button
+      aria-label="Scroll to top"
+      tabIndex={-1}
+      className="fixed inset-x-0 top-0 z-30"
+      style={{ height: 'env(safe-area-inset-top)' }}
+      onClick={() => {
+        if (document.querySelector('[role="dialog"]')) return
+        const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        document.querySelectorAll('.scroll-y').forEach((el) => el.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' }))
+      }}
+    />
+  )
+}
+
 export default function App() {
   const { user } = useAuth()
 
@@ -320,5 +340,10 @@ export default function App() {
     void navigator.storage?.persist?.().catch(() => undefined)
   }, [])
 
-  return <InstallGuide>{user ? <Shell /> : <Login />}</InstallGuide>
+  return (
+    <InstallGuide>
+      <TapToTop />
+      {user ? <Shell /> : <Login />}
+    </InstallGuide>
+  )
 }

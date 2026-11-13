@@ -181,7 +181,7 @@ export function Settings() {
             <span className="flex flex-col gap-0.5">
               <span className="text-[15px] font-semibold">{g.name}</span>
               <span className="text-xs text-muted">
-                {g.kind === 'home' ? 'Home' : 'Public'} · {g.equipment.length} kinds of equipment
+                {g.kind === 'home' ? 'Home' : 'Public'} · {g.equipment.length} {g.equipment.length === 1 ? 'kind' : 'kinds'} of equipment
               </span>
             </span>
             <span className="text-sm text-muted">{g.id === gym.id ? 'Here now' : 'Edit'}</span>
