@@ -468,7 +468,7 @@ Known limits:
 8. Ask the coach "What is my program this week?": it describes the new days, not legs, upper, core, full body.
 9. Switch back to "Legs, upper, core, full body" and 60 or 75 minutes if you want your old plan. Your earlier program changes are still there.
 
-## Release C, part 2: groups (built, waiting on the iPhone checklist)
+## Release C, part 2: groups (done; iPhone checklist passed 2026-11-14, including a real invitation, leave and account deletion)
 
 Backlog 6.1, 6.2, 6.3 in part, 6.4, 6.5, 6.7.
 
