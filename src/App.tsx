@@ -269,10 +269,25 @@ function Shell() {
   useEffect(() => {
     const el = bar.current
     if (!el || typeof ResizeObserver === 'undefined') return
-    const watch = new ResizeObserver(() => setBarHeight(el.offsetHeight + 8))
+    const watch = new ResizeObserver(() => el.offsetHeight > 0 && setBarHeight(el.offsetHeight + 8))
     watch.observe(el)
     return () => watch.disconnect()
   })
+
+  // While the keyboard is up the tabs are hidden, as in a native app. iOS otherwise
+  // floats a fixed bar above the keyboard on some scrolls and drops it on others.
+  const [typing, setTyping] = useState(false)
+  useEffect(() => {
+    const isText = (t: EventTarget | null) => t instanceof HTMLTextAreaElement || (t instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'file'].includes(t.type))
+    const focus = (e: FocusEvent) => isText(e.target) && setTyping(true)
+    const blur = () => setTimeout(() => setTyping(isText(document.activeElement)), 50)
+    document.addEventListener('focusin', focus)
+    document.addEventListener('focusout', blur)
+    return () => {
+      document.removeEventListener('focusin', focus)
+      document.removeEventListener('focusout', blur)
+    }
+  }, [])
 
   // First-run setup: only for someone with no workouts, and only once the first
   // sync has finished, so a returning user on a new phone is not asked again.
@@ -311,7 +326,7 @@ function Shell() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <div ref={bar} className="fixed inset-x-0 bottom-0 z-20 bg-bg">
+      <div ref={bar} className={cx('fixed inset-x-0 bottom-0 z-20 bg-bg', typing && 'hidden')}>
         <UpdatePrompt />
         <ResumeBar />
         <TabBar />
