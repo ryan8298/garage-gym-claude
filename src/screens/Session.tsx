@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAuth } from '../lib/auth'
+import { useProfile } from '../lib/data'
+import { usePartner } from '../lib/partner'
 import type { SetRow } from '../lib/db'
 import { exercise, exercises, groupLabels, stationLabels } from '../lib/exercises'
 import { breakdown, loadModeFor } from '../lib/plates'
@@ -25,6 +27,7 @@ import {
   updateLift,
   updateSet,
   useActiveSession,
+  usePairedSession,
   useSessionLifts,
   type LiftView,
 } from '../lib/session'
@@ -96,9 +99,19 @@ function RestBar() {
 export function Session() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const session = useActiveSession(user!.id)
+  // In a shared workout the screen shows one person at a time: whoever's turn it is.
+  const mine = useActiveSession(user!.id)
+  const theirs = usePairedSession(mine)
+  const [who, setWho] = useState<'me' | 'partner'>('me')
+  const session = who === 'partner' && theirs ? theirs : mine
+  const other = session === mine ? theirs : mine
+  const viewer = session?.user_id ?? user!.id
   const lifts = useSessionLifts(session?.id)
-  const program = useProgram(user!.id)
+  const otherLifts = useSessionLifts(other?.id)
+  const program = useProgram(viewer)
+  const partnerProgram = useProgram(other?.user_id ?? viewer)
+  const myName = useProfile(user!.id)?.display_name || 'Me'
+  const partnerName = usePartner(user!.id)?.display_name || 'Partner'
   const elapsed = useElapsed(session?.started_at)
   useWakeLock(!!session)
 
@@ -115,7 +128,7 @@ export function Session() {
   const [undo, setUndo] = useState<{ text: string; run(): void } | null>(null)
   const [suggesting, setSuggesting] = useState(false)
   const [swapFor, setSwapFor] = useState<string | null>(null)
-  const weekSets = useSetsByGroup(user!.id)
+  const weekSets = useSetsByGroup(viewer)
 
   const current = useMemo(() => {
     if (!lifts?.length) return null
@@ -130,7 +143,7 @@ export function Session() {
     return () => clearTimeout(id)
   }, [undo])
 
-  const past = useLiveQuery(async () => (current && session ? history(user!.id, current.lift.exercise_key, 1, session.id) : []), [current?.lift.exercise_key, session?.id], [])
+  const past = useLiveQuery(async () => (current && session ? history(viewer, current.lift.exercise_key, 1, session.id) : []), [current?.lift.exercise_key, session?.id, viewer], [])
 
   if (session === undefined || lifts === undefined) return null
   if (session === null) return <Navigate to="/" replace />
@@ -158,7 +171,7 @@ export function Session() {
       })
     : []
   const swapTarget = swapFor ? (lifts.find((v) => v.lift.id === swapFor) ?? null) : null
-  const remaining = lifts.reduce((n, v) => n + (v.lift.skipped ? 0 : v.sets.filter((s) => !s.done).length), 0)
+  const remaining = [...lifts, ...(other ? (otherLifts ?? []) : [])].reduce((n, v) => n + (v.lift.skipped ? 0 : v.sets.filter((s) => !s.done).length), 0)
 
   async function toggleDone(view: LiftView, s: SetRow) {
     unlockSound()
@@ -169,10 +182,24 @@ export function Session() {
     if ((m === 'wr' || m === 'bw') && s.reps === null) return setPad({ setId: s.id, field: 'reps' })
     if ((m === 'time' || m === 'carry') && s.duration_seconds === null) return setPad({ setId: s.id, field: 'seconds' })
     const saved = await updateSet(s, { done: true, done_at: new Date().toISOString() })
-    if (await isRecord(user!.id, view.lift.exercise_key, saved)) {
-      setRecord(view.lift.name)
+    if (await isRecord(viewer, view.lift.exercise_key, saved)) {
+      setRecord(other ? `${session === mine ? myName : partnerName}: ${view.lift.name}` : view.lift.name)
       beep('record')
       setTimeout(() => setRecord(null), 2600)
+    }
+    // Training together: the other person goes next on the same lift, and the rest starts once both have gone.
+    if (other && otherLifts) {
+      const match = otherLifts.find((v) => v.lift.exercise_key === view.lift.exercise_key) ?? otherLifts.find((v) => v.lift.position === view.lift.position && v.target.kind === view.target.kind)
+      if (match && !match.lift.skipped && match.sets.some((x) => !x.done)) {
+        const doneHere = view.sets.filter((x) => x.done || x.id === s.id).length
+        const doneThere = match.sets.filter((x) => x.done).length
+        if (doneThere >= doneHere && s.set_type !== 'warmup') startRest(restOf(program)[view.target.kind])
+        setPicked(match.lift.id)
+        setWho(session === mine ? 'partner' : 'me')
+        return
+      }
+      if (s.set_type !== 'warmup') startRest(restOf(program)[view.target.kind])
+      return
     }
     // Supersets: go straight to the partner after the first lift, rest after the second.
     const group = view.lift.superset_group
@@ -206,6 +233,40 @@ export function Session() {
               Finish
             </button>
           </header>
+
+          {other && otherLifts && (
+            <div className="grid grid-cols-2 gap-2" role="group" aria-label="Whose turn">
+              {(
+                [
+                  ['me', myName, mine === session ? lifts : otherLifts],
+                  ['partner', partnerName, mine === session ? otherLifts : lifts],
+                ] as const
+              ).map(([key, label, list]) => {
+                const on = (key === 'me') === (session === mine)
+                const sets = list.flatMap((v) => (v.lift.skipped ? [] : v.sets))
+                return (
+                  <button
+                    key={key}
+                    aria-pressed={on}
+                    onClick={() => {
+                      if (on) return
+                      // Land on the same lift the other person is on.
+                      const match = current ? (list.find((v) => v.lift.exercise_key === current.lift.exercise_key) ?? list.find((v) => v.lift.position === current.lift.position)) : undefined
+                      setPicked(match?.lift.id ?? null)
+                      setWho(key)
+                    }}
+                    className={cx('flex h-14 flex-col items-center justify-center rounded-control border', on ? 'border-accent bg-accent-dim' : 'border-line bg-surface')}
+                  >
+                    <span className={cx('font-display text-[17px] leading-tight font-bold', on ? 'text-accent' : 'text-muted')}>{label}</span>
+                    <span className="num text-[11px] text-muted">
+                      {on ? 'logging now · ' : ''}
+                      {sets.filter((x) => x.done).length} of {sets.length} sets
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
 
           {lifts.length > 0 && (
             <div className="flex gap-[5px]">
@@ -425,9 +486,9 @@ export function Session() {
                       void swapExercise(current, k)
                       if (alsoProgram) {
                         const main = Object.values(PROGRAM).flatMap((d) => d.mains).find((m) => [m.key, m.alone, ...m.alternatives].includes(old))
-                        if (main?.id === 'B2' && (k === 'pull_up' || k === 'lat_pulldown')) void saveProgram(user!.id, { pullMain: k })
-                        else if (main && current.target.kind === 'main') void saveProgram(user!.id, { mains: { ...program.mains, [main.id]: k } })
-                        else void saveProgram(user!.id, { pins: [...program.pins.filter((p) => p !== old), k] })
+                        if (main?.id === 'B2' && (k === 'pull_up' || k === 'lat_pulldown')) void saveProgram(viewer, { pullMain: k })
+                        else if (main && current.target.kind === 'main') void saveProgram(viewer, { mains: { ...program.mains, [main.id]: k } })
+                        else void saveProgram(viewer, { pins: [...program.pins.filter((p) => p !== old), k] })
                       }
                       setMenu(false)
                     }}
@@ -498,7 +559,7 @@ export function Session() {
                   const notes = { ...(program.notes ?? {}) }
                   if (pinned.trim()) notes[current.lift.exercise_key] = pinned.trim().slice(0, 200)
                   else delete notes[current.lift.exercise_key]
-                  void saveProgram(user!.id, { notes })
+                  void saveProgram(viewer, { notes })
                 }}
                 placeholder="Hook height, bench notch, grip width"
                 className="h-12 rounded-control border border-line bg-raised px-3.5 text-ink outline-none focus:border-accent"
@@ -597,7 +658,7 @@ export function Session() {
       {/* ---- finish ---- */}
       <Sheet open={finishing} onClose={() => setFinishing(false)}>
         <div className="flex flex-col gap-3 pb-3">
-          <span className="font-display text-[22px] font-bold">Finish this workout?</span>
+          <span className="font-display text-[22px] font-bold">{other ? 'Finish both workouts?' : 'Finish this workout?'}</span>
           <span className="text-sm text-muted">
             {remaining > 0 ? `${remaining} set${remaining === 1 ? ' is' : 's are'} not ticked off and will be left out of the record.` : 'Every set is done.'}
           </span>
@@ -605,7 +666,12 @@ export function Session() {
             variant="primary"
             onClick={() => {
               clearRest()
-              void finishSession(session, program).then(() => navigate(`/done/${session.id}`, { replace: true }))
+              const done = mine ?? session
+              void (async () => {
+                if (other) await finishSession(other, partnerProgram)
+                await finishSession(session, program)
+                navigate(`/done/${done.id}`, { replace: true })
+              })()
             }}
           >
             Finish workout
@@ -614,9 +680,13 @@ export function Session() {
           <Button
             variant="danger"
             onClick={() => {
-              if (!window.confirm('Discard this workout? Nothing from it will be saved.')) return
+              if (!window.confirm(other ? 'Discard both workouts? Nothing from either will be saved.' : 'Discard this workout? Nothing from it will be saved.')) return
               clearRest()
-              void discardSession(session).then(() => navigate('/', { replace: true }))
+              void (async () => {
+                if (other) await discardSession(other)
+                await discardSession(session)
+                navigate('/', { replace: true })
+              })()
             }}
           >
             Discard workout

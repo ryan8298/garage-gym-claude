@@ -10,7 +10,8 @@ import { targetText } from '../components/LiftList'
 import { phaseLabel } from '../lib/engine'
 import { DAY_ORDER, PROGRAM } from '../lib/program'
 import { saveProgram, usePlan } from '../lib/programState'
-import { startRoutine, startSession, useActiveSession } from '../lib/session'
+import { startPair, startRoutine, startSession, useActiveSession } from '../lib/session'
+import { usePartner } from '../lib/partner'
 import { unlockSound } from '../lib/rest'
 import { SyncBadge } from '../components/SyncBadge'
 import { GoalsCard } from '../components/Goals'
@@ -40,6 +41,11 @@ export function Today() {
   const [choosing, setChoosing] = useState(false)
   const navigate = useNavigate()
   const active = useActiveSession(user!.id)
+  const partner = usePartner(user!.id)
+  const partnerPlan = usePlan(partner?.id ?? user!.id, plan.day)
+  const partnerActive = useActiveSession(partner?.id)
+  const [together, setTogether] = useState(() => localStorage.getItem('gg.together') !== '0')
+  const paired = !!partner && together && !partnerActive
   const mains = plan.lifts.filter((l) => l.kind === 'main')
   const rest = plan.lifts.filter((l) => l.kind !== 'main')
   const name = profile?.display_name || user!.email.split('@')[0]
@@ -104,12 +110,32 @@ export function Today() {
             onClick={() => {
               unlockSound()
               setStarting(true)
-              void startSession(user!.id, plan, program).then(() => navigate('/session'))
+              const begin = paired ? startPair({ id: user!.id, plan, program }, { id: partner!.id, plan: partnerPlan.plan, program: partnerPlan.program }) : startSession(user!.id, plan, program)
+              void begin.then(() => navigate('/session'))
             }}
             className="flex h-14 items-center justify-center rounded-control bg-accent font-display text-lg font-bold text-accent-ink disabled:opacity-60"
           >
-            {starting ? 'Starting…' : 'Start workout'}
+            {starting ? 'Starting…' : paired ? 'Start workout together' : 'Start workout'}
           </button>
+        )}
+        {partner && !active && (
+          <label className="flex min-h-[44px] items-center justify-between gap-3">
+            <span className="flex flex-col gap-0.5">
+              <span className="text-sm font-semibold">Training with {partner.display_name || 'my partner'}</span>
+              <span className="text-xs text-muted">{partnerActive ? `${partner.display_name || 'Your partner'} already has a workout open` : 'One phone logs for both of you, taking turns'}</span>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              className="switch"
+              disabled={!!partnerActive}
+              checked={paired}
+              onChange={(e) => {
+                localStorage.setItem('gg.together', e.target.checked ? '1' : '0')
+                setTogether(e.target.checked)
+              }}
+            />
+          </label>
         )}
         <div className="grid grid-cols-3 gap-2">
           <Link to={`/workout/${plan.day}`} className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">

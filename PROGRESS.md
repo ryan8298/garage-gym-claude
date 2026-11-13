@@ -313,7 +313,7 @@ Decision: the suggestions are worked out on the phone from the last 7 days, not 
 5. Scrolling the page up and down with a finger on the list still works, and a normal tap on a row still jumps to that lift.
 6. Tap "Suggest for gaps": it lists exercises with a reason such as "Calves: 2 of 10 sets this week". Tap one: it joins the end of the queue.
 
-## Release A, part 1c: swap for anything (built, waiting on the iPhone check)
+## Release A, part 1c: swap for anything (works; Ryan wants more from it later, see BACKLOG 4.10 and 4.11)
 
 From Ryan's feedback: the swap list was too short. Any lift should be swappable for any other, with recommendations leading and nothing hidden.
 
@@ -324,6 +324,34 @@ Done:
 
 iPhone check: in a workout, three dots, Choose any exercise. Search, pick one: the lift is replaced and its sets get fresh suggestions.
 
+## Release A, part 2: training together (built, waiting on the iPhone checklist)
+
+Backlog items 2.1, 2.2, 2.3 (in part) and 2.5.
+
+How it works:
+- Today has a "Training with <partner>" switch. With it on, Start creates two sessions, one per person, linked by `pair_id`. Each person's lifts come from their own program for the same day, so their weights, history, records and suggestions are their own.
+- The workout screen shows one person at a time, with a two-button switch at the top. Ticking a set passes the turn to the other person on the same lift; the rest timer starts once both have done that set.
+- Finish closes both sessions and moves both rotations on. Discard removes both.
+- The partner's phone shows their half as a workout in progress and can log to it as well.
+- No pairing step: the two accounts are already each other's partner. A partner list and invitations belong to backlog epic 6.
+
+Database: `workout_sessions.pair_id` added. Insert and update rules on workout_sessions, session_exercises, sets and program_state now allow any signed-in user, so one phone can write both people's rows. Approved by Ryan for sessions, lifts and sets; program_state was added because the partner's rotation and pinned notes live there. This must be narrowed to group members before anyone outside the household signs up (backlog 6.2).
+
+Not built yet: partner effort rating on the finish screen, shared sessions for freestyle, routines and coach workouts, more than two people, a push invitation, and a faster live view between two phones (it follows the normal sync).
+
+Tests: a second browser test (`tests/e2e/together.e2e.cjs`) runs a two-person workout and checks two linked sessions, each person's set in their own account, and both rotations advanced. It cannot test the real server rules; the iPhone checklist does.
+
+## iPhone checklist for release A, part 2
+
+1. Accept "Update available" on both phones.
+2. On Ryan's phone, Today shows "Training with Stella" switched on and the button reads "Start workout together". Start it.
+3. The workout screen shows Ryan and Stella at the top with Ryan selected. Log Ryan's first set: the screen switches to Stella with her own weights. Log hers: it switches back and the rest timer starts.
+4. On Day B (or by swapping the day), Ryan's lift is pull-ups where Stella's is lat pulldown.
+5. Tap the other name at any time to switch by hand. Notes, swaps and the queue apply to whoever is selected.
+6. Check the sync indicator on Today reports everything synced (this proves the phone was allowed to save Stella's rows). Within a minute or so Stella's phone shows "Workout in progress" with the sets logged for her.
+7. Finish: the sheet says "Finish both workouts?". Afterwards each phone's history has that person's workout with their own sets, and each person's next workout has moved on.
+8. Switch "Training with Stella" off: Start begins a workout for one person as before.
+
 ## Next
 
-Release A, part 2: training together on one phone (backlog epic 2). Older candidates: custom exercises, body-outline muscle map, streamed coach replies, sets and reps in the program editor, a custom domain.
+After this checklist: release B in BACKLOG.md (equipment profiles and the larger exercise library, which must ship together). Remaining release A items: 2.4 faster live view, 2.6 invite, 2.7 joint goals, 2.8 three or more people.

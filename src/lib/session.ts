@@ -105,7 +105,7 @@ async function addLift(session: WorkoutSession, key: string, position: number, t
   for (let i = 0; i < t.sets; i++) await save<SetRow>(db, 'sets', blankSet(lift, i, suggestion))
 }
 
-export async function startSession(userId: string, plan: SessionPlan | null, program: ProgramData, opts: { date?: string; title?: string } = {}): Promise<string> {
+export async function startSession(userId: string, plan: SessionPlan | null, program: ProgramData, opts: { date?: string; title?: string; pairId?: string } = {}): Promise<string> {
   // A past date means the workout is being written down after the fact.
   const now = opts.date && opts.date !== localDate() ? new Date(`${opts.date}T12:00:00`) : new Date()
   const session = await save<WorkoutSession>(db, 'workout_sessions', {
@@ -120,6 +120,7 @@ export async function startSession(userId: string, plan: SessionPlan | null, pro
     block_week: plan?.week ?? null,
     effort: null,
     note: null,
+    pair_id: opts.pairId ?? null,
   })
   for (const [i, l] of (plan?.lifts ?? []).entries()) {
     await addLift(session, l.key, i, { kind: l.kind, role: l.role, sets: l.sets, low: l.low, high: l.high, unit: l.unit, eachSide: l.eachSide, note: l.note }, l.superset ?? null)
@@ -128,6 +129,25 @@ export async function startSession(userId: string, plan: SessionPlan | null, pro
   if (!program.startedOn && !opts.date) await saveProgram(userId, { startedOn: localDate(now) })
   requestSync()
   return session.id
+}
+
+/**
+ * Start a workout for two people on one phone: one session each, linked, so
+ * each keeps their own weights, history and records.
+ */
+export async function startPair(me: { id: string; plan: SessionPlan; program: ProgramData }, partner: { id: string; plan: SessionPlan; program: ProgramData }): Promise<void> {
+  const pairId = uuid()
+  await startSession(partner.id, partner.plan, partner.program, { pairId })
+  await startSession(me.id, me.plan, me.program, { pairId })
+}
+
+/** The other person's open session in a shared workout, if there is one. */
+export function usePairedSession(session: WorkoutSession | null | undefined) {
+  return useLiveQuery(async () => {
+    if (!session?.pair_id) return null
+    const all = await db.workout_sessions.filter((s) => s.pair_id === session.pair_id && s.id !== session.id && !s.finished_at && !s.deleted).toArray()
+    return all[0] ?? null
+  }, [session?.id, session?.pair_id])
 }
 
 /** Add a planned lift to a session. Used for workouts built outside the standard program. */
@@ -346,7 +366,7 @@ export async function finishSession(session: WorkoutSession, program: ProgramDat
   if (session.template_key) await saveProgram(session.user_id, { queueIndex: program.queueIndex + 1 })
   requestSync(0)
   // Tell the other person, once the workout has had a moment to upload. Not for workouts logged after the fact.
-  if (session.local_date === localDate()) setTimeout(() => void notify('workout_finished', session.id), 4000)
+  if (session.local_date === localDate() && !session.pair_id) setTimeout(() => void notify('workout_finished', session.id), 4000)
 }
 
 export async function rateSession(session: WorkoutSession, effort: number | null, note: string | null) {

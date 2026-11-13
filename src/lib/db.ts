@@ -40,6 +40,8 @@ export interface WorkoutSession extends SyncFields {
   block_week: number | null
   effort: number | null
   note: string | null
+  /** Shared by the two sessions of a workout done together. */
+  pair_id?: string | null
 }
 
 export interface SessionExercise extends SyncFields {

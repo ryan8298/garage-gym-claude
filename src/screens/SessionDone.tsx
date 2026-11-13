@@ -35,6 +35,7 @@ export function SessionDone() {
       <div className="mt-4 flex flex-col gap-1">
         <Label tone="accent">Workout complete</Label>
         <h1 className="font-display text-[32px] leading-[1.05] font-bold tracking-[-0.6px]">{session.title}</h1>
+        {session.pair_id && <span className="text-sm text-muted">Your partner's workout was saved to their account too.</span>}
       </div>
 
       <div className="grid grid-cols-3 gap-2">
