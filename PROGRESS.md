@@ -611,6 +611,16 @@ Not verified, and only a real run will tell:
 
 Setup for Ryan: developer.spotify.com, Dashboard, Create app; Redirect URI `https://garage-gym-claude.vercel.app/spotify`; API: Web API; then User Management: add both Spotify account emails. Paste the client ID in Settings, Spotify.
 
+### Spotify: first real try showed nothing (fix built, waiting on a recheck)
+
+Ryan set up the Spotify app and connected, started music, started a workout, and no bar appeared. The bar hid itself whenever it was not connected, nothing was playing, or Spotify answered with an error, so there was no way to tell which. Spotify's migration guide was then read directly (a new "garage-gym" cloud environment allows developer.spotify.com and Wikimedia Commons): the playback endpoints are still available to development-mode apps.
+
+Changes:
+- Once connected, the bar is always on the workout screen. It shows the song, or "Nothing playing" with a play button, or the reason Spotify could not answer (not connected, account not allowed, not Premium, no connection).
+- The order no longer matters: music started before or after the workout appears within about five seconds, and play in the bar starts Spotify even if it was idle (handing playback to the phone if Spotify has no active device).
+- Settings, Spotify shows "Connected as <name>" and has "Check the connection", which reports what Spotify says right now.
+- Podcasts show as well as songs.
+
 ## Next
 
 Release D in BACKLOG.md (the design overhaul) or the open items of releases A to C. Open in epic 6: password reset and Sign in with Apple, groups of three or more in the screens, privacy choices, paged sync.

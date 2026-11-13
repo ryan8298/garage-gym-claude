@@ -16,13 +16,17 @@ async function main() {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } })
     await context.route('**/*.supabase.co/**', (route) => route.abort())
     const calls = []
-    let song = 'First Song'
+    // Nothing is playing when the workout starts: the music comes later.
+    let song = ''
     let playing = true
     await context.route('https://api.spotify.com/**', (route) => {
       const req = route.request()
       const path = new globalThis.URL(req.url()).pathname
       calls.push(`${req.method()} ${path}`)
+      if (path.endsWith('/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ display_name: 'Ryan', product: 'premium' }) })
       if (path.endsWith('/next')) song = 'Second Song'
+      if (path.endsWith('/play')) playing = true
+      if (req.method() === 'GET' && song === '') return route.fulfill({ status: 204, body: '' })
       if (path.endsWith('/pause')) playing = false
       if (req.method() !== 'GET') return route.fulfill({ status: 204, body: '' })
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ is_playing: playing, item: { name: song, artists: [{ name: 'Some Band' }], album: { images: [] } } }) })
@@ -46,6 +50,7 @@ async function main() {
     await page.goto(`${URL}/spotify?code=the-code`)
     await page.waitForURL('**/settings')
     await page.getByText('Connected. The song playing in Spotify').waitFor()
+    await page.getByText('Connected as Ryan.').waitFor()
     assert.match(tokenBody, /grant_type=authorization_code/)
     assert.match(tokenBody, /code=the-code/)
     assert.match(tokenBody, /code_verifier=v{64}/)
@@ -54,12 +59,15 @@ async function main() {
     await page.goto(URL)
     await page.getByRole('button', { name: 'Start workout' }).click()
     await page.waitForURL('**/session')
-    await page.getByText('First Song').waitFor()
+    await page.getByText('Nothing playing').waitFor()
+    song = 'First Song'
+    await page.getByText('First Song').waitFor({ timeout: 9000 })
     await page.getByText('Some Band').waitFor()
     await page.getByRole('button', { name: 'Next song' }).click()
     await page.getByText('Second Song').waitFor({ timeout: 8000 })
     await page.getByRole('button', { name: 'Pause music' }).click()
-    await page.getByRole('button', { name: 'Play music' }).waitFor()
+    await page.getByRole('button', { name: 'Play music' }).click()
+    await page.getByRole('button', { name: 'Pause music' }).waitFor({ timeout: 8000 })
     assert.ok(calls.includes('POST /v1/me/player/next'))
     assert.ok(calls.includes('PUT /v1/me/player/pause'))
 

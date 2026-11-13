@@ -12,7 +12,7 @@ import { capabilities } from '../lib/platform'
 import { requestSync, useSyncStatus } from '../lib/syncRunner'
 import { Button, Card, Icon, Label, RoundButton, cx, icons } from '../components/ui'
 import { SyncBadge } from '../components/SyncBadge'
-import { connectSpotify, disconnectSpotify, spotifyConnected, spotifyRedirect } from '../lib/spotify'
+import { connectSpotify, disconnectSpotify, spotifyAccount, spotifyConnected, spotifyRedirect, spotifyState } from '../lib/spotify'
 import { usePartner } from '../lib/partner'
 import { acceptInvite, createInvite, deleteAccount, leaveGroup, usePartners } from '../lib/group'
 
@@ -36,6 +36,10 @@ export function Settings() {
   const spotifyId = program.spotifyClientId ?? partnerProgram.spotifyClientId ?? ''
   const [spotifyDraft, setSpotifyDraft] = useState('')
   const [spotifyOn, setSpotifyOn] = useState(spotifyConnected)
+  const [spotifyNote, setSpotifyNote] = useState<string | null>(null)
+  useEffect(() => {
+    if (spotifyOn) void spotifyAccount().then(setSpotifyNote)
+  }, [spotifyOn])
   const [invite, setInvite] = useState<string | null>(null)
   const [code, setCode] = useState('')
   const [groupNote, setGroupNote] = useState<string | null>(null)
@@ -356,6 +360,19 @@ export function Settings() {
         {spotifyOn ? (
           <>
             <span className="text-sm">Connected. The song playing in Spotify shows on the workout screen, with previous, pause and next.</span>
+            {spotifyNote && (
+              <span role="status" className="text-[13px] text-muted">
+                {spotifyNote}
+              </span>
+            )}
+            <Button
+              onClick={() => {
+                setSpotifyNote('Checking…')
+                void Promise.all([spotifyAccount(), spotifyState()]).then(([who, now]) => setSpotifyNote(`${who} ${now.kind === 'song' ? `Playing: ${now.song.title}.` : now.kind === 'idle' ? 'Spotify says nothing is playing right now.' : now.text}`))
+              }}
+            >
+              Check the connection
+            </Button>
             <Button
               variant="danger"
               onClick={() => {

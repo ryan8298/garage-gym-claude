@@ -99,20 +99,61 @@ export interface Playing {
   art: string | null
   playing: boolean
 }
+/** What Spotify told us: a song, nothing playing, or why it could not answer. */
+export type SpotifyState = { kind: 'song'; song: Playing } | { kind: 'idle' } | { kind: 'problem'; text: string }
 
-async function nowPlaying(): Promise<Playing | null> {
-  const res = await call('/me/player')
-  if (!res || res.status !== 200) return null
-  const data = (await res.json()) as { is_playing: boolean; item?: { name: string; artists?: { name: string }[]; album?: { images?: { url: string }[] }; show?: { name: string } } | null }
-  if (!data.item) return null
-  const images = data.item.album?.images ?? []
-  return { title: data.item.name, artist: data.item.artists?.map((a) => a.name).join(', ') ?? data.item.show?.name ?? '', art: images[images.length - 1]?.url ?? null, playing: data.is_playing }
+const reason = async (res: Response | null): Promise<string> => {
+  if (!res) return navigator.onLine ? 'Spotify needs connecting again in Settings.' : 'No connection.'
+  let detail = ''
+  try {
+    detail = ((await res.json()) as { error?: { message?: string } }).error?.message ?? ''
+  } catch {
+    /* no body */
+  }
+  if (res.status === 401) return 'Spotify needs connecting again in Settings.'
+  if (res.status === 403) return `Spotify refused: ${detail || 'this account is not allowed'}. Check the account is added under User Management in your Spotify app and has Premium.`
+  if (res.status === 429) return 'Spotify is asking us to slow down. It will retry.'
+  return `Spotify answered ${res.status}${detail ? `: ${detail}` : ''}.`
 }
 
-/** What is playing, checked every few seconds while `active` and the app is in front. */
+export async function spotifyState(): Promise<SpotifyState> {
+  const res = await call('/me/player?additional_types=track,episode')
+  if (res?.status === 204) return { kind: 'idle' }
+  if (!res || res.status !== 200) return { kind: 'problem', text: await reason(res) }
+  const data = (await res.json()) as { is_playing: boolean; item?: { name: string; artists?: { name: string }[]; album?: { images?: { url: string }[] }; images?: { url: string }[]; show?: { name: string } } | null }
+  if (!data.item) return { kind: 'idle' }
+  const images = data.item.album?.images ?? data.item.images ?? []
+  return { kind: 'song', song: { title: data.item.name, artist: data.item.artists?.map((x) => x.name).join(', ') ?? data.item.show?.name ?? '', art: images[images.length - 1]?.url ?? null, playing: data.is_playing } }
+}
+
+/** Who is connected, for the Settings card. Also the simplest check that the connection works at all. */
+export async function spotifyAccount(): Promise<string> {
+  const res = await call('/me')
+  if (!res || res.status !== 200) return await reason(res)
+  const me = (await res.json()) as { display_name?: string; product?: string }
+  return `Connected as ${me.display_name ?? 'your account'}${me.product && me.product !== 'premium' ? ' (not Premium: the controls will not work)' : ''}.`
+}
+
+/** Start the music. If Spotify has no active device, hand playback to the first one it knows about. */
+async function resume(): Promise<string | null> {
+  const res = await call('/me/player/play', 'PUT')
+  if (res && (res.status === 200 || res.status === 202 || res.status === 204)) return null
+  const list = await call('/me/player/devices')
+  const devices = list?.status === 200 ? ((await list.json()) as { devices: { id: string | null; is_restricted: boolean }[] }).devices.filter((d) => d.id && !d.is_restricted) : []
+  if (devices.length === 0) return 'Open the Spotify app once so it can be found, then tap play again.'
+  const bearer = await access()
+  if (!bearer) return 'Spotify needs connecting again in Settings.'
+  const moved = await fetch('https://api.spotify.com/v1/me/player', { method: 'PUT', headers: { Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ device_ids: [devices[0].id], play: true }) }).catch(() => null)
+  return moved && moved.status < 300 ? null : await reason(moved)
+}
+
+/**
+ * Spotify's state, checked every few seconds while `active` and the app is in
+ * front. It does not matter whether the music or the workout started first.
+ */
 export function useSpotify(active: boolean) {
   const [connected, setConnected] = useState(spotifyConnected)
-  const [track, setTrack] = useState<Playing | null>(null)
+  const [state, setState] = useState<SpotifyState | null>(null)
   const [nudge, setNudge] = useState(0)
   useEffect(() => {
     const l = () => setConnected(spotifyConnected())
@@ -120,10 +161,10 @@ export function useSpotify(active: boolean) {
     return () => void listeners.delete(l)
   }, [])
   useEffect(() => {
-    if (!active || !connected) return setTrack(null)
+    if (!active || !connected) return setState(null)
     let stop = false
     const check = () => {
-      if (document.visibilityState === 'visible' && navigator.onLine) void nowPlaying().then((t) => !stop && setTrack(t))
+      if (document.visibilityState === 'visible') void spotifyState().then((next) => !stop && setState(next))
     }
     check()
     const id = setInterval(check, 5000)
@@ -134,16 +175,26 @@ export function useSpotify(active: boolean) {
       document.removeEventListener('visibilitychange', check)
     }
   }, [active, connected, nudge])
+  const recheck = () => setTimeout(() => setNudge((n) => n + 1), 700)
   const act = (path: string, method: string) => {
     // Show the change at once; the next check confirms it.
-    if (path.endsWith('/pause')) setTrack((t) => t && { ...t, playing: false })
-    if (path.endsWith('/play')) setTrack((t) => t && { ...t, playing: true })
-    void call(path, method).then(() => setTimeout(() => setNudge((n) => n + 1), 600))
+    if (path.endsWith('/pause')) setState((x) => (x?.kind === 'song' ? { kind: 'song', song: { ...x.song, playing: false } } : x))
+    void call(path, method).then(async (res) => {
+      if (res && res.status >= 400) setState({ kind: 'problem', text: await reason(res) })
+      recheck()
+    })
+  }
+  const play = () => {
+    setState((x) => (x?.kind === 'song' ? { kind: 'song', song: { ...x.song, playing: true } } : x))
+    void resume().then((problem) => {
+      if (problem) setState({ kind: 'problem', text: problem })
+      recheck()
+    })
   }
   return {
     connected,
-    track,
-    toggle: () => act(track?.playing ? '/me/player/pause' : '/me/player/play', 'PUT'),
+    state,
+    toggle: () => (state?.kind === 'song' && state.song.playing ? act('/me/player/pause', 'PUT') : play()),
     next: () => act('/me/player/next', 'POST'),
     previous: () => act('/me/player/previous', 'POST'),
   }
