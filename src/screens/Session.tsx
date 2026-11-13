@@ -131,6 +131,7 @@ export function Session() {
   const [suggesting, setSuggesting] = useState(false)
   const [swapFor, setSwapFor] = useState<string | null>(null)
   const [queue, setQueue] = useState(false)
+  const [swapOpen, setSwapOpen] = useState<string | null>(null)
   const [focusId, setFocusId] = useState<string | null>(null)
   const weekSets = useSetsByGroup(viewer)
 
@@ -178,6 +179,17 @@ export function Session() {
     : []
   const swapTarget = swapFor ? (lifts.find((v) => v.lift.id === swapFor) ?? null) : null
   const remaining = [...lifts, ...(other ? (otherLifts ?? []) : [])].reduce((n, v) => n + (v.lift.skipped ? 0 : v.sets.filter((s) => !s.done).length), 0)
+
+  /** Replace a lift with another, and make it permanent in that person's program if asked. */
+  function doSwap(view: LiftView, k: string) {
+    const old = view.lift.exercise_key
+    void swapExercise(view, k)
+    if (!alsoProgram || !session) return
+    const main = (dayByKey(session.template_key)?.mains ?? ALL_DAYS.flatMap((d) => d.mains)).find((m) => [m.key, m.alone, ...m.alternatives].includes(old))
+    if (main?.pull && (k === 'pull_up' || k === 'lat_pulldown')) void saveProgram(viewer, { pullMain: k })
+    else if (main && view.target.kind === 'main') void saveProgram(viewer, { mains: { ...program.mains, [main.id]: k } })
+    else void saveProgram(viewer, { pins: [...program.pins.filter((p) => p !== old), k] })
+  }
 
   async function toggleDone(view: LiftView, s: SetRow) {
     unlockSound()
@@ -546,13 +558,63 @@ export function Session() {
               if (picked === v.lift.id) setPicked(null)
               setUndo({ text: `${v.lift.name} removed`, run: () => void restoreLift(v) })
             }}
-            onSwap={(v) => {
-              setPicked(v.lift.id)
-              setQueue(false)
-              setMenu(true)
-            }}
+            onSwap={(v) => setSwapOpen(swapOpen === v.lift.id ? null : v.lift.id)}
+            detail={(v) =>
+              v.lift.id !== swapOpen ? null : (
+                <div className="flex flex-col gap-2.5 border-t border-coach-line bg-coach-dim p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <Label tone="coach">Swap for, same movement</Label>
+                    <button className="h-9 rounded-full border border-coach px-3 text-[13px] font-semibold text-coach" onClick={() => setSwapOpen(null)}>
+                      Keep it
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {alternativesFor(v.lift.exercise_key)
+                      .filter((k) => !lifts.some((x) => x.lift.exercise_key === k))
+                      .sort((a, b) => Number(availableAt(gym, exercise(b))) - Number(availableAt(gym, exercise(a))))
+                      .slice(0, 3)
+                      .map((k) => {
+                        const e = exercise(k)
+                        return (
+                          <button
+                            key={k}
+                            onClick={() => {
+                              doSwap(v, k)
+                              setSwapOpen(null)
+                            }}
+                            className="flex min-h-[60px] flex-col justify-center gap-0.5 rounded-xl border border-coach-line bg-bg px-3 py-1.5 text-left"
+                          >
+                            <span className="text-sm leading-tight font-semibold">{e.name}</span>
+                            <span className="text-[11px] text-muted">
+                              {equipLabels[e.equip]}
+                              {!availableAt(gym, e) ? ` · not at ${gym.name}` : ''}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    <button
+                      onClick={() => {
+                        setSwapFor(v.lift.id)
+                        setSwapOpen(null)
+                        setQuery('')
+                        setQueue(false)
+                        setAdding(true)
+                      }}
+                      className="flex min-h-[60px] flex-col justify-center gap-0.5 rounded-xl border border-dashed border-coach-line px-3 py-1.5 text-left"
+                    >
+                      <span className="text-sm font-semibold text-coach">Search all {exercises.length}</span>
+                      <span className="text-[11px] text-muted">Any lift, any place</span>
+                    </button>
+                  </div>
+                  <label className="flex min-h-[40px] items-center justify-between gap-3">
+                    <span className="text-[13px] text-muted">Use it every time, not only today</span>
+                    <input type="checkbox" role="switch" className="switch" checked={alsoProgram} onChange={(e) => setAlsoProgram(e.target.checked)} />
+                  </label>
+                </div>
+              )
+            }
           />
-          <span className="text-xs text-muted">Drag the handle to reorder. Swipe left to remove, right to swap.</span>
+          <span className="text-xs text-muted">Drag the handle to reorder. Swipe left to remove, right for swap choices.</span>
           <div className="grid grid-cols-2 gap-2">
             <Button
               onClick={() => {
@@ -592,14 +654,7 @@ export function Session() {
                   <button
                     key={k}
                     onClick={() => {
-                      const old = current.lift.exercise_key
-                      void swapExercise(current, k)
-                      if (alsoProgram) {
-                        const main = (dayByKey(session.template_key)?.mains ?? ALL_DAYS.flatMap((d) => d.mains)).find((m) => [m.key, m.alone, ...m.alternatives].includes(old))
-                        if (main?.pull && (k === 'pull_up' || k === 'lat_pulldown')) void saveProgram(viewer, { pullMain: k })
-                        else if (main && current.target.kind === 'main') void saveProgram(viewer, { mains: { ...program.mains, [main.id]: k } })
-                        else void saveProgram(viewer, { pins: [...program.pins.filter((p) => p !== old), k] })
-                      }
+                      doSwap(current, k)
                       setMenu(false)
                     }}
                     className="flex min-h-[56px] items-center justify-between gap-3 rounded-control border border-line bg-raised px-3.5 py-2 text-left"

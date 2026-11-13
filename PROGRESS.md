@@ -556,10 +556,24 @@ Not built yet from the mockups: swap suggestions opening in place inside the lif
 8. Progress: the body figure shows, front and back, coloured where you have trained this week, with the bars beneath in matching colours.
 9. Settings has a "Program and places" link to the Plan tab.
 
-### Fixes after the part 2 checklist (waiting on a recheck)
+### Fixes after the part 2 checklist (confirmed 2026-11-14)
 
 - Training together, the turn no longer passes when someone finishes their last set of a lift. Their "reps left in the tank" card stays, in their own colour, with a "Now <partner>" button that passes the turn. After the second person's card, "Next: <lift>" moves on.
 - The body figure and bars now count what was actually worked: one set gives a full set to the lift's main muscle and half a set to each muscle that helps (squats now show on glutes and hamstrings as well as quads). The same counting feeds the gap suggestions and the plan's top-ups, so the numbers agree everywhere. Half sets show as, for example, 4.5.
+
+### Part 3: swaps in place and the first run (built, waiting on the iPhone checklist)
+
+- In the lift sheet, swiping a lift right now opens its swap choices under that row: up to three alternatives for the same movement (ones that fit the place first), "Search all", a "use it every time" switch and "Keep it". No second sheet.
+- First run is four steps with a progress bar and Back: about you (name, weight); what you train for (goal, days, session length, with the recommended program shown); where you train (home with equipment chips, or a gym; pull-ups; ankle strap); who you train with (get a code to send, enter a code, or on your own). It saves the program, the home gym's equipment and the active place. A person who joined by invitation sees who they are connected to.
+- New browser test `tests/e2e/onboarding.e2e.cjs` runs the four steps and checks Today shows the recommended program adapted to a dumbbell-only home gym.
+
+Still to do in release D: restyle Us, the daily log, Library, the exercise page, history, the coach and Settings to the new look; the "Coach noticed" card and Ryan / Stella / Both switch on Progress.
+
+### iPhone checklist for release D, part 3
+
+1. Accept "Update available". In a workout, open the lift sheet and swipe a lift right: its swap choices open under it. Pick one: the lift changes and the panel closes. "Keep it" closes it without changing anything.
+2. "Search all" in that panel opens the full library search for that lift.
+3. First run only shows for someone with no workouts. To see it, invite a test account with a second email (as before): after signing in it walks through four steps, the last one saying who it is connected to. Delete the test account afterwards.
 
 ## Next
 

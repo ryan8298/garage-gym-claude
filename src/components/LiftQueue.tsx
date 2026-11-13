@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import type { LiftView } from '../lib/session'
 import { cx } from './ui'
 
@@ -16,6 +16,7 @@ export function LiftQueue({
   onReorder,
   onRemove,
   onSwap,
+  detail,
 }: {
   lifts: LiftView[]
   currentId: string | undefined
@@ -24,6 +25,8 @@ export function LiftQueue({
   onReorder(ids: string[]): void
   onRemove(v: LiftView): void
   onSwap(v: LiftView): void
+  /** Extra content shown under a row, such as its swap choices. */
+  detail?(v: LiftView): ReactNode
 }) {
   const ids = lifts.map((v) => v.lift.id)
   const [order, setOrder] = useState<string[] | null>(null)
@@ -155,6 +158,7 @@ export function LiftQueue({
                 </svg>
               </button>
             </div>
+            {detail?.(v)}
           </div>
         )
       })}
