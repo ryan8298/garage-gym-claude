@@ -164,7 +164,23 @@ export function ExerciseDetail() {
 
       {e.secondary.length > 0 && <p className="text-xs text-muted">Also works: {e.secondary.join(', ')}</p>}
 
-      <Card className="flex flex-col gap-2.5">
+      {e.custom && (
+        <Card className="flex flex-col gap-2.5">
+          <Label>Your own exercise</Label>
+          <span className="text-sm text-muted">Added by one of you, so it has no pictures or steps. Use the note in a workout's exercise options to keep your setup.</span>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (!window.confirm(`Remove "${e.name}" from the library? Workouts already logged with it keep their records.`)) return
+              void saveProgram(user!.id, { custom: (program.custom ?? []).filter((c) => c.key !== key) }).then(() => navigate('/library', { replace: true }))
+            }}
+          >
+            Remove from the library
+          </Button>
+        </Card>
+      )}
+
+      <Card className={cx('flex flex-col gap-2.5', !e.curated && 'hidden')}>
         <Label>In my program</Label>
         <div className="grid grid-cols-2 gap-2">
           <button aria-pressed={pinned} onClick={() => toggle('pins')} className={cx('h-11 rounded-control border text-sm font-semibold', pinned ? 'border-accent bg-accent-dim text-accent' : 'border-line bg-raised text-ink')}>

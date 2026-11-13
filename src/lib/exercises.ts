@@ -17,7 +17,13 @@ export interface Exercise {
   side: boolean
   /** Written and checked by us for our own program. The rest come from the wider public library. */
   curated: boolean
+  /** Added by one of us. */
+  custom?: boolean
   level?: string
+  /** Jumping and throwing drills: fine to choose, but never picked for you. */
+  plyo?: boolean
+  /** Works several joints at once. */
+  compound?: boolean
   needs?: 'ankle_strap' | 'partner'
   setup?: string
   cues?: string[]
@@ -41,6 +47,29 @@ export async function stepsFor(e: Exercise): Promise<string[]> {
 }
 
 const byKey = new Map(exercises.map((e) => [e.key, e]))
+const builtIn = exercises.length
+
+/** A person's own exercise, as saved in their settings. */
+export interface CustomExercise {
+  key: string
+  name: string
+  group: string
+  equip: Equip
+  measure: Measure
+  side: boolean
+}
+export const stationFor = (equip: Equip): Station => (['barbell', 'smith', 'cable', 'landmine', 'dumbbell', 'bodyweight'].includes(equip) ? (equip as Station) : 'free')
+
+/** Make people's own exercises part of the library. Called whenever the saved list changes. */
+export function registerCustom(list: CustomExercise[]) {
+  for (const e of exercises.splice(builtIn)) byKey.delete(e.key)
+  for (const c of list) {
+    if (byKey.has(c.key)) continue
+    const e: Exercise = { ...c, station: stationFor(c.equip), curated: false, custom: true, images: [], primary: [], secondary: [], steps: [] }
+    exercises.push(e)
+    byKey.set(e.key, e)
+  }
+}
 
 export function exercise(key: string): Exercise {
   const e = byKey.get(key)
@@ -88,4 +117,49 @@ export const equipLabels: Record<Equip, string> = {
   medicine_ball: 'Medicine ball',
   exercise_ball: 'Exercise ball',
   other: 'Other',
+}
+
+// Other names people type, mapped to the words the library uses.
+const ALIASES: [RegExp, string][] = [
+  [/\brdls?\b/g, 'romanian deadlift'],
+  [/\bohp\b/g, 'overhead press'],
+  [/\bskull ?crushers?\b/g, 'lying triceps'],
+  [/\bdb\b/g, 'dumbbell'],
+  [/\bbb\b/g, 'barbell'],
+  [/\bkb\b/g, 'kettlebell'],
+  [/\bpull ?ups?\b/g, 'pull up'],
+  [/\bchin ?ups?\b/g, 'chin up'],
+  [/\bpush ?ups?\b/g, 'push up'],
+  [/\bsit ?ups?\b/g, 'sit up'],
+  [/\bstep ?ups?\b/g, 'step up'],
+  [/\bpull ?downs?\b/g, 'pulldown'],
+  [/\bpush ?downs?\b/g, 'pushdown'],
+  [/\bmilitary press\b/g, 'overhead press'],
+  [/\bhip thrusts?\b/g, 'hip thrust'],
+  [/\babs\b/g, 'core'],
+  [/\blegs?\b(?! (press|curl|raise|extension))/g, 'quads'],
+  [/\bdelts?\b/g, 'shoulders'],
+  [/\bpecs?\b/g, 'chest'],
+  [/\blats?\b(?! pull)/g, 'back lat'],
+  [/\bhams?\b/g, 'hamstrings'],
+  [/\bbis?\b/g, 'biceps'],
+  [/\btris?\b/g, 'triceps'],
+]
+const norm = (text: string) => text.toLowerCase().replace(/[-_'’.,()/]/g, ' ').replace(/\s+/g, ' ').trim()
+const hay = new Map<string, string>()
+const haystack = (e: Exercise) => {
+  let h = hay.get(e.key)
+  if (h === undefined) hay.set(e.key, (h = norm(`${e.name} ${groupLabels[e.group] ?? ''} ${equipLabels[e.equip]} ${e.primary.join(' ')}`)))
+  return h
+}
+
+/** Does an exercise match what was typed? Every word must appear, and common other names are understood. */
+export function matchesQuery(e: Exercise, query: string): boolean {
+  let q = norm(query)
+  if (!q) return true
+  const h = haystack(e)
+  if (h.includes(q)) return true
+  for (const [from, to] of ALIASES) q = q.replace(from, to)
+  // "back lat" style aliases mean either word is enough for that term.
+  return q.split(' ').every((word) => h.includes(word) || (word.length > 3 && word.endsWith('s') && h.includes(word.slice(0, -1))))
 }

@@ -352,7 +352,7 @@ Tests: a second browser test (`tests/e2e/together.e2e.cjs`) runs a two-person wo
 7. Finish: the sheet says "Finish both workouts?". Afterwards each phone's history has that person's workout with their own sets, and each person's next workout has moved on.
 8. Switch "Training with Stella" off: Start begins a workout for one person as before.
 
-## Release B, part 1: any gym (built, waiting on the iPhone checklist)
+## Release B, part 1: any gym (done; iPhone checklist passed 2026-11-13)
 
 Backlog epics 3 and 4, first pass.
 
@@ -387,6 +387,34 @@ Tests: 84 unit tests (9 new for the library, gyms and gym-specific plate math). 
 7. Switch back to Home gym: 315 on the barbell loads with your own plates again, and Smith lifts go back to the 33 lb bar.
 8. Settings, Where I train, Add a place: name it, switch equipment on and off, and it appears in the Today picker.
 
+## Release B, part 2: the plan follows the place, your own exercises, better search (built, waiting on the iPhone checklist)
+
+Backlog 3.6, 3.7, 4.4, 4.6.
+
+Done:
+- The 4-day plan now uses only what the chosen place has. A main lift whose equipment is missing is replaced by its closest alternative that can be done there, and Today says so ("Adapted for here: Goblet squat in place of Barbell back squat"). A slot whose whole pool is unavailable is filled from the wider library: same muscle group, our own exercises first, simple before advanced, never jumping drills.
+- At the home gym and the public gym the plan is unchanged, because both have everything the program was written for. A shared workout builds both people's plans for the phone owner's place.
+- Your own exercises: Library, "+ Add your own exercise" (name, muscle group, equipment, how it is logged, one side at a time). Saved in the person's settings, synced, and usable by both. They can be added to a workout, swapped in, and removed from their page. They count toward weekly sets for their muscle group.
+- Search understands other names (RDL, OHP, DB, pullup, skull crusher, abs, delts, lats) and words in any order, and matches muscle group and equipment as well as the name. Used in the Library and in the workout's add and swap search.
+
+Known limits:
+- Stand-ins from the wider library are chosen by muscle group and difficulty only, so a bodyweight-only place gets a thinner, less balanced plan than a dumbbell place.
+- Removing a custom exercise only works for the person who added it.
+- The coach still knows only our own 86 exercises.
+
+Tests: 92 unit tests (8 new: plans for full, dumbbell-only and no equipment; search; custom exercises).
+
+## iPhone checklist for release B, part 2
+
+1. Accept "Update available".
+2. Settings, Where I train, Add a place: call it "Hotel", tap "Clear all", switch on Dumbbell only. Set its dumbbells to 5 to 50.
+3. Today, Change, Hotel: the card lists dumbbell and bodyweight lifts only, and the line under "Training at Hotel" says which main lifts were replaced.
+4. Change back to Home gym: your normal plan returns.
+5. Library: search "rdl", "ohp" and "pullup". Each finds the right lifts.
+6. Library, "+ Add your own exercise": add one (for example "Belt squat", Quads, Machine). It shows in the Library marked "yours".
+7. In a workout, "+ Add exercise", search your new exercise and add it. Log a set. After a sync it also shows in the other phone's Library.
+8. Open your exercise in the Library and remove it. The workout you logged keeps it in history.
+
 ## Next
 
-Release B, part 2: make the plan itself follow the place (3.6, 3.7), custom exercises (4.4), other names in search (4.6). Then release C (program builder and groups).
+Release C in BACKLOG.md: program builder (epic 5) and groups (epic 6). Left over from release B: kg units, a finer machine list, a review of the added exercise names and text, self-hosted pictures, the library in the database, and letting the coach use the wider library.

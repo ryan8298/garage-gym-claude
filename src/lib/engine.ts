@@ -1,4 +1,4 @@
-import { exercise, type Exercise } from './exercises'
+import { exercise, exercises, type Exercise } from './exercises'
 import { CATCH_UP, CATCH_UP_ORDER, PROGRAM, TOP_UP, type DayKey, type MainLift, type Slot } from './program'
 
 /**
@@ -21,6 +21,8 @@ export interface UserSettings {
   mains: Record<string, string>
   /** A user's own priority order for a day's accessory slots, as positions in the default list. */
   slotOrder?: Partial<Record<DayKey, number[]>>
+  /** Equipment at the place being trained in. Missing means everything our program was written for. */
+  equipment?: string[]
 }
 export const defaultSettings: UserSettings = { pullMain: 'lat_pulldown', ankleStrap: true, partner: true, pins: [], bans: [], mains: {} }
 
@@ -48,6 +50,8 @@ export interface SessionPlan {
   recovery: boolean
   lifts: PlannedLift[]
   minutes: number
+  /** Main lifts changed because the place lacks their equipment. */
+  adapted: string[]
 }
 
 export const phaseOf = (blockIndex: number): Phase => PHASES[blockIndex % 3]
@@ -74,11 +78,27 @@ const MAIN_REPS: Record<MainLift['reps'], Record<Phase, [number, number]>> = {
 }
 const ACCESSORY_REPS: Record<Phase, [number, number]> = { foundation: [10, 15], build: [10, 15], strength: [8, 12] }
 
+const here = (e: Exercise, s: UserSettings) => !s.equipment || e.equip === 'bodyweight' || s.equipment.includes(e.equip)
+
 function usable(e: Exercise, s: UserSettings): boolean {
   if (s.bans.includes(e.key)) return false
+  if (!here(e, s)) return false
   if (e.needs === 'ankle_strap' && !s.ankleStrap) return false
   if (e.needs === 'partner' && !s.partner) return false
   return true
+}
+
+/**
+ * Exercises for the same muscle group that can be done here, a few at most.
+ * Our own come first, then simple ones before advanced; jumping drills are never picked.
+ */
+function standIns(like: Exercise, s: UserSettings, taken: Set<string>, main = false): string[] {
+  const score = (e: Exercise) => (e.curated ? 0 : 4) + (main && !e.compound && !e.curated ? 2 : 0) + (e.level === 'beginner' || e.curated ? 0 : 1)
+  return exercises
+    .filter((e) => e.group === like.group && !e.plyo && e.measure !== 'carry' && (e.measure === 'time') === (like.measure === 'time') && e.level !== 'expert' && usable(e, s) && !taken.has(e.key))
+    .sort((a, b) => score(a) - score(b))
+    .slice(0, 4)
+    .map((e) => e.key)
 }
 
 /**
@@ -87,7 +107,9 @@ function usable(e: Exercise, s: UserSettings): boolean {
  * new each block and each one runs for two blocks.
  */
 export function pickFromPool(pool: string[], slotIndex: number, blockIndex: number, s: UserSettings, taken: Set<string>): string | null {
-  const candidates = pool.filter((k) => usable(exercise(k), s) && !taken.has(k))
+  let candidates = pool.filter((k) => usable(exercise(k), s) && !taken.has(k))
+  // Nothing in the slot's own pool can be done here: use the same muscle group from the whole library.
+  if (candidates.length === 0 && s.equipment && pool.length) candidates = standIns(exercise(pool[0]), s, taken)
   if (candidates.length === 0) return null
   const pinned = candidates.find((k) => s.pins.includes(k))
   if (pinned) return pinned
@@ -149,6 +171,7 @@ export function planSession(input: PlanInput): SessionPlan {
   const recovery = isRecoveryWeek(blockIndex, week)
   const taken = new Set<string>()
   const lifts: PlannedLift[] = []
+  const adapted: string[] = []
 
   // ---- main lifts ----
   const mainSets = recovery ? 2 : phase === 'strength' ? 4 : 3
@@ -161,6 +184,16 @@ export function planSession(input: PlanInput): SessionPlan {
       else note = 'Add weight once you reach the top of the range on every set.'
     }
     if (input.trainingAlone && m.alone && key === m.key) key = m.alone
+    // The place lacks what this lift needs: take its closest alternative that can be done here.
+    if (!here(exercise(key), s)) {
+      const family = [m.key, m.alone, ...m.alternatives].filter((k): k is string => !!k && k !== key)
+      const swap = family.find((k) => usable(exercise(k), s)) ?? standIns(exercise(key), s, taken, true)[0]
+      if (swap) {
+        adapted.push(`${exercise(swap).name} in place of ${exercise(key).name}`)
+        key = swap
+        note = undefined
+      }
+    }
     taken.add(key)
     lifts.push(lift(key, 'main', 'Main lift', mainSets, MAIN_REPS[m.reps][phase], note))
   }
@@ -225,7 +258,7 @@ export function planSession(input: PlanInput): SessionPlan {
     if (removed.superset) lifts.forEach((l) => l.superset === removed.superset && delete l.superset)
   }
 
-  return { day, title: def.title, blockIndex, week, phase, recovery, lifts, minutes: estimateMinutes(lifts) }
+  return { day, title: def.title, blockIndex, week, phase, recovery, lifts, minutes: estimateMinutes(lifts), adapted }
 }
 
 /** Where a date falls in the blocks, counted in whole weeks from the program's first Monday. */

@@ -56,6 +56,8 @@ for (const e of dataset) {
     measure,
     side: /one[- ]arm|one[- ]leg|single[- ](arm|leg)|alternat/.test(n) && !/alternat/.test(n) ? true : /one[- ]arm|one[- ]leg|single[- ](arm|leg)/.test(n),
     level: e.level,
+    ...(e.category === 'plyometrics' ? { plyo: true } : {}),
+    ...(e.mechanic === 'compound' ? { compound: true } : {}),
     images: e.images.slice(0, 2).map((p) => `${BASE}/exercises/${p}`),
     primary: e.primaryMuscles.map(plain),
     secondary: e.secondaryMuscles.map(plain),

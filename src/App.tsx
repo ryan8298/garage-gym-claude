@@ -28,6 +28,7 @@ import { GymEditor } from './screens/GymEditor'
 import { useProgram } from './lib/programState'
 import { setGear } from './lib/plates'
 import { activeGym, gearOf } from './lib/gym'
+import { registerCustom, type CustomExercise } from './lib/exercises'
 import { useSyncStatus } from './lib/syncRunner'
 import { renewPush, setBadge } from './lib/push'
 import { lastSeenFeed, usePartner } from './lib/partner'
@@ -247,6 +248,13 @@ function Shell() {
   useFeedBadge()
   const { user } = useAuth()
   const program = useProgram(user!.id)
+  // Exercises either of us has added become part of the library on this phone.
+  const customs = useLiveQuery(async () => JSON.stringify((await db.program_state.toArray()).flatMap((r) => r.data?.custom ?? [])), [], '[]')
+  const [, setLibrary] = useState('')
+  useEffect(() => {
+    registerCustom(JSON.parse(customs) as CustomExercise[])
+    setLibrary(customs)
+  }, [customs])
   // Plate math follows the inventory in Settings.
   const gear = JSON.stringify(gearOf(activeGym(program)))
   useEffect(() => setGear(JSON.parse(gear)), [gear])

@@ -108,6 +108,8 @@ export interface ProgramState extends SyncFields {
     gyms?: Gym[]
     /** The gym I am training at now. */
     gym?: string
+    /** Exercises I have added myself. */
+    custom?: { key: string; name: string; group: string; equip: string; measure: string; side: boolean }[]
     /** Workouts I have named and saved to reuse. */
     routines?: Routine[]
   }

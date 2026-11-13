@@ -5,7 +5,7 @@ import { useAuth } from '../lib/auth'
 import { useProfile } from '../lib/data'
 import { usePartner } from '../lib/partner'
 import type { SetRow } from '../lib/db'
-import { exercise, exercises, groupLabels, equipLabels } from '../lib/exercises'
+import { exercise, exercises, groupLabels, equipLabels, matchesQuery } from '../lib/exercises'
 import { breakdown, loadModeFor } from '../lib/plates'
 import { CATCH_UP, PROGRAM, TOP_UP } from '../lib/program'
 import { restOf, saveProgram, useProgram, useSetsByGroup } from '../lib/programState'
@@ -605,7 +605,7 @@ export function Session() {
           </label>
           <div className="scroll-y min-h-0 flex-1 overflow-hidden rounded-control border border-line">
             {exercises
-              .filter((e) => e.name.toLowerCase().includes(query.trim().toLowerCase()) && !lifts.some((v) => v.lift.exercise_key === e.key))
+              .filter((e) => matchesQuery(e, query) && !lifts.some((v) => v.lift.exercise_key === e.key))
               .sort(
                 (a, b) =>
                   Number(b.group === swapTarget?.exercise?.group) - Number(a.group === swapTarget?.exercise?.group) ||

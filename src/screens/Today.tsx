@@ -45,7 +45,7 @@ export function Today() {
   const navigate = useNavigate()
   const active = useActiveSession(user!.id)
   const partner = usePartner(user!.id)
-  const partnerPlan = usePlan(partner?.id ?? user!.id, plan.day)
+  const partnerPlan = usePlan(partner?.id ?? user!.id, plan.day, false, activeGym(program).equipment)
   const partnerActive = useActiveSession(partner?.id)
   const [together, setTogether] = useState(() => localStorage.getItem('gg.together') !== '0')
   const paired = !!partner && together && !partnerActive
@@ -143,7 +143,7 @@ export function Today() {
         <button onClick={() => setPlacing(true)} className="flex min-h-[44px] items-center justify-between gap-3 text-left">
           <span className="flex flex-col gap-0.5">
             <span className="text-sm font-semibold">Training at {gym.name}</span>
-            <span className="text-xs text-muted">Recommendations and plate math follow this</span>
+            <span className="text-xs text-muted">{plan.adapted.length ? `Adapted for here: ${plan.adapted.join('; ')}` : 'The plan, recommendations and plate math follow this'}</span>
           </span>
           <span className="text-sm font-semibold text-accent">Change</span>
         </button>

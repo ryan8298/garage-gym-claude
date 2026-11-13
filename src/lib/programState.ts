@@ -6,6 +6,7 @@ import { blockPosition, planSession, type SessionPlan, type UserSettings } from 
 import { exercise } from './exercises'
 import { DAY_ORDER, type DayKey } from './program'
 import { requestSync } from './syncRunner'
+import { activeGym } from './gym'
 
 export type ProgramData = ProgramState['data']
 
@@ -40,6 +41,7 @@ export const settingsOf = (p: ProgramData): UserSettings => ({
   bans: p.bans,
   mains: p.mains,
   slotOrder: p.slotOrder,
+  equipment: activeGym(p).equipment,
 })
 
 export const nextDay = (p: ProgramData): DayKey => DAY_ORDER[((p.queueIndex % 4) + 4) % 4]
@@ -74,13 +76,14 @@ export function useSetsByGroup(userId: string): Record<string, number> {
   )
 }
 
-export function usePlan(userId: string, day?: DayKey, trainingAlone = false): { plan: SessionPlan; program: ProgramData } {
+export function usePlan(userId: string, day?: DayKey, trainingAlone = false, equipment?: string[]): { plan: SessionPlan; program: ProgramData } {
   const program = useProgram(userId)
   const setsByGroup = useSetsByGroup(userId)
   const plan = useMemo(() => {
     const pos = blockPosition(program.startedOn, localDate(), weekStart, daysBetween)
-    return planSession({ day: day ?? nextDay(program), ...pos, settings: settingsOf(program), setsByGroup, trainingAlone })
-  }, [program, setsByGroup, day, trainingAlone])
+    return planSession({ day: day ?? nextDay(program), ...pos, settings: { ...settingsOf(program), ...(equipment ? { equipment } : {}) }, setsByGroup, trainingAlone })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [program, setsByGroup, day, trainingAlone, equipment?.join()])
   return { plan, program }
 }
 
