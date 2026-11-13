@@ -104,13 +104,14 @@ async function addLift(session: WorkoutSession, key: string, position: number, t
   for (let i = 0; i < t.sets; i++) await save<SetRow>(db, 'sets', blankSet(lift, i, suggestion))
 }
 
-export async function startSession(userId: string, plan: SessionPlan | null, program: ProgramData): Promise<string> {
-  const now = new Date()
+export async function startSession(userId: string, plan: SessionPlan | null, program: ProgramData, opts: { date?: string; title?: string } = {}): Promise<string> {
+  // A past date means the workout is being written down after the fact.
+  const now = opts.date && opts.date !== localDate() ? new Date(`${opts.date}T12:00:00`) : new Date()
   const session = await save<WorkoutSession>(db, 'workout_sessions', {
     id: uuid(),
     user_id: userId,
     template_key: plan?.day ?? null,
-    title: plan?.title ?? 'Freestyle workout',
+    title: opts.title ?? plan?.title ?? 'Freestyle workout',
     local_date: localDate(now),
     started_at: now.toISOString(),
     finished_at: null,
@@ -123,9 +124,22 @@ export async function startSession(userId: string, plan: SessionPlan | null, pro
     await addLift(session, l.key, i, { kind: l.kind, role: l.role, sets: l.sets, low: l.low, high: l.high, unit: l.unit, eachSide: l.eachSide, note: l.note }, l.superset ?? null)
   }
   // Blocks are counted from the week of the very first workout.
-  if (!program.startedOn) await saveProgram(userId, { startedOn: localDate(now) })
+  if (!program.startedOn && !opts.date) await saveProgram(userId, { startedOn: localDate(now) })
   requestSync()
   return session.id
+}
+
+/** Start a new workout with the same exercises as a past one, with fresh suggestions. */
+export async function repeatSession(userId: string, past: { session: WorkoutSession; lifts: { lift: SessionExercise }[] }, program: ProgramData): Promise<string> {
+  const id = await startSession(userId, null, program, { title: past.session.title })
+  const session = (await db.workout_sessions.get(id))!
+  for (const [i, { lift }] of past.lifts.entries()) {
+    if (!hasExercise(lift.exercise_key)) continue
+    const { hint: _h, rir: _r, ...t } = targetOf(lift)
+    await addLift(session, lift.exercise_key, i, t, lift.superset_group)
+  }
+  requestSync()
+  return id
 }
 
 /** Add an exercise to a running session (freestyle, or an extra accessory). */
@@ -252,7 +266,7 @@ export async function summarize(session: WorkoutSession): Promise<Summary> {
     if (best) records.push({ name: lift.name, text: best.reps !== null ? `${best.weight ? `${best.weight} × ` : ''}${best.reps}` : `${best.duration_seconds}s` })
   }
   return {
-    minutes: Math.max(1, Math.round((end - Date.parse(session.started_at)) / 60_000)),
+    minutes: localDate(new Date(end)) === session.local_date ? Math.max(1, Math.round((end - Date.parse(session.started_at)) / 60_000)) : 0,
     volume: Math.round(sets.reduce((sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0), 0)),
     sets: sets.length,
     records,
@@ -284,6 +298,6 @@ export async function discardSession(session: WorkoutSession): Promise<void> {
   for (const s of sets) if (!s.deleted) await updateSet(s, { deleted: true })
   const lifts = await db.session_exercises.where('session_id').equals(session.id).toArray()
   for (const l of lifts) if (!l.deleted) await updateLift(l, { deleted: true })
-  await patchSession(session, { deleted: true, finished_at: new Date().toISOString() })
+  await patchSession(session, { deleted: true, finished_at: session.finished_at ?? new Date().toISOString() })
   requestSync(0)
 }

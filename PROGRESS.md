@@ -77,7 +77,7 @@ Decisions:
 8. Airplane mode, close and reopen: Today, the workout preview, the Library and exercise pictures all still work.
 9. On an exercise page tap "Never use", then check that it no longer appears in that day's workout.
 
-## Phase 3: the workout session (built, waiting on the iPhone checklist)
+## Phase 3: the workout session (done; iPhone checklist passed 2026-11-13, sets synced with no duplicates)
 
 Done:
 - Start the next workout, a previewed day, or an empty freestyle workout. Starting the first workout sets the program's start week.
@@ -115,7 +115,38 @@ Decisions and known gaps:
 10. Today now shows Day B next and 1 workout this week. Turn airplane mode off: the badge reaches "Saved and synced".
 11. Start Day B and check your pull main lift, then discard that workout from Finish.
 
+## Phase 4: log, goals, progress and history (built, waiting on the iPhone checklist)
+
+Done:
+- Log tab: cardio entries (type, minutes, miles) with a bar toward 150 minutes a week, and tape measurements (waist, chest, hips, arm, thigh).
+- Goals: target body weight or a target for any logged lift, with a progress bar and a projected date from the recent trend. Shown on Progress and on Today.
+- Progress: this week against last (workouts, pounds lifted, cardio minutes and miles, average steps), body weight with a 7-day average line, sets per muscle group against the target of 10, estimated-max chart per lift, personal records, and a 26-week grid of training days.
+- History: every finished workout, openable. Tap a set to correct it, do the workout again, delete it, or log a past workout on a chosen date.
+- After Day C the finish screen links to the cardio log.
+- Tests: 5 more unit tests for trends and projections (57 in all); the browser test now also checks Progress, History and cardio.
+
+Decisions and known gaps:
+- Charts are drawn directly as SVG instead of with Recharts: fewer moving parts and a smaller download.
+- Sets per muscle is shown as bars. The body-outline map is left for the polish phase, since it needs licensed artwork.
+- Lift goals track the weight of your best set, not the estimated max.
+- Measurements are private unless "Share my measurements" is on in Settings. Progress photos come with phase 5.
+- A workout logged for a past date has no duration.
+- Progress shows your own data. Viewing your partner's, and the combined view, come with phase 5.
+- Deleting a workout does not move the day rotation back.
+
+## iPhone checklist for phase 4
+
+1. Accept "Update available". Open Progress: the tiles show this week's workout and pounds lifted, and your test workout appears in the lift chart picker.
+2. Log tab: add a 30-minute walk with a distance. The bar moves toward 150 and Progress shows the minutes and miles.
+3. Log tab: enter a waist measurement.
+4. Progress, Goals, Add goal: set a target body weight. It appears on Progress and on Today.
+5. Progress, Workout history: open your workout, tap a set and change its reps. The numbers update.
+6. In that workout tap "Do this workout again", then discard it from Finish.
+7. History, Log a past workout: pick yesterday and Day B, tick a few sets, Finish. It is listed under yesterday's date and yesterday's dot fills in on Today.
+8. If the earlier test workout should not count, delete it from its history page.
+9. Airplane mode: Progress, History and the Log tab all still open and accept entries.
+
 ## Next
 
-Phase 4: daily log additions (cardio, measurements), goals, progress charts, the weekly muscle view, and workout history with repeat and past-date logging.
+Phase 5: the Us tab (both of your weeks, activity feed, reactions), viewing your partner's progress, push notifications, the weekly recap and progress photos.
 

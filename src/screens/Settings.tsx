@@ -83,6 +83,7 @@ export function Settings() {
           [
             ['ankleStrap', 'I have an ankle strap', 'Adds cable leg curls, kickbacks and hip work'],
             ['partner', 'I usually train with a partner', 'Allows partner-assisted exercises'],
+            ['shareMeasurements', 'Share my measurements', 'Lets my partner see my tape measurements'],
           ] as const
         ).map(([field, title, detail]) => (
           <label key={field} className="flex min-h-[48px] items-center justify-between gap-3">
@@ -90,7 +91,7 @@ export function Settings() {
               <span className="text-sm font-medium">{title}</span>
               <span className="text-xs text-muted">{detail}</span>
             </span>
-            <input type="checkbox" checked={program[field]} onChange={(e) => void saveProgram(user!.id, { [field]: e.target.checked })} className="h-6 w-6 accent-[#c8f250]" />
+            <input type="checkbox" checked={!!program[field]} onChange={(e) => void saveProgram(user!.id, { [field]: e.target.checked })} className="h-6 w-6 accent-[#c8f250]" />
           </label>
         ))}
         {program.pins.length + program.bans.length > 0 && (

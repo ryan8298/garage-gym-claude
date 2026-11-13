@@ -13,6 +13,8 @@ import { saveProgram, usePlan } from '../lib/programState'
 import { startSession, useActiveSession } from '../lib/session'
 import { unlockSound } from '../lib/rest'
 import { SyncBadge } from '../components/SyncBadge'
+import { GoalsCard } from '../components/Goals'
+import { useGoals, useLogs, useSessions } from '../lib/progressData'
 
 export function Today() {
   const { user } = useAuth()
@@ -31,6 +33,9 @@ export function Today() {
   const target = profile?.weekly_target ?? 4
   const { plan, program } = usePlan(user!.id)
   const [swapping, setSwapping] = useState(false)
+  const goals = useGoals(user!.id)
+  const sessions = useSessions(user!.id) ?? []
+  const weights = useLogs(user!.id).filter((l) => l.body_weight !== null).map((l) => ({ date: l.log_date, value: l.body_weight as number }))
   const [starting, setStarting] = useState(false)
   const navigate = useNavigate()
   const active = useActiveSession(user!.id)
@@ -172,6 +177,8 @@ export function Today() {
           </span>
         </Card>
       </Link>
+
+      <GoalsCard compact userId={user!.id} goals={goals} weights={weights} sessions={sessions} />
 
       <div className="flex justify-center pt-1">
         <SyncBadge />

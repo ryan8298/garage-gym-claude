@@ -17,6 +17,8 @@ import { ExerciseDetail } from './screens/ExerciseDetail'
 import { WorkoutPreview } from './screens/WorkoutPreview'
 import { Session, useElapsed } from './screens/Session'
 import { SessionDone } from './screens/SessionDone'
+import { Progress } from './screens/Progress'
+import { History, HistoryDetail } from './screens/History'
 import { useActiveSession } from './lib/session'
 import { clock, useRest } from './lib/rest'
 
@@ -156,7 +158,9 @@ function Shell() {
           <Route path="/library/:key" element={<ExerciseDetail />} />
           <Route path="/workout/:day" element={<WorkoutPreview />} />
           <Route path="/log" element={<Log />} />
-          <Route path="/progress" element={<ComingSoon title="Progress" phase={4} what="Strength charts, the weekly muscle map, goals and your workout history." />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/history/:id" element={<HistoryDetail />} />
           <Route path="/us" element={<ComingSoon title="Us" phase={5} what="Both of your weeks side by side, the activity feed and reactions." />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />

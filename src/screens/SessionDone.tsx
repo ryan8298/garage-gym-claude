@@ -31,7 +31,7 @@ export function SessionDone() {
 
       <div className="grid grid-cols-3 gap-2">
         {[
-          [summary ? `${summary.minutes}` : '—', 'minutes'],
+          [summary && summary.minutes ? `${summary.minutes}` : '—', 'minutes'],
           [summary ? summary.volume.toLocaleString() : '—', 'lb lifted'],
           [summary ? `${summary.sets}` : '—', 'sets'],
         ].map(([n, label]) => (
@@ -81,6 +81,12 @@ export function SessionDone() {
         Note
         <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything to remember about today" className="h-12 rounded-control border border-line bg-surface px-3.5 text-ink outline-none focus:border-accent" />
       </label>
+
+      {session.template_key === 'C' && (
+        <Link to="/log" replace className="flex h-11 items-center justify-center rounded-control border border-coach-line bg-coach-dim text-sm font-semibold text-coach">
+          Next: log your cardio
+        </Link>
+      )}
 
       <div className="mt-auto flex flex-col gap-2 pb-2">
         <Button variant="primary" onClick={() => void rateSession(session, effort, note.trim() || null).then(() => navigate('/', { replace: true }))}>

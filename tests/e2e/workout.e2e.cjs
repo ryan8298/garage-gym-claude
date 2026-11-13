@@ -71,6 +71,26 @@ async function main() {
     await page.getByText('Next up · Day B').waitFor()
     await page.getByText('1 of 4 workouts').waitFor()
 
+    // Progress and history reflect the workout.
+    await page.getByRole('link', { name: 'Progress', exact: true }).click()
+    await page.getByText('1 of 4', { exact: true }).waitFor()
+    await page.getByText('Barbell back squat · estimated max').waitFor()
+    if (shot) await page.screenshot({ path: `${shot}/e2e-progress.png`, fullPage: false })
+    await page.getByRole('link', { name: 'Workout history (1)' }).click()
+    await page.getByText('Legs & Lower Back').click()
+    await page.getByRole('button', { name: '135 × 9' }).waitFor()
+    if (shot) await page.screenshot({ path: `${shot}/e2e-history.png` })
+
+    // Cardio on the Log tab counts toward the weekly target.
+    await page.getByRole('link', { name: 'Log', exact: true }).click()
+    await page.getByRole('button', { name: '+ Add' }).click()
+    await page.getByRole('button', { name: 'Minutes' }).click()
+    for (const k of ['3', '0']) await page.getByRole('dialog').last().getByRole('button', { name: k, exact: true }).click()
+    await page.getByRole('dialog').last().getByRole('button', { name: 'Done', exact: true }).click()
+    await page.getByRole('button', { name: 'Save', exact: true }).click()
+    await page.waitForFunction(() => document.body.innerText.includes('30 of 150 minutes this week'), null, { timeout: 5000 })
+    if (shot) await page.screenshot({ path: `${shot}/e2e-log.png` })
+
     const stored = await page.evaluate(
       () =>
         new Promise((resolve) => {

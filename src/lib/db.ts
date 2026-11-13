@@ -86,7 +86,37 @@ export interface ProgramState extends SyncFields {
     mains: Record<string, string>
     /** YouTube links the user has added, by exercise key. */
     videos: Record<string, string>
+    /** Let my partner see my body measurements. */
+    shareMeasurements?: boolean
   }
+}
+
+export interface CardioEntry extends SyncFields {
+  user_id: string
+  log_date: string
+  kind: string
+  minutes: number | null
+  distance: number | null
+}
+
+export interface BodyMeasurement extends SyncFields {
+  user_id: string
+  measured_on: string
+  waist: number | null
+  chest: number | null
+  hips: number | null
+  arm: number | null
+  thigh: number | null
+}
+
+export interface Goal extends SyncFields {
+  user_id: string
+  kind: 'body_weight' | 'lift'
+  exercise_key: string | null
+  target_value: number
+  target_date: string | null
+  start_value: number | null
+  start_date: string
 }
 
 export interface OutboxEntry {
@@ -102,7 +132,7 @@ export interface MetaEntry {
 }
 
 /** Parents before children, so a set is never pushed before its session. */
-export const SYNC_TABLES = ['profiles', 'program_state', 'daily_logs', 'workout_sessions', 'session_exercises', 'sets'] as const
+export const SYNC_TABLES = ['profiles', 'program_state', 'daily_logs', 'cardio_entries', 'body_measurements', 'goals', 'workout_sessions', 'session_exercises', 'sets'] as const
 export type SyncTable = (typeof SYNC_TABLES)[number]
 
 export class GymDB extends Dexie {
@@ -112,6 +142,9 @@ export class GymDB extends Dexie {
   session_exercises!: Table<SessionExercise, string>
   sets!: Table<SetRow, string>
   program_state!: Table<ProgramState, string>
+  cardio_entries!: Table<CardioEntry, string>
+  body_measurements!: Table<BodyMeasurement, string>
+  goals!: Table<Goal, string>
   outbox!: Table<OutboxEntry, string>
   meta!: Table<MetaEntry, string>
 
@@ -128,6 +161,7 @@ export class GymDB extends Dexie {
     })
     this.version(2).stores({ program_state: 'id' })
     this.version(3).stores({ session_exercises: 'id, session_id, user_id, [user_id+exercise_key]' })
+    this.version(4).stores({ cardio_entries: 'id, user_id, [user_id+log_date]', body_measurements: 'id, user_id', goals: 'id, user_id' })
   }
 }
 
