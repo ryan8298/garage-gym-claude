@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { lastBodyWeight, saveDailyLog, useDailyLog } from '../lib/data'
 import { addDays, localDate, shortDate, weekStart } from '../lib/dates'
@@ -171,6 +172,10 @@ export function Log() {
         </div>
         <span className="text-xs text-muted">Inches, for this day. Only you can see these unless you turn on sharing in Settings.</span>
       </Card>
+
+      <Link to="/photos" className="flex h-12 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
+        Progress photos
+      </Link>
 
       <Sheet open={addingCardio} onClose={() => setAddingCardio(false)}>
         <div className="flex flex-col gap-3.5 pb-3">

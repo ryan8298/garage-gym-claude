@@ -51,3 +51,26 @@ export function goalProgress(start: number, current: number, target: number): nu
   if (start === target) return 1
   return Math.max(0, Math.min(1, (current - start) / (target - start)))
 }
+
+/**
+ * Weeks in a row with at least `needed` workouts, counting back from this
+ * week. The current week counts once it reaches the number; until then it
+ * neither adds to the streak nor breaks it.
+ */
+export function weeklyStreak(workoutDates: string[], needed: number, thisMonday: string): number {
+  const perWeek = new Map<string, number>()
+  for (const d of workoutDates) {
+    const date = new Date(`${d}T12:00:00Z`)
+    date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7))
+    const monday = date.toISOString().slice(0, 10)
+    perWeek.set(monday, (perWeek.get(monday) ?? 0) + 1)
+  }
+  let streak = 0
+  let week = at(thisMonday)
+  if ((perWeek.get(iso(week)) ?? 0) >= needed) streak++
+  for (;;) {
+    week -= 7 * DAY
+    if ((perWeek.get(iso(week)) ?? 0) < needed) return streak
+    streak++
+  }
+}

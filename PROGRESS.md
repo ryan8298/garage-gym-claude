@@ -115,7 +115,7 @@ Decisions and known gaps:
 10. Today now shows Day B next and 1 workout this week. Turn airplane mode off: the badge reaches "Saved and synced".
 11. Start Day B and check your pull main lift, then discard that workout from Finish.
 
-## Phase 4: log, goals, progress and history (built, waiting on the iPhone checklist)
+## Phase 4: log, goals, progress and history (done; iPhone checklist passed 2026-11-13)
 
 Done:
 - Log tab: cardio entries (type, minutes, miles) with a bar toward 150 minutes a week, and tape measurements (waist, chest, hips, arm, thigh).
@@ -146,7 +146,39 @@ Decisions and known gaps:
 8. If the earlier test workout should not count, delete it from its history page.
 9. Airplane mode: Progress, History and the Log tab all still open and accept entries.
 
+## Phase 5: together, notifications and photos (built, waiting on the iPhone checklist)
+
+Done:
+- Us tab: both of our weeks side by side (workouts against target, week streak, cardio, PRs), body weight change for both on one chart, an activity feed of finished workouts with one-tap cheers, and a recap of last week for each of us.
+- Progress has a Me / partner switch. A partner's goals are shown read-only and their history is not opened.
+- App icon badge: the number of partner workouts not yet seen on the Us tab.
+- Push notifications: enabled from Settings with a button (never on first launch), with a switch per type and a test button. Sent by the `notify` Edge Function when a partner finishes a workout or cheers one. The subscription is renewed quietly each time the app opens.
+- Progress photos: taken or chosen on the phone, shrunk before upload, stored in a private bucket, shown through short-lived private links, with a two-photo side-by-side comparison. Always private to the person who took them.
+- Tests: 58 unit tests; the browser test now also opens the Us tab.
+
+Decisions and known gaps:
+- Push has not been verified end to end. It needs two real iPhones: the sandbox cannot receive pushes, and the function was deployed but not called.
+- The weekly summary notification and the nudge after four days off are not built. Both need a scheduled job that knows each person's time zone.
+- The private half of the push key is kept in a database table that only server-side code can read (`app_secrets`), not in the repo.
+- The activity feed is worked out from the workouts themselves, so there is no separate feed table.
+- A week counts toward the streak with 3 or more workouts.
+- Photos need a connection to upload and to view.
+
+## iPhone checklist for phase 5
+
+Both phones are needed for most of this.
+
+1. Both: accept "Update available", then open the app from the Home Screen icon.
+2. Both: Settings, Notifications, Enable notifications, Allow. Then "Send a test notification": one arrives on that phone.
+3. Both: open the Us tab. Each of you sees both cards, with the other person's name.
+4. Ryan: finish a short workout (freestyle with one set is enough). Stella: a notification arrives, the app icon shows a badge, and the workout is in her Us feed.
+5. Stella: tap the thumbs-up on that workout. Ryan: a notification arrives and the feed shows that Stella cheered.
+6. Stella: turn off "My partner finishes a workout" in Settings. Ryan finishes another short workout: Stella gets no notification.
+7. Ryan: Progress, switch to Stella and back. Her numbers show; her history button does not.
+8. Either: Log tab, Progress photos, add two photos, tap both to compare. Sign in on the other phone is not needed: the other person can never see them.
+9. Us tab: open last week's recap.
+
 ## Next
 
-Phase 5: the Us tab (both of your weeks, activity feed, reactions), viewing your partner's progress, push notifications, the weekly recap and progress photos.
+Phase 6: full settings, the program editor, data export and the first-run setup flow.
 

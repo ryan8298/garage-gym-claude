@@ -42,6 +42,9 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 3_000_000,
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
+        // Adds the push notification handlers to the generated service worker.
+        importScripts: ['push-sw.js'],
+        globIgnores: ['push-sw.js'],
       },
     }),
   ],

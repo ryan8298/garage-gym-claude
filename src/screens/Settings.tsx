@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { saveProfile, useProfile } from '../lib/data'
 import { saveProgram, useProgram } from '../lib/programState'
+import { enablePush, notify, pushPermission } from '../lib/push'
 import { capabilities } from '../lib/platform'
 import { requestSync, useSyncStatus } from '../lib/syncRunner'
 import { Button, Card, Icon, Label, RoundButton, cx, icons } from '../components/ui'
@@ -16,6 +17,8 @@ export function Settings() {
   const program = useProgram(user!.id)
   const [name, setName] = useState('')
   const [confirming, setConfirming] = useState(false)
+  const [permission, setPermission] = useState(pushPermission)
+  const [pushNote, setPushNote] = useState<string | null>(null)
   useEffect(() => setName(profile?.display_name ?? ''), [profile?.display_name])
   const target = profile?.weekly_target ?? 4
 
@@ -99,6 +102,52 @@ export function Settings() {
             {program.pins.length} exercise{program.pins.length === 1 ? '' : 's'} always used, {program.bans.length} never used. Change these from each exercise's page in the Library.
           </span>
         )}
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <Label>Notifications</Label>
+        {permission === 'granted' ? (
+          <>
+            {(
+              [
+                ['partnerWorkout', 'My partner finishes a workout'],
+                ['reactions', 'My partner cheers my workout'],
+              ] as const
+            ).map(([field, title]) => (
+              <label key={field} className="flex min-h-[44px] items-center justify-between gap-3">
+                <span className="text-sm font-medium">{title}</span>
+                <input
+                  type="checkbox"
+                  checked={program.notify?.[field] !== false}
+                  onChange={(e) => void saveProgram(user!.id, { notify: { ...program.notify, [field]: e.target.checked } })}
+                  className="h-6 w-6 accent-[#c8f250]"
+                />
+              </label>
+            ))}
+            <Button
+              onClick={() => {
+                setPushNote('Sending…')
+                void notify('test').then((r) => setPushNote(r.error ? `Could not send: ${r.error}` : r.sent ? 'Sent. It should arrive within a few seconds.' : 'This phone is not registered yet. Close and reopen the app, then try again.'))
+              }}
+            >
+              Send a test notification
+            </Button>
+          </>
+        ) : (
+          <Button
+            onClick={() => {
+              setPushNote(null)
+              void enablePush(user!.id).then((err) => {
+                setPushNote(err)
+                setPermission(pushPermission())
+              })
+            }}
+          >
+            Enable notifications
+          </Button>
+        )}
+        {pushNote && <span className="text-[13px] text-muted">{pushNote}</span>}
+        <span className="text-xs text-muted">Rest timers do not use notifications. A weekly summary and a nudge after a few days off are not built yet.</span>
       </Card>
 
       <Card className="flex flex-col gap-3">

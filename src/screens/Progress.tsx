@@ -7,6 +7,7 @@ import { groupLabels } from '../lib/exercises'
 import { WEEKLY_SET_TARGET } from '../lib/program'
 import { liftSeries, liftsWithHistory, records, thisWeek, useCardio, useGoals, useLogs, useSessions, weekStats } from '../lib/progressData'
 import { movingAverage } from '../lib/stats'
+import { usePartner } from '../lib/partner'
 import { Card, Label, Sheet, cx } from '../components/ui'
 import { LineChart } from '../components/LineChart'
 import { GoalsCard } from '../components/Goals'
@@ -27,11 +28,15 @@ function Tile({ value, label, sub, good }: { value: string; label: string; sub?:
 
 export function Progress() {
   const { user } = useAuth()
-  const profile = useProfile(user!.id)
-  const sessions = useSessions(user!.id) ?? []
-  const logs = useLogs(user!.id)
-  const cardio = useCardio(user!.id)
-  const goals = useGoals(user!.id)
+  const partner = usePartner(user!.id)
+  const [who, setWho] = useState<'me' | 'partner'>('me')
+  const viewing = who === 'partner' && partner ? partner.id : user!.id
+  const mine = viewing === user!.id
+  const profile = useProfile(viewing)
+  const sessions = useSessions(viewing) ?? []
+  const logs = useLogs(viewing)
+  const cardio = useCardio(viewing)
+  const goals = useGoals(viewing)
   const [liftKey, setLiftKey] = useState<string | null>(null)
   const [picking, setPicking] = useState(false)
 
@@ -58,7 +63,18 @@ export function Progress() {
 
   return (
     <div className="flex flex-col gap-3 px-5 pt-3 pb-6">
-      <h1 className="font-display text-[28px] font-bold tracking-[-0.5px]">Progress</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-[28px] font-bold tracking-[-0.5px]">Progress</h1>
+        {partner && (
+          <div className="flex rounded-xl bg-surface p-[3px]">
+            {(['me', 'partner'] as const).map((w) => (
+              <button key={w} aria-pressed={who === w} onClick={() => (setWho(w), setLiftKey(null))} className={cx('h-[38px] rounded-[10px] px-3.5 text-[13px] font-semibold', who === w ? 'bg-line text-ink' : 'text-muted')}>
+                {w === 'me' ? 'Me' : partner.display_name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-2">
         <Tile value={`${now.workouts} of ${profile?.weekly_target ?? 4}`} label="workouts this week" sub={`${before.workouts} last week`} />
@@ -72,7 +88,7 @@ export function Progress() {
           <Label>Body weight · 7-day average</Label>
           {latest && monthAgo && <span className={cx('text-[13px] font-semibold', latest.value <= monthAgo.value ? 'text-accent' : 'text-muted')}>{signed(Number((latest.value - monthAgo.value).toFixed(1)))} lb in 4 weeks</span>}
         </div>
-        {latest ? <span className="num text-[32px] leading-none font-bold tracking-[-1px]">{latest.value.toFixed(1)} lb</span> : <span className="text-sm text-muted">Log your weight on the Log tab to start the trend line.</span>}
+        {latest ? <span className="num text-[32px] leading-none font-bold tracking-[-1px]">{latest.value.toFixed(1)} lb</span> : <span className="text-sm text-muted">{mine ? 'Log your weight on the Log tab to start the trend line.' : 'No weigh-ins yet.'}</span>}
         {weights.length > 0 && (
           <LineChart
             label={`Body weight trend, currently ${latest?.value.toFixed(1)} pounds`}
@@ -138,7 +154,7 @@ export function Progress() {
         </Card>
       )}
 
-      <GoalsCard userId={user!.id} goals={goals} weights={weights} sessions={sessions} />
+      <GoalsCard compact={!mine} userId={user!.id} goals={goals} weights={weights} sessions={sessions} />
 
       <Card className="flex flex-col gap-2.5">
         <div className="flex items-baseline justify-between">
@@ -152,9 +168,11 @@ export function Progress() {
         </div>
       </Card>
 
-      <Link to="/history" className="flex h-12 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
-        Workout history ({sessions.length})
-      </Link>
+      {mine && (
+        <Link to="/history" className="flex h-12 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
+          Workout history ({sessions.length})
+        </Link>
+      )}
 
       <Sheet open={picking} onClose={() => setPicking(false)}>
         <div className="scroll-y flex max-h-[60vh] flex-col gap-2 pb-3">

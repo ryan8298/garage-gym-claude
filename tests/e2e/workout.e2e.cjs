@@ -91,6 +91,12 @@ async function main() {
     await page.waitForFunction(() => document.body.innerText.includes('30 of 150 minutes this week'), null, { timeout: 5000 })
     if (shot) await page.screenshot({ path: `${shot}/e2e-log.png` })
 
+    // The Us tab lists the workout in the activity feed.
+    await page.getByRole('link', { name: 'Us', exact: true }).click()
+    await page.getByText('finished Legs & Lower Back').waitFor()
+    await page.getByText('of 4 workouts', { exact: true }).waitFor()
+    if (shot) await page.screenshot({ path: `${shot}/e2e-us.png` })
+
     const stored = await page.evaluate(
       () =>
         new Promise((resolve) => {

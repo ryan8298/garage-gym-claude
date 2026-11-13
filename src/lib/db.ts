@@ -88,6 +88,8 @@ export interface ProgramState extends SyncFields {
     videos: Record<string, string>
     /** Let my partner see my body measurements. */
     shareMeasurements?: boolean
+    /** Which push notifications I want. Missing means on. */
+    notify?: { partnerWorkout?: boolean; reactions?: boolean }
   }
 }
 
@@ -119,6 +121,17 @@ export interface Goal extends SyncFields {
   start_date: string
 }
 
+export interface FeedReaction extends SyncFields {
+  user_id: string
+  session_id: string
+}
+
+export interface ProgressPhoto extends SyncFields {
+  user_id: string
+  taken_on: string
+  path: string
+}
+
 export interface OutboxEntry {
   key: string // "<table>:<id>", so many edits to one row are one entry
   table: SyncTable
@@ -132,7 +145,7 @@ export interface MetaEntry {
 }
 
 /** Parents before children, so a set is never pushed before its session. */
-export const SYNC_TABLES = ['profiles', 'program_state', 'daily_logs', 'cardio_entries', 'body_measurements', 'goals', 'workout_sessions', 'session_exercises', 'sets'] as const
+export const SYNC_TABLES = ['profiles', 'program_state', 'daily_logs', 'cardio_entries', 'body_measurements', 'goals', 'workout_sessions', 'session_exercises', 'sets', 'feed_reactions', 'progress_photos'] as const
 export type SyncTable = (typeof SYNC_TABLES)[number]
 
 export class GymDB extends Dexie {
@@ -145,6 +158,8 @@ export class GymDB extends Dexie {
   cardio_entries!: Table<CardioEntry, string>
   body_measurements!: Table<BodyMeasurement, string>
   goals!: Table<Goal, string>
+  feed_reactions!: Table<FeedReaction, string>
+  progress_photos!: Table<ProgressPhoto, string>
   outbox!: Table<OutboxEntry, string>
   meta!: Table<MetaEntry, string>
 
@@ -162,6 +177,7 @@ export class GymDB extends Dexie {
     this.version(2).stores({ program_state: 'id' })
     this.version(3).stores({ session_exercises: 'id, session_id, user_id, [user_id+exercise_key]' })
     this.version(4).stores({ cardio_entries: 'id, user_id, [user_id+log_date]', body_measurements: 'id, user_id', goals: 'id, user_id' })
+    this.version(5).stores({ feed_reactions: 'id, user_id, session_id', progress_photos: 'id, user_id' })
   }
 }
 

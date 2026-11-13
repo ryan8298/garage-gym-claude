@@ -11,7 +11,6 @@ import { Login } from './screens/Login'
 import { Today } from './screens/Today'
 import { Log } from './screens/Log'
 import { Settings } from './screens/Settings'
-import { ComingSoon } from './screens/ComingSoon'
 import { Library } from './screens/Library'
 import { ExerciseDetail } from './screens/ExerciseDetail'
 import { WorkoutPreview } from './screens/WorkoutPreview'
@@ -19,6 +18,10 @@ import { Session, useElapsed } from './screens/Session'
 import { SessionDone } from './screens/SessionDone'
 import { Progress } from './screens/Progress'
 import { History, HistoryDetail } from './screens/History'
+import { Us } from './screens/Us'
+import { Photos } from './screens/Photos'
+import { renewPush, setBadge } from './lib/push'
+import { lastSeenFeed, usePartner } from './lib/partner'
 import { useActiveSession } from './lib/session'
 import { clock, useRest } from './lib/rest'
 
@@ -64,7 +67,9 @@ function UpdatePrompt() {
       })
     },
   })
-  const workoutOpen = useLiveQuery(() => db.workout_sessions.filter((s) => !s.finished_at && !s.deleted).count(), [], 0)
+  const { user } = useAuth()
+  // Only my own open workout holds an update back; my partner's rows are in this database too.
+  const workoutOpen = useLiveQuery(() => db.workout_sessions.filter((s) => s.user_id === user?.id && !s.finished_at && !s.deleted).count(), [user?.id], 0)
   if (!needRefresh || workoutOpen > 0) return null
   return (
     <div className="mx-4 mb-2 flex shrink-0 items-center gap-3 rounded-card border border-coach-line bg-coach-dim py-2 pr-2 pl-4">
@@ -140,8 +145,25 @@ function ResumeBar() {
   )
 }
 
+/** Keeps the number on the app icon equal to the partner workouts not yet seen on the Us tab. */
+function useFeedBadge() {
+  const { user } = useAuth()
+  const partner = usePartner(user?.id ?? '')
+  const unseen = useLiveQuery(
+    async () => {
+      if (!partner) return 0
+      const seen = lastSeenFeed()
+      return db.workout_sessions.where('user_id').equals(partner.id).filter((s) => !!s.finished_at && !s.deleted && s.finished_at > seen).count()
+    },
+    [partner?.id],
+    0,
+  )
+  useEffect(() => setBadge(unseen), [unseen])
+}
+
 function Shell() {
   const location = useLocation()
+  useFeedBadge()
   if (location.pathname === '/session') return <Session />
   if (location.pathname.startsWith('/done/'))
     return (
@@ -161,7 +183,8 @@ function Shell() {
           <Route path="/progress" element={<Progress />} />
           <Route path="/history" element={<History />} />
           <Route path="/history/:id" element={<HistoryDetail />} />
-          <Route path="/us" element={<ComingSoon title="Us" phase={5} what="Both of your weeks side by side, the activity feed and reactions." />} />
+          <Route path="/us" element={<Us />} />
+          <Route path="/photos" element={<Photos />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -181,6 +204,7 @@ export default function App() {
     if (user) {
       startSync()
       requestSync(0)
+      void renewPush(user.id)
     }
   }, [user])
 

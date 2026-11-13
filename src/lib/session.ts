@@ -6,6 +6,7 @@ import { exercise, hasExercise, type Exercise } from './exercises'
 import { loadModeFor, warmupLoads } from './plates'
 import { estimatedMax, suggest, type PastSession, type Suggestion } from './progression'
 import { saveProgram, type ProgramData } from './programState'
+import { notify } from './push'
 import { requestSync } from './syncRunner'
 
 /** What a session exercise was planned as. Stored with it, so history never depends on the current program. */
@@ -285,6 +286,8 @@ export async function finishSession(session: WorkoutSession, program: ProgramDat
   await patchSession(session, { finished_at: new Date().toISOString() })
   if (session.template_key) await saveProgram(session.user_id, { queueIndex: program.queueIndex + 1 })
   requestSync(0)
+  // Tell the other person, once the workout has had a moment to upload. Not for workouts logged after the fact.
+  if (session.local_date === localDate()) setTimeout(() => void notify('workout_finished', session.id), 4000)
 }
 
 export async function rateSession(session: WorkoutSession, effort: number | null, note: string | null) {
