@@ -4,7 +4,9 @@ import { useAuth } from '../lib/auth'
 import { phaseLabel } from '../lib/engine'
 import { DAY_ORDER, type DayKey } from '../lib/program'
 import { usePlan } from '../lib/programState'
-import { Card, RoundButton, icons } from '../components/ui'
+import { Button, Card, RoundButton, icons } from '../components/ui'
+import { startSession, useActiveSession } from '../lib/session'
+import { unlockSound } from '../lib/rest'
 import { LiftList } from '../components/LiftList'
 
 export function WorkoutPreview() {
@@ -13,7 +15,9 @@ export function WorkoutPreview() {
   const { day } = useParams()
   const key = (DAY_ORDER.includes(day as DayKey) ? day : 'A') as DayKey
   const [alone, setAlone] = useState(false)
-  const { plan } = usePlan(user!.id, key, alone)
+  const { plan, program } = usePlan(user!.id, key, alone)
+  const active = useActiveSession(user!.id)
+  const [starting, setStarting] = useState(false)
 
   return (
     <div className="flex flex-col gap-4 px-5 pt-3 pb-6">
@@ -53,7 +57,18 @@ export function WorkoutPreview() {
       {plan.day === 'C' && (
         <Card className="text-sm text-muted">Then cardio: log the type, time and distance. Your weekly target is 150 minutes of moderate activity.</Card>
       )}
-      <p className="text-center text-xs text-muted">Tap any lift for its how-to. Starting and logging a workout arrives in phase 3.</p>
+      <Button
+        variant="primary"
+        disabled={!!active || starting}
+        onClick={() => {
+          unlockSound()
+          setStarting(true)
+          void startSession(user!.id, plan, program).then(() => navigate('/session', { replace: true }))
+        }}
+      >
+        {active ? 'Another workout is in progress' : starting ? 'Starting…' : 'Start this workout'}
+      </Button>
+      <p className="text-center text-xs text-muted">Tap any lift for its how-to.</p>
     </div>
   )
 }

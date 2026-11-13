@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAuth } from '../lib/auth'
 import { db } from '../lib/db'
@@ -10,6 +10,8 @@ import { targetText } from '../components/LiftList'
 import { phaseLabel } from '../lib/engine'
 import { DAY_ORDER, PROGRAM } from '../lib/program'
 import { saveProgram, usePlan } from '../lib/programState'
+import { startSession, useActiveSession } from '../lib/session'
+import { unlockSound } from '../lib/rest'
 import { SyncBadge } from '../components/SyncBadge'
 
 export function Today() {
@@ -29,6 +31,9 @@ export function Today() {
   const target = profile?.weekly_target ?? 4
   const { plan, program } = usePlan(user!.id)
   const [swapping, setSwapping] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const navigate = useNavigate()
+  const active = useActiveSession(user!.id)
   const mains = plan.lifts.filter((l) => l.kind === 'main')
   const rest = plan.lifts.filter((l) => l.kind !== 'main')
   const name = profile?.display_name || user!.email.split('@')[0]
@@ -76,14 +81,41 @@ export function Today() {
             ))}
           </div>
         </div>
-        <Link to={`/workout/${plan.day}`} className="flex h-14 items-center justify-center rounded-control bg-accent font-display text-lg font-bold text-accent-ink">
-          View workout
-        </Link>
-        <div className="grid grid-cols-2 gap-2.5">
-          <Button onClick={() => setSwapping(true)}>Swap day</Button>
-          <Button onClick={() => void saveProgram(user!.id, { queueIndex: program.queueIndex + 1 })}>Skip to next</Button>
+        {active ? (
+          <Link to="/session" className="flex h-14 items-center justify-center rounded-control bg-accent font-display text-lg font-bold text-accent-ink">
+            Resume workout
+          </Link>
+        ) : (
+          <button
+            disabled={starting}
+            onClick={() => {
+              unlockSound()
+              setStarting(true)
+              void startSession(user!.id, plan, program).then(() => navigate('/session'))
+            }}
+            className="flex h-14 items-center justify-center rounded-control bg-accent font-display text-lg font-bold text-accent-ink disabled:opacity-60"
+          >
+            {starting ? 'Starting…' : 'Start workout'}
+          </button>
+        )}
+        <div className="grid grid-cols-3 gap-2">
+          <Link to={`/workout/${plan.day}`} className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
+            Preview
+          </Link>
+          <Button disabled={!!active} onClick={() => setSwapping(true)}>
+            Swap day
+          </Button>
+          <Button
+            disabled={!!active || starting}
+            onClick={() => {
+              unlockSound()
+              setStarting(true)
+              void startSession(user!.id, null, program).then(() => navigate('/session'))
+            }}
+          >
+            Freestyle
+          </Button>
         </div>
-        <span className="text-center text-xs text-muted">Starting and logging a workout arrives in phase 3.</span>
       </Card>
 
       <Sheet open={swapping} onClose={() => setSwapping(false)}>

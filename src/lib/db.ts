@@ -127,6 +127,7 @@ export class GymDB extends Dexie {
       meta: 'key',
     })
     this.version(2).stores({ program_state: 'id' })
+    this.version(3).stores({ session_exercises: 'id, session_id, user_id, [user_id+exercise_key]' })
   }
 }
 

@@ -15,6 +15,10 @@ import { ComingSoon } from './screens/ComingSoon'
 import { Library } from './screens/Library'
 import { ExerciseDetail } from './screens/ExerciseDetail'
 import { WorkoutPreview } from './screens/WorkoutPreview'
+import { Session, useElapsed } from './screens/Session'
+import { SessionDone } from './screens/SessionDone'
+import { useActiveSession } from './lib/session'
+import { clock, useRest } from './lib/rest'
 
 const tabs = [
   { to: '/', label: 'Today', d: icons.today },
@@ -116,8 +120,33 @@ function InstallGuide({ children }: { children: ReactNode }) {
   )
 }
 
+/** While a workout is open, every other screen shows a bar that leads back to it. */
+function ResumeBar() {
+  const { user } = useAuth()
+  const session = useActiveSession(user?.id)
+  const elapsed = useElapsed(session?.started_at)
+  const rest = useRest()
+  if (!session) return null
+  return (
+    <NavLink to="/session" className="mx-3 mb-2 flex h-14 shrink-0 items-center gap-3 rounded-2xl border border-accent bg-accent-dim px-4">
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[11px] font-semibold tracking-[1px] text-accent">WORKOUT IN PROGRESS</span>
+        <span className="truncate text-sm font-semibold">{session.title}</span>
+      </span>
+      <span className="num text-sm font-semibold">{rest && !rest.over ? `Rest ${clock(rest.remaining)}` : elapsed}</span>
+    </NavLink>
+  )
+}
+
 function Shell() {
   const location = useLocation()
+  if (location.pathname === '/session') return <Session />
+  if (location.pathname.startsWith('/done/'))
+    return (
+      <Routes>
+        <Route path="/done/:id" element={<SessionDone />} />
+      </Routes>
+    )
   return (
     <div className="flex h-full flex-col">
       <main key={location.pathname} className="push scroll-y pt-safe min-h-0 flex-1">
@@ -134,6 +163,7 @@ function Shell() {
         </Routes>
       </main>
       <UpdatePrompt />
+      <ResumeBar />
       <TabBar />
     </div>
   )

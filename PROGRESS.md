@@ -48,7 +48,7 @@ Program direction (decided 2026-11-12, applies from phase 2):
 
 Ryan ran the checklist: installed full screen, stayed signed in, number pad shown, saved offline, survived an offline restart, synced on reconnect (one daily log row arrived exactly once), no browser behaviour, no capability warnings. Still to do: Stella signing in on her phone.
 
-## Phase 2: exercise library and program (built, waiting on the iPhone checklist)
+## Phase 2: exercise library and program (done; iPhone checklist passed 2026-11-13, video paste not tested by choice)
 
 Done:
 - Exercise library: 86 exercises we can do on our equipment, each with muscles, steps and a setup note for the M1 Pro. 69 have start and end pictures from free-exercise-db (public domain, license checked); the pictures are stored in the app and work offline. The catalog is `scripts/catalog.mjs`; `scripts/build-exercises.mjs` regenerates the data.
@@ -77,7 +77,45 @@ Decisions:
 8. Airplane mode, close and reopen: Today, the workout preview, the Library and exercise pictures all still work.
 9. On an exercise page tap "Never use", then check that it no longer appears in that day's workout.
 
+## Phase 3: the workout session (built, waiting on the iPhone checklist)
+
+Done:
+- Start the next workout, a previewed day, or an empty freestyle workout. Starting the first workout sets the program's start week.
+- Workout screen: progress strip, the current exercise with last time, target and the reason for today's numbers, set rows, and the full exercise list.
+- Number pad for weight, reps and time. Weight steps by the smallest amount we can load, typed weights snap to the nearest loadable one, and the plate breakdown shows live, with a warning over the Smith bar's 275 lb plate limit.
+- Plate math in `src/lib/plates.ts`: 45 lb barbell, 33 lb Smith bar, cable and landmine stacks, dumbbells 5 to 50 in 5 lb steps.
+- Weight suggestions in `src/lib/progression.ts`: double progression, add reps first when the next weight is a big jump, ease back 10% after two missed sessions, 10% lighter after two weeks away, earlier progress when the last set felt easy.
+- Set types (warm-up, normal, drop, failure), warm-up calculator, add and delete sets, swap an exercise (today only or also in the program), skip, add an exercise, per-exercise note.
+- Exercises measured by weight and reps, bodyweight reps with optional added weight, time, and carries.
+- Supersets: ticking a set on the first lift jumps to its partner, and rest starts after the second.
+- Rest timer from a stored end time, with plus and minus 15 seconds, sound at the end, and the screen kept awake.
+- Personal record banner and sound the moment the set is ticked. "Reps left in the tank" after an exercise's last set.
+- Resume bar on every other screen while a workout is open.
+- Finish screen: minutes, pounds lifted, sets, records, effort and note. Finishing moves the rotation on.
+- Tests: 52 unit tests (sync, engine, plate math, suggestions) and a phone-size browser test that logs sets, goes offline, reloads, finishes, and checks exactly the ticked sets were recorded once (`npm run test:e2e`).
+
+Decisions and known gaps:
+- Repeating a past workout and logging one with a past date move to phase 4, where history is built.
+- Deleting a set and changing its type are in the number pad, not a swipe or a tap on the set number.
+- The browser test has no server, so it proves offline saving and one queued upload per set; the no-duplicates-on-retry rule is covered by the sync unit tests.
+- One-sided exercises are logged as one row per set ("each side"), not separate left and right rows.
+- A first-time exercise has no suggested weight. Entering one on the first set carries it to the rest.
+
+## iPhone checklist for phase 3
+
+1. Accept "Update available". On Today tap Start workout.
+2. Tap the weight on set 1: the app's pad opens, not the iPhone keyboard. Type 136: it says it can't be loaded and offers 135. Tap Next, enter reps, Done. The same weight appears on sets 2 and 3, with "Per side: 45 on the 45 lb bar".
+3. Tick set 1: the rest timer appears at 2:00 and counts down. Try +15, then lock the phone for 20 seconds and unlock: the time is correct.
+4. Let a rest run out with the phone unlocked: you hear a beep (ringer switch on, volume up).
+5. Leave the phone untouched for a minute during the workout: the screen stays awake.
+6. Open the three-dot menu: swap the exercise, then add warm-up sets on a lift that has a weight.
+7. Tap the down arrow: Today shows a "Workout in progress" bar. Tap it to return.
+8. Airplane mode. Tick two more sets, close the app fully, reopen: the workout and every ticked set are still there.
+9. Finish the workout. The finish screen shows minutes, pounds and sets. Rate it and save.
+10. Today now shows Day B next and 1 workout this week. Turn airplane mode off: the badge reaches "Saved and synced".
+11. Start Day B and check your pull main lift, then discard that workout from Finish.
+
 ## Next
 
-Phase 3: the workout session. Start a workout, log sets with the number pad and plate breakdown, set types, warm-ups, supersets, weight suggestions, rest timer and PR moments.
+Phase 4: daily log additions (cardio, measurements), goals, progress charts, the weekly muscle view, and workout history with repeat and past-date logging.
 
