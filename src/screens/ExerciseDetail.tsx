@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
-import { exercise, groupLabels, hasExercise, stationLabels } from '../lib/exercises'
+import { exercise, groupLabels, hasExercise, equipLabels, stepsFor } from '../lib/exercises'
 import { saveProgram, useProgram } from '../lib/programState'
 import { Button, Card, Label, RoundButton, cx, icons } from '../components/ui'
 
@@ -19,6 +19,11 @@ export function ExerciseDetail() {
   const [adding, setAdding] = useState(false)
   const [link, setLink] = useState('')
   const [bad, setBad] = useState(false)
+  const [steps, setSteps] = useState<string[]>([])
+  useEffect(() => {
+    setSteps([])
+    if (hasExercise(key)) void stepsFor(exercise(key)).then(setSteps)
+  }, [key])
   if (!hasExercise(key)) return <Navigate to="/library" replace />
   const e = exercise(key)
   const videoId = program.videos[key] ? youtubeId(program.videos[key]) : null
@@ -38,7 +43,7 @@ export function ExerciseDetail() {
         <div className="flex flex-col">
           <h1 className="font-display text-[22px] leading-tight font-bold">{e.name}</h1>
           <span className="text-xs text-muted">
-            {muscles} · {stationLabels[e.station]}
+            {muscles} · {equipLabels[e.equip]}
             {e.side ? ' · one side at a time' : ''}
           </span>
         </div>
@@ -135,7 +140,7 @@ export function ExerciseDetail() {
       )}
 
       <ol className="flex flex-col gap-2.5">
-        {e.steps.map((step, i) => (
+        {steps.map((step, i) => (
           <li key={i} className="flex items-start gap-3">
             <span className="num flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-raised text-sm font-bold">{i + 1}</span>
             <span className="text-sm leading-relaxed">{step}</span>

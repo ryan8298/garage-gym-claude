@@ -5,11 +5,12 @@ import { useAuth } from '../lib/auth'
 import { useProfile } from '../lib/data'
 import { usePartner } from '../lib/partner'
 import type { SetRow } from '../lib/db'
-import { exercise, exercises, groupLabels, stationLabels } from '../lib/exercises'
+import { exercise, exercises, groupLabels, equipLabels } from '../lib/exercises'
 import { breakdown, loadModeFor } from '../lib/plates'
 import { CATCH_UP, PROGRAM, TOP_UP } from '../lib/program'
 import { restOf, saveProgram, useProgram, useSetsByGroup } from '../lib/programState'
 import { WEEKLY_SET_TARGET, gapSuggestions } from '../lib/gaps'
+import { activeGym, availableAt } from '../lib/gym'
 import { adjustRest, beep, clearRest, clock, startRest, unlockSound, useRest, useWakeLock } from '../lib/rest'
 import {
   addExercise,
@@ -110,6 +111,8 @@ export function Session() {
   const otherLifts = useSessionLifts(other?.id)
   const program = useProgram(viewer)
   const partnerProgram = useProgram(other?.user_id ?? viewer)
+  // The place is the phone owner's choice, whoever is being logged for.
+  const myProgram = useProgram(user!.id)
   const myName = useProfile(user!.id)?.display_name || 'Me'
   const partnerName = usePartner(user!.id)?.display_name || 'Partner'
   const elapsed = useElapsed(session?.started_at)
@@ -156,6 +159,7 @@ export function Session() {
   const padSet = pad && current ? (current.sets.find((s) => s.id === pad.setId) ?? null) : null
   const allDone = current ? isDone(current) && !current.lift.skipped : false
   const upNext = lifts.find((v, i) => i > index && !isDone(v)) ?? lifts.find((v) => !isDone(v) && v !== current)
+  const gym = activeGym(myProgram)
   // What fits today's kind of workout comes first when suggesting additions.
   const day = session.template_key && session.template_key in PROGRAM ? PROGRAM[session.template_key as keyof typeof PROGRAM] : null
   const preferred = day ? [...day.slots, ...day.finisher].flatMap((x) => x.pool) : []
@@ -163,7 +167,7 @@ export function Session() {
     ? gapSuggestions({
         weekSets,
         session: lifts.filter((v) => v.exercise && !v.lift.skipped).map((v) => ({ key: v.lift.exercise_key, group: v.exercise!.group, remaining: v.sets.filter((x) => !x.done && x.set_type !== 'warmup').length })),
-        catalog: exercises,
+        catalog: exercises.filter((e) => availableAt(gym, e)),
         preferred,
         bans: program.bans,
         ankleStrap: program.ankleStrap,
@@ -472,7 +476,7 @@ export function Session() {
           <div className="scroll-y flex max-h-[76vh] flex-col gap-3.5 pb-3 [&>*]:shrink-0">
             <div className="flex flex-col gap-0.5">
               <span className="font-display text-[22px] font-bold">{current.lift.name}</span>
-              <span className="text-[13px] text-muted">{current.exercise ? `${groupLabels[current.exercise.group]} · ${stationLabels[current.exercise.station]}` : ''}</span>
+              <span className="text-[13px] text-muted">{current.exercise ? `${groupLabels[current.exercise.group]} · ${equipLabels[current.exercise.equip]}` : ''}</span>
             </div>
             <div className="flex flex-col gap-2">
               <Label>Recommended swaps</Label>
@@ -495,7 +499,7 @@ export function Session() {
                     className="flex min-h-[56px] items-center justify-between gap-3 rounded-control border border-line bg-raised px-3.5 py-2 text-left"
                   >
                     <span className="text-[15px] font-semibold">{e.name}</span>
-                    <span className="shrink-0 text-xs text-muted">{stationLabels[e.station]}</span>
+                    <span className="shrink-0 text-xs text-muted">{equipLabels[e.equip]}</span>
                   </button>
                 )
               })}
@@ -602,7 +606,14 @@ export function Session() {
           <div className="scroll-y min-h-0 flex-1 overflow-hidden rounded-control border border-line">
             {exercises
               .filter((e) => e.name.toLowerCase().includes(query.trim().toLowerCase()) && !lifts.some((v) => v.lift.exercise_key === e.key))
-              .sort((a, b) => Number(b.group === swapTarget?.exercise?.group) - Number(a.group === swapTarget?.exercise?.group) || a.name.localeCompare(b.name))
+              .sort(
+                (a, b) =>
+                  Number(b.group === swapTarget?.exercise?.group) - Number(a.group === swapTarget?.exercise?.group) ||
+                  Number(availableAt(gym, b)) - Number(availableAt(gym, a)) ||
+                  Number(b.curated) - Number(a.curated) ||
+                  a.name.localeCompare(b.name),
+              )
+              .slice(0, 80)
               .map((e) => (
                 <button
                   key={e.key}
@@ -616,12 +627,14 @@ export function Session() {
                   className="flex min-h-[52px] w-full items-center justify-between gap-3 border-b border-line bg-raised px-3.5 py-2 text-left last:border-b-0"
                 >
                   <span className="text-[15px] font-medium">{e.name}</span>
-                  <span className="shrink-0 text-xs text-muted">
-                    {groupLabels[e.group]} · {stationLabels[e.station]}
+                  <span className="shrink-0 text-right text-xs text-muted">
+                    {groupLabels[e.group]} · {equipLabels[e.equip]}
+                    {!availableAt(gym, e) && <span className="block text-warn">not at {gym.name}</span>}
                   </span>
                 </button>
               ))}
           </div>
+          <span className="text-center text-xs text-muted">Showing the best 80 matches. Search to find anything in the library.</span>
         </div>
       </Sheet>
 
@@ -644,7 +657,7 @@ export function Session() {
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="truncate text-[15px] font-semibold">{e.name}</span>
                   <span className="text-xs text-muted">
-                    {groupLabels[g.group]}: {g.sets} of {WEEKLY_SET_TARGET} sets this week · {stationLabels[e.station]}
+                    {groupLabels[g.group]}: {g.sets} of {WEEKLY_SET_TARGET} sets this week · {equipLabels[e.equip]}
                   </span>
                 </span>
                 <span className="shrink-0 text-sm font-semibold text-accent">+ Add</span>

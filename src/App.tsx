@@ -24,8 +24,10 @@ import { ProgramEditor } from './screens/ProgramEditor'
 import { Onboarding } from './screens/Onboarding'
 import { Coach } from './screens/Coach'
 import { Intervals } from './screens/Intervals'
+import { GymEditor } from './screens/GymEditor'
 import { useProgram } from './lib/programState'
-import { setPlateInventory } from './lib/plates'
+import { setGear } from './lib/plates'
+import { activeGym, gearOf } from './lib/gym'
 import { useSyncStatus } from './lib/syncRunner'
 import { renewPush, setBadge } from './lib/push'
 import { lastSeenFeed, usePartner } from './lib/partner'
@@ -246,8 +248,8 @@ function Shell() {
   const { user } = useAuth()
   const program = useProgram(user!.id)
   // Plate math follows the inventory in Settings.
-  const inventory = JSON.stringify(program.plates ?? null)
-  useEffect(() => setPlateInventory(program.plates ?? undefined), [inventory])
+  const gear = JSON.stringify(gearOf(activeGym(program)))
+  useEffect(() => setGear(JSON.parse(gear)), [gear])
 
   // First-run setup: only for someone with no workouts, and only once the first
   // sync has finished, so a returning user on a new phone is not asked again.
@@ -282,6 +284,7 @@ function Shell() {
           <Route path="/timer" element={<Intervals />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/program" element={<ProgramEditor />} />
+          <Route path="/settings/gym/:id" element={<GymEditor />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

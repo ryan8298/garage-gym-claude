@@ -51,6 +51,8 @@ Today: number pad, carried weights, plate math, rest timer, set types. Notes bel
 
 ## Epic 2: training together (the headline feature)
 
+Status 2026-11-13: 2.1, 2.2, 2.5 built and confirmed on both phones; 2.3 where the two programs differ. Open: 2.4, 2.6, 2.7, 2.8, 2.9.
+
 Today: each person logs alone. The Us tab shows a feed, cheers, a weekly comparison and a Sunday summary.
 
 | ID | Item | Priority | Size |
@@ -66,6 +68,8 @@ Today: each person logs alone. The Us tab shows a feed, cheers, a weekly compari
 | 2.9 | Training solo while the partner is away: the plan adjusts spotter-dependent lifts | P2 | S |
 
 ## Epic 3: equipment profiles
+
+Status 2026-11-13: first pass built (3.1, 3.2 as broad tags, 3.4, 3.5, 3.8 by using one phone's choice, 3.9, 3.10; 3.3 without kg). Open: 3.6 and 3.7 for the program itself, kg, finer machine list.
 
 Today: the equipment is fixed in the code. One rack, one barbell at 45 lb, a Smith bar at 33 lb, two cables, dumbbells 5 to 50 lb, an editable plate count. Every exercise is tagged to one of those stations.
 
@@ -83,6 +87,8 @@ Today: the equipment is fixed in the code. One rack, one barbell at 45 lb, a Smi
 | 3.9 | Move plate math and loading rules from fixed code to profile data | P0 | L |
 
 ## Epic 4: exercise library
+
+Status 2026-11-13: first pass built (4.1 at 758 exercises, 4.2 for group and equipment, 4.10). Open: 4.3 substitution map beyond same muscle group, 4.4, 4.5, 4.6, 4.7, 4.8, 4.11, and self-hosted pictures.
 
 Today: 86 exercises, 69 with pictures, chosen for one garage. No custom exercises.
 

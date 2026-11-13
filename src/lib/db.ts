@@ -104,9 +104,26 @@ export interface ProgramState extends SyncFields {
     coach?: boolean
     /** My own note for an exercise, shown every time I do it. By exercise key. */
     notes?: Record<string, string>
+    /** The places I train and what each has. Missing means my home gym and a standard public gym. */
+    gyms?: Gym[]
+    /** The gym I am training at now. */
+    gym?: string
     /** Workouts I have named and saved to reuse. */
     routines?: Routine[]
   }
+}
+
+export interface Gym {
+  id: string
+  name: string
+  kind: 'home' | 'public'
+  /** Equipment tags this place has. Bodyweight is always available. */
+  equipment: string[]
+  barbell: number
+  smith: number
+  plates: Record<string, number>
+  dumbbells: { min: number; max: number; step: number }
+  smithLimit?: number | null
 }
 
 export interface Routine {

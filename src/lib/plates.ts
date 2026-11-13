@@ -5,14 +5,17 @@ import type { Exercise } from './exercises'
  * accepts is one we can really load.
  */
 
-export type LoadMode = 'barbell' | 'smith' | 'landmine' | 'cable' | 'dumbbell' | 'added' | 'none'
+/** "free" is equipment we have no plate math for (machines, kettlebells): any weight in 2.5 lb steps. */
+export type LoadMode = 'barbell' | 'smith' | 'landmine' | 'cable' | 'dumbbell' | 'added' | 'free' | 'none'
 
-export const BAR_WEIGHT = { barbell: 45, smith: 33 } as const
+export const BAR_WEIGHT = { barbell: 45, smith: 33 }
 /** We own one pair of each of these. */
 export const PLATE_PAIRS = [45, 35, 25, 15, 10, 5, 2.5, 1.25]
-export const DUMBBELLS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-/** The warning label on the machine. */
+export let DUMBBELLS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+/** The warning label on our own machine. Other gyms' Smith bars have no limit set. */
 export const SMITH_PLATE_LIMIT = 275
+let smithLimit: number | null = SMITH_PLATE_LIMIT
+const FREE = Array.from({ length: 401 }, (_, i) => i * 2.5)
 
 export function loadModeFor(e: Exercise): LoadMode {
   if (e.measure === 'time') return 'none'
@@ -72,11 +75,32 @@ export function setPlateInventory(inventory: PlateInventory = DEFAULT_INVENTORY)
     cable: sorted(STACK.keys()).filter((w) => w > 0),
     dumbbell: DUMBBELLS,
     added: [0, ...DUMBBELLS],
+    free: FREE,
     none: [0],
   }
   if (LOADS.cable.length === 0) LOADS.cable = [0]
 }
 setPlateInventory()
+
+/** Everything about a place that changes which weights can be loaded there. */
+export interface Gear {
+  plates: PlateInventory
+  barbell: number
+  smith: number
+  dumbbells: { min: number; max: number; step: number }
+  /** Most plate weight the Smith bar may carry, if the maker gives one. */
+  smithLimit?: number | null
+}
+/** Switch the plate math to a gym's equipment. Called when the active gym changes. */
+export function setGear(gear?: Gear) {
+  BAR_WEIGHT.barbell = gear?.barbell ?? 45
+  BAR_WEIGHT.smith = gear?.smith ?? 33
+  smithLimit = gear ? (gear.smithLimit ?? null) : SMITH_PLATE_LIMIT
+  const d = gear?.dumbbells ?? { min: 5, max: 50, step: 5 }
+  DUMBBELLS = []
+  for (let w = d.min; w <= d.max + 1e-9 && DUMBBELLS.length < 200; w += Math.max(1, d.step)) DUMBBELLS.push(w)
+  setPlateInventory(gear?.plates)
+}
 
 export const achievableLoads = (mode: LoadMode): number[] => LOADS[mode]
 
@@ -112,12 +136,12 @@ export function breakdown(mode: LoadMode, weight: number): Breakdown | null {
     const bar = BAR_WEIGHT[mode]
     const plates = PER_SIDE.get((weight - bar) / 2)
     if (!plates) return null
-    const name = mode === 'smith' ? '33 lb Smith bar' : '45 lb bar'
+    const name = mode === 'smith' ? `${bar} lb Smith bar` : `${bar} lb bar`
     plates.sort((p, q) => q - p)
     return {
       plates,
       text: plates.length ? `Per side: ${list(plates)} on the ${name}` : `Empty ${name}`,
-      overLimit: mode === 'smith' && weight - bar > SMITH_PLATE_LIMIT,
+      overLimit: mode === 'smith' && smithLimit !== null && weight - bar > smithLimit,
     }
   }
   if (mode === 'cable' || mode === 'landmine') {

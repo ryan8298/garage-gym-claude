@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Exercise } from '../src/lib/exercises'
 import { gapSuggestions } from '../src/lib/gaps'
 
-const ex = (key: string, group: string, needs?: Exercise['needs']): Exercise => ({ key, name: key, group, station: 'dumbbell', measure: 'wr', side: false, needs, images: [], primary: [], secondary: [], steps: [] })
+const ex = (key: string, group: string, needs?: Exercise['needs']): Exercise => ({ key, name: key, group, station: 'dumbbell', equip: 'dumbbell', curated: true, measure: 'wr', side: false, needs, images: [], primary: [], secondary: [], steps: [] })
 const catalog = [ex('squat', 'quads'), ex('lunge', 'quads'), ex('calf_raise', 'calves'), ex('curl', 'biceps'), ex('leg_curl', 'hamstrings', 'ankle_strap'), ex('rdl', 'hamstrings'), ex('plank', 'core')]
 const full = Object.fromEntries(['quads', 'hamstrings', 'glutes', 'calves', 'chest', 'back', 'shoulders', 'biceps', 'triceps', 'core'].map((g) => [g, 10]))
 const base = { catalog, preferred: ['squat', 'lunge', 'calf_raise', 'leg_curl', 'rdl'], bans: [], ankleStrap: true, partner: true }

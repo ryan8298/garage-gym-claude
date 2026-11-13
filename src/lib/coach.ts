@@ -3,7 +3,7 @@ import { checkProposal, sanitize, type CoachContext, type CoachOutput, type Prop
 import { db, save, type CoachMessage } from './db'
 import { addDays, daysBetween, localDate, weekStart } from './dates'
 import { blockPosition, phaseOf, planSession } from './engine'
-import { exercise, exercises } from './exercises'
+import { exercise, curatedExercises } from './exercises'
 import { achievableLoads } from './plates'
 import { DAY_ORDER, PROGRAM } from './program'
 import { loadSessions, weekStats } from './progressData'
@@ -19,7 +19,7 @@ export type ProposalState = Proposal & { status: 'open' | 'accepted' | 'rejected
 /** The library and program, described for the coach and for checking its answers. Same for everyone except equipment. */
 export function coachContext(program: ProgramData): CoachContext {
   return {
-    catalog: exercises.map((e) => ({ key: e.key, name: e.name, group: e.group, station: e.station, ...(e.needs ? { needs: e.needs } : {}) })),
+    catalog: curatedExercises.map((e) => ({ key: e.key, name: e.name, group: e.group, station: e.station, ...(e.needs ? { needs: e.needs } : {}) })),
     program: {
       days: Object.fromEntries(
         DAY_ORDER.map((d) => [

@@ -324,7 +324,7 @@ Done:
 
 iPhone check: in a workout, three dots, Choose any exercise. Search, pick one: the lift is replaced and its sets get fresh suggestions.
 
-## Release A, part 2: training together (built, waiting on the iPhone checklist)
+## Release A, part 2: training together (done; iPhone checklist passed 2026-11-13)
 
 Backlog items 2.1, 2.2, 2.3 (in part) and 2.5.
 
@@ -352,6 +352,41 @@ Tests: a second browser test (`tests/e2e/together.e2e.cjs`) runs a two-person wo
 7. Finish: the sheet says "Finish both workouts?". Afterwards each phone's history has that person's workout with their own sets, and each person's next workout has moved on.
 8. Switch "Training with Stella" off: Start begins a workout for one person as before.
 
+## Release B, part 1: any gym (built, waiting on the iPhone checklist)
+
+Backlog epics 3 and 4, first pass.
+
+Library (epic 4):
+- 758 exercises: our own 86 plus 672 from the same public-domain source (free-exercise-db, pinned to one commit). Built by `scripts/build-library.mjs` into `src/data/library.json` (list data) and `src/data/library-steps.json` (how-to text, loaded only when an exercise is opened).
+- Every exercise has a muscle group and an equipment tag: barbell, Smith bar, cable, landmine, dumbbell, bodyweight, machine, kettlebell, bands, EZ curl bar, medicine ball, exercise ball, other.
+- Pictures for the added exercises are loaded from the source's own address and kept on the phone once seen. Not seen before and no signal means a letter tile. They are not in our repo or the offline bundle (about 70 MB otherwise).
+- Machines, kettlebells and other equipment without plate math take any weight in 2.5 lb steps.
+
+Gym profiles (epic 3):
+- Settings, "Where I train": a home gym (our garage, carrying over the old plate setting) and a public gym that has everything. Places can be added, edited and removed. Each has equipment switches, bar weights, plate counts and a dumbbell range.
+- Today: "Training at <place>, Change". The choice sets the plate math and what is recommended.
+- Recommend, never restrict: the Library opens on what can be done here with a "Show everything" switch; swap search lists same muscle group, then what fits here, and marks the rest "not at <place>"; gap suggestions only offer what fits here.
+- The old "Plates I own" card moved into the home gym's page.
+
+Not done in this pass:
+- The 4-day program is still built from our own 86 exercises. At a place missing some of that equipment the plan does not adapt yet (3.6, 3.7), and the wider library is not used by the plan or the coach.
+- Weight units are pounds only (3.3). One "machine" switch covers all machines (3.2).
+- Custom exercises (4.4), a review of the added names and text (4.5), other names in search (4.6), library in the database (4.8).
+- The added exercises' text and pictures are public domain, so the rights check (4.9) is low risk, but self-hosting the pictures is needed before a launch.
+
+Tests: 84 unit tests (9 new for the library, gyms and gym-specific plate math). Both browser tests pass.
+
+## iPhone checklist for release B, part 1
+
+1. Accept "Update available".
+2. Library says "Search 758 exercises" and lists what you can do at Home gym. "Show everything" lists the rest, marked "not at Home gym".
+3. Tap the Machine chip with "Show everything" on, and open one: steps and pictures load. (Pictures need signal the first time.)
+4. Settings, Where I train, Home gym: the plate counts match what you had. Fix the 2.5 lb pair here if it still says 0.
+5. Today, "Training at Home gym", Change, Public gym. Start a workout on a barbell lift, enter 315: it loads as three 45s a side. Smith lifts use a 25 lb bar (editable under Public gym).
+6. Still at Public gym: in a workout, three dots, Choose any exercise, search "leg press", pick it. Any weight can be typed in 2.5 lb steps, with no plate picture.
+7. Switch back to Home gym: 315 on the barbell loads with your own plates again, and Smith lifts go back to the 33 lb bar.
+8. Settings, Where I train, Add a place: name it, switch equipment on and off, and it appears in the Today picker.
+
 ## Next
 
-After this checklist: release B in BACKLOG.md (equipment profiles and the larger exercise library, which must ship together). Remaining release A items: 2.4 faster live view, 2.6 invite, 2.7 joint goals, 2.8 three or more people.
+Release B, part 2: make the plan itself follow the place (3.6, 3.7), custom exercises (4.4), other names in search (4.6). Then release C (program builder and groups).

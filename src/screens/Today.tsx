@@ -12,6 +12,7 @@ import { DAY_ORDER, PROGRAM } from '../lib/program'
 import { saveProgram, usePlan } from '../lib/programState'
 import { startPair, startRoutine, startSession, useActiveSession } from '../lib/session'
 import { usePartner } from '../lib/partner'
+import { activeGym, gymsOf } from '../lib/gym'
 import { unlockSound } from '../lib/rest'
 import { SyncBadge } from '../components/SyncBadge'
 import { GoalsCard } from '../components/Goals'
@@ -39,6 +40,8 @@ export function Today() {
   const weights = useLogs(user!.id).filter((l) => l.body_weight !== null).map((l) => ({ date: l.log_date, value: l.body_weight as number }))
   const [starting, setStarting] = useState(false)
   const [choosing, setChoosing] = useState(false)
+  const [placing, setPlacing] = useState(false)
+  const gym = activeGym(program)
   const navigate = useNavigate()
   const active = useActiveSession(user!.id)
   const partner = usePartner(user!.id)
@@ -137,6 +140,13 @@ export function Today() {
             />
           </label>
         )}
+        <button onClick={() => setPlacing(true)} className="flex min-h-[44px] items-center justify-between gap-3 text-left">
+          <span className="flex flex-col gap-0.5">
+            <span className="text-sm font-semibold">Training at {gym.name}</span>
+            <span className="text-xs text-muted">Recommendations and plate math follow this</span>
+          </span>
+          <span className="text-sm font-semibold text-accent">Change</span>
+        </button>
         <div className="grid grid-cols-3 gap-2">
           <Link to={`/workout/${plan.day}`} className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
             Preview
@@ -149,6 +159,31 @@ export function Today() {
           </Button>
         </div>
       </Card>
+
+      <Sheet open={placing} onClose={() => setPlacing(false)}>
+        <div className="flex flex-col gap-2.5 pb-3">
+          <span className="text-[15px] font-semibold">Where are you training?</span>
+          {gymsOf(program).map((g) => (
+            <button
+              key={g.id}
+              aria-pressed={g.id === gym.id}
+              onClick={() => {
+                void saveProgram(user!.id, { gym: g.id })
+                setPlacing(false)
+              }}
+              className={cx('flex min-h-[56px] flex-col justify-center rounded-control border px-3.5 py-2 text-left', g.id === gym.id ? 'border-accent bg-accent-dim' : 'border-line bg-raised')}
+            >
+              <span className="text-[15px] font-semibold">{g.name}</span>
+              <span className="text-xs text-muted">
+                {g.kind === 'home' ? 'Home' : 'Public'} · {g.equipment.length} kinds of equipment
+              </span>
+            </button>
+          ))}
+          <Link to="/settings" className="flex h-11 items-center justify-center text-sm font-semibold text-muted">
+            Add or edit places in Settings
+          </Link>
+        </div>
+      </Sheet>
 
       <Sheet open={choosing} onClose={() => setChoosing(false)}>
         <div className="scroll-y flex max-h-[76vh] flex-col gap-2.5 pb-3">

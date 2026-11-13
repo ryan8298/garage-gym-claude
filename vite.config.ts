@@ -45,6 +45,14 @@ export default defineConfig({
         // Adds the push notification handlers to the generated service worker.
         importScripts: ['push-sw.js'],
         globIgnores: ['push-sw.js', 'splash/**'],
+        // Pictures for the wider exercise library come from its public source and are kept once seen.
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/yuhonas\/free-exercise-db\//,
+            handler: 'CacheFirst',
+            options: { cacheName: 'library-pictures', expiration: { maxEntries: 600, maxAgeSeconds: 60 * 60 * 24 * 180 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+        ],
       },
     }),
   ],

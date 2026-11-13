@@ -137,7 +137,7 @@ export function SetPad({ view, set, startOn, onClose, onDeleted }: { view: LiftV
           </button>
         </div>
 
-        {field === 'weight' && mode !== 'none' && (
+        {field === 'weight' && mode !== 'none' && mode !== 'free' && (
           <div className="flex min-h-[58px] items-center gap-3.5 rounded-2xl bg-bg px-3.5 py-2">
             {(mode === 'barbell' || mode === 'smith' || mode === 'cable' || mode === 'landmine') && <PlateStack plates={plan?.plates ?? []} />}
             <div className="flex flex-col gap-0.5">

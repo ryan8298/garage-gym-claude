@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { saveProfile, useProfile } from '../lib/data'
 import { restOf, saveProgram, useProgram } from '../lib/programState'
-import { DEFAULT_INVENTORY, PLATE_PAIRS } from '../lib/plates'
+import { activeGym, gymsOf, publicGym } from '../lib/gym'
 import { clock, setSoundMuted, soundMuted } from '../lib/rest'
 import { deliver, dailyLogsCsv, exportAll, workoutsCsv } from '../lib/exportData'
 import { localDate } from '../lib/dates'
@@ -28,7 +28,8 @@ export function Settings() {
     void monthUsage(user!.id).then(setUsage)
   }, [user])
   const rest = restOf(program)
-  const plates = program.plates ?? DEFAULT_INVENTORY
+  const gyms = gymsOf(program)
+  const gym = activeGym(program)
   const steps = profile?.step_target ?? 8000
   const stepper = 'flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-raised text-lg'
   const [permission, setPermission] = useState(pushPermission)
@@ -173,29 +174,28 @@ export function Settings() {
         </label>
       </Card>
 
-      <Card className="flex flex-col gap-3">
-        <Label>Plates I own (pairs)</Label>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-          {PLATE_PAIRS.map((plate) => {
-            const n = plates[String(plate)] ?? 0
-            const set = (v: number) => void saveProgram(user!.id, { plates: { ...plates, [String(plate)]: Math.max(0, Math.min(6, v)) } })
-            return (
-              <div key={plate} className="flex items-center justify-between gap-2">
-                <span className="num text-sm font-medium whitespace-nowrap">{plate} lb</span>
-                <span className="flex items-center gap-1">
-                  <button aria-label={`One fewer pair of ${plate} pound plates`} className={stepper} onClick={() => set(n - 1)}>
-                    −
-                  </button>
-                  <span className="num w-5 text-center text-[15px] font-semibold">{n}</span>
-                  <button aria-label={`One more pair of ${plate} pound plates`} className={stepper} onClick={() => set(n + 1)}>
-                    +
-                  </button>
-                </span>
-              </div>
-            )
-          })}
-        </div>
-        <span className="text-xs text-muted">Every suggested weight and plate breakdown uses exactly these. Dumbbells are fixed at 5 to 50 lb in 5 lb steps.</span>
+      <Card className="flex flex-col gap-2.5">
+        <Label>Where I train</Label>
+        {gyms.map((g) => (
+          <Link key={g.id} to={`/settings/gym/${g.id}`} className="flex min-h-[52px] items-center justify-between gap-3 rounded-control border border-line bg-raised px-3.5 py-2">
+            <span className="flex flex-col gap-0.5">
+              <span className="text-[15px] font-semibold">{g.name}</span>
+              <span className="text-xs text-muted">
+                {g.kind === 'home' ? 'Home' : 'Public'} · {g.equipment.length} kinds of equipment
+              </span>
+            </span>
+            <span className="text-sm text-muted">{g.id === gym.id ? 'Here now' : 'Edit'}</span>
+          </Link>
+        ))}
+        <Button
+          onClick={() => {
+            const fresh = { ...publicGym(), id: crypto.randomUUID(), name: 'New gym' }
+            void saveProgram(user!.id, { gyms: [...gyms, fresh] }).then(() => navigate(`/settings/gym/${fresh.id}`))
+          }}
+        >
+          + Add a place
+        </Button>
+        <span className="text-xs text-muted">Pick where you are on Today before a workout. It changes what is recommended and how plates are worked out, never what you are allowed to choose.</span>
       </Card>
 
       <Card className="flex flex-col gap-3">
