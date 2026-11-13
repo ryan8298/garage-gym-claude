@@ -3,7 +3,7 @@ import { useAuth } from '../lib/auth'
 import { daysBetween, localDate, weekStart } from '../lib/dates'
 import { blockPosition, phaseLabel, phaseOf, planSession } from '../lib/engine'
 import { equipLabels, exercises } from '../lib/exercises'
-import { activeGym, availableAt, gymsOf, publicGym } from '../lib/gym'
+import { EQUIPMENT, activeGym, availableAt, gymsOf, hasAllMain, publicGym } from '../lib/gym'
 import { defOf, nextDay, saveProgram, settingsOf, useProgram } from '../lib/programState'
 import { Card, Icon, Label, cx, icons } from '../components/ui'
 
@@ -72,7 +72,8 @@ export function Plan() {
         </div>
         {gyms.map((g) => {
           const here = g.id === gym.id
-          const has = g.equipment.length >= 12 ? 'Everything, including machines' : g.equipment.slice(0, 4).map((e) => equipLabels[e as keyof typeof equipLabels]).join(', ') || 'Bodyweight only'
+          const main = g.equipment.filter((e) => (EQUIPMENT as string[]).includes(e))
+          const has = hasAllMain(g) ? 'Everything, including machines' : main.slice(0, 4).map((e) => equipLabels[e as keyof typeof equipLabels]).join(', ') || 'Bodyweight only'
           return (
             <div key={g.id} className={cx('flex min-h-[56px] items-center gap-2 rounded-control border pr-1.5 pl-3.5', here ? 'border-accent bg-accent-dim' : 'border-line bg-raised')}>
               <button aria-pressed={here} onClick={() => void saveProgram(user!.id, { gym: g.id })} className="flex min-h-[56px] min-w-0 flex-1 flex-col justify-center gap-0.5 text-left">
@@ -93,6 +94,7 @@ export function Plan() {
           [
             ['/library', 'Exercise library', `${doable} you can do at ${gym.name}`],
             ['/history', 'Workout history', 'Past workouts, and save any as a routine'],
+            ['/classes', 'Other workouts', 'Calisthenics, mobility, pilates and yoga'],
             ['/cardio', 'Cardio', 'Track a run or walk on the map'],
             ['/timer', 'Interval timer', 'For conditioning days'],
           ] as const

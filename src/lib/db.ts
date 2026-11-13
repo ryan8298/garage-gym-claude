@@ -136,6 +136,8 @@ export interface Gym {
   plates: Record<string, number>
   dumbbells: { min: number; max: number; step: number }
   smithLimit?: number | null
+  /** The person has said which mats, bars and yoga gear this place has. Until then a sensible set is assumed. */
+  extras?: boolean
 }
 
 export interface Routine {

@@ -220,7 +220,7 @@ export function Today() {
             >
               <span className="text-[15px] font-semibold">{g.name}</span>
               <span className="text-xs text-muted">
-                {g.kind === 'home' ? 'Home' : 'Public'} · {g.equipment.length} {g.equipment.length === 1 ? 'kind' : 'kinds'} of equipment
+                {g.kind === 'home' ? 'Home gym' : 'Public gym'}
               </span>
             </button>
           ))}
@@ -243,6 +243,9 @@ export function Today() {
           >
             Freestyle workout
           </Button>
+          <Link to="/classes" className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
+            Calisthenics, mobility, pilates, yoga
+          </Link>
           <Link to="/cardio" className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
             Cardio: run, walk or hike
           </Link>

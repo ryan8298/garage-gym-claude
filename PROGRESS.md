@@ -621,6 +621,30 @@ Changes:
 - Settings, Spotify shows "Connected as <name>" and has "Check the connection", which reports what Spotify says right now.
 - Podcasts show as well as songs.
 
+Spotify was then confirmed working on iPhone.
+
+## Other workouts: calisthenics, mobility, mat pilates (built; needs the iPhone checklist)
+
+Optional workout types for days the two want something different. They sit outside the lifting program and never change it.
+
+- New page "Other workouts" (`/classes`), reached from the Plan tab and from "Something else" on Today.
+- Calisthenics: four bodyweight workouts (push and core, pull and hang, legs and hips, full body). They start a normal workout, so sets, rest timer, swaps and training together all work.
+- Follow-along sessions: three mobility sessions and one mat core session in a pilates style. Each pose shows a photo, a written cue and a countdown, with pause, back and skip, a sound at each change, and the screen kept awake. Finishing saves it to history and counts toward the week.
+- Places can now list a mat, pull-up bar, dip bars, rings, parallettes, yoga blocks, a strap and a pilates ring. Each workout says what it uses and whether the current place lists it; nothing is hidden. Places saved earlier are assumed to have a mat, pull-up bar and dip bars until the person says otherwise.
+- `scripts/build-classes.mjs` builds `src/data/classes.json` and `public/classes/` from the public-domain exercise set; `src/lib/classes.ts`, `src/screens/Classes.tsx`, `tests/classes.test.ts`, `tests/e2e/classes.e2e.cjs`.
+
+Not done yet:
+- Yoga. Ryan chose freely licensed Wikimedia Commons photos with credit. Commons throttled the downloads from this build environment, so no photos have arrived yet. The player already shows a credit line per photo.
+- Real pilates photos: Commons has almost none. The mat core session uses exercise-set photos.
+
+iPhone checklist:
+1. Plan tab, "Other workouts" opens the page; so does Today, "Something else".
+2. A calisthenics workout starts a normal workout with its moves queued.
+3. A mobility session shows the pose list with photos; Start plays pose by pose with a photo, cue and countdown, and a sound at each change.
+4. Pause, back and skip work; the screen stays awake.
+5. Finishing and "Save to my history" shows the done screen, and the session appears in history.
+6. Settings, a place: the new "For bodyweight work, yoga and pilates" switches save.
+
 ## Next
 
 Release D in BACKLOG.md (the design overhaul) or the open items of releases A to C. Open in epic 6: password reset and Sign in with Apple, groups of three or more in the screens, privacy choices, paged sync.

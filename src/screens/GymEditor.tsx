@@ -2,7 +2,7 @@ import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAuth } from '../lib/auth'
 import { db } from '../lib/db'
-import { EQUIPMENT, equipLabels, equipmentHint, gymsOf, type Gym } from '../lib/gym'
+import { EQUIPMENT, EXTRA_EQUIPMENT, equipLabels, equipmentHint, extraLabels, gymsOf, hasAllMain, type Gym } from '../lib/gym'
 import { PLATE_PAIRS } from '../lib/plates'
 import { defaultProgram, saveProgram, useProgram } from '../lib/programState'
 import { Button, Card, Label, RoundButton, cx, icons } from '../components/ui'
@@ -87,8 +87,8 @@ export function GymEditor() {
       <Card className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <Label>Equipment here</Label>
-          <button className="h-9 px-1 text-xs font-semibold text-accent" onClick={() => update((g) => ({ equipment: g.equipment.length === EQUIPMENT.length ? [] : [...EQUIPMENT] }))}>
-            {gym.equipment.length === EQUIPMENT.length ? 'Clear all' : 'Has everything'}
+          <button className="h-9 px-1 text-xs font-semibold text-accent" onClick={() => update((g) => ({ equipment: hasAllMain(g) ? g.equipment.filter((x) => !(EQUIPMENT as string[]).includes(x)) : [...new Set([...g.equipment, ...EQUIPMENT])] }))}>
+            {hasAllMain(gym) ? 'Clear all' : 'Has everything'}
           </button>
         </div>
         {EQUIPMENT.map((e) => (
@@ -105,6 +105,25 @@ export function GymEditor() {
           </label>
         ))}
         <span className="text-xs text-muted">Bodyweight exercises are always available.</span>
+      </Card>
+
+      <Card className="flex flex-col gap-1">
+        <Label>For bodyweight work, yoga and pilates</Label>
+        {EXTRA_EQUIPMENT.map((e) => (
+          <label key={e} className="flex min-h-[48px] items-center justify-between gap-3">
+            <span className="text-sm font-medium">{extraLabels[e]}</span>
+            <input
+              type="checkbox"
+              role="switch"
+              className="switch"
+              checked={has(e)}
+              onChange={(ev) => {
+                const on = ev.target.checked
+                update((g) => ({ extras: true, equipment: on ? [...g.equipment.filter((x) => x !== e), e] : g.equipment.filter((x) => x !== e) }))
+              }}
+            />
+          </label>
+        ))}
       </Card>
 
       {(has('barbell') || has('smith')) && (

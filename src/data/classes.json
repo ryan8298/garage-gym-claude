@@ -1,0 +1,310 @@
+[
+ {
+  "id": "mobility_morning",
+  "kind": "mobility",
+  "title": "Whole-body loosen up",
+  "level": "Easy",
+  "needs": [],
+  "about": "An unhurried loosen-up for stiff mornings and rest days.",
+  "steps": [
+   {
+    "name": "Cat stretch",
+    "seconds": 45,
+    "side": false,
+    "cue": "On hands and knees, round your back up slowly, then let it sink. Move with your breath.",
+    "image": "/classes/Cat_Stretch.jpg"
+   },
+   {
+    "name": "Child's pose",
+    "seconds": 60,
+    "side": false,
+    "cue": "Sit back on your heels, arms long in front, forehead down. Breathe into your back.",
+    "image": "/classes/Childs_Pose.jpg"
+   },
+   {
+    "name": "World's greatest stretch",
+    "seconds": 40,
+    "side": true,
+    "cue": "Long lunge, both hands inside the front foot, then reach the inside arm to the ceiling.",
+    "image": "/classes/Worlds_Greatest_Stretch.jpg"
+   },
+   {
+    "name": "Kneeling hip flexor",
+    "seconds": 40,
+    "side": true,
+    "cue": "Back knee down, tuck your tail under and ease the hips forward. Stay tall.",
+    "image": "/classes/Kneeling_Hip_Flexor.jpg"
+   },
+   {
+    "name": "Seated hamstring",
+    "seconds": 45,
+    "side": false,
+    "cue": "Legs straight, hinge forward from the hips with a long back. No bouncing.",
+    "image": "/classes/Seated_Floor_Hamstring_Stretch.jpg"
+   },
+   {
+    "name": "Lying glute stretch",
+    "seconds": 40,
+    "side": true,
+    "cue": "On your back, ankle over the opposite knee, pull the legs gently toward you.",
+    "image": "/classes/Lying_Glute.jpg"
+   },
+   {
+    "name": "Knee across the body",
+    "seconds": 40,
+    "side": true,
+    "cue": "On your back, draw one knee across and let it fall, shoulders staying down.",
+    "image": "/classes/Knee_Across_The_Body.jpg"
+   },
+   {
+    "name": "Seated twist",
+    "seconds": 40,
+    "side": true,
+    "cue": "Sit tall, cross one leg over and turn toward it. Lengthen as you breathe in, turn as you breathe out.",
+    "image": "/classes/Spinal_Stretch.jpg"
+   },
+   {
+    "name": "Shoulder stretch",
+    "seconds": 30,
+    "side": true,
+    "cue": "Draw one arm across your chest with the other. Keep the shoulder away from your ear.",
+    "image": "/classes/Shoulder_Stretch.jpg"
+   },
+   {
+    "name": "Side bend",
+    "seconds": 30,
+    "side": true,
+    "cue": "Reach one arm up and over. Hips stay square, both feet heavy.",
+    "image": "/classes/Standing_Lateral_Stretch.jpg"
+   },
+   {
+    "name": "Standing forward fold",
+    "seconds": 40,
+    "side": false,
+    "cue": "Soft knees, let your head and arms hang. Roll up slowly at the end.",
+    "image": "/classes/Standing_Toe_Touches.jpg"
+   }
+  ]
+ },
+ {
+  "id": "mobility_legs",
+  "kind": "mobility",
+  "title": "After leg day",
+  "level": "Easy",
+  "needs": [],
+  "about": "Hips, quads, hamstrings and calves, while they are warm.",
+  "steps": [
+   {
+    "name": "Quad stretch",
+    "seconds": 40,
+    "side": true,
+    "cue": "Heel toward your seat, knees together, hips pressed gently forward.",
+    "image": "/classes/Quad_Stretch.jpg"
+   },
+   {
+    "name": "Seated hamstring",
+    "seconds": 40,
+    "side": true,
+    "cue": "One leg long, fold over it from the hips with a flat back.",
+    "image": "/classes/Seated_Hamstring.jpg"
+   },
+   {
+    "name": "Lying glute stretch",
+    "seconds": 40,
+    "side": true,
+    "cue": "Ankle over the opposite knee, pull both legs in.",
+    "image": "/classes/Lying_Glute.jpg"
+   },
+   {
+    "name": "Outer hip stretch",
+    "seconds": 35,
+    "side": true,
+    "cue": "Cross one leg over and hug the knee toward the opposite shoulder.",
+    "image": "/classes/IT_Band_and_Glute_Stretch.jpg"
+   },
+   {
+    "name": "Inner thigh stretch",
+    "seconds": 45,
+    "side": true,
+    "cue": "Wide stance, sink toward one side keeping the other leg straight.",
+    "image": "/classes/Adductor_Groin.jpg"
+   },
+   {
+    "name": "Kneeling hip flexor",
+    "seconds": 40,
+    "side": true,
+    "cue": "Back knee down, tail tucked, hips forward.",
+    "image": "/classes/Kneeling_Hip_Flexor.jpg"
+   },
+   {
+    "name": "Calf stretch",
+    "seconds": 35,
+    "side": true,
+    "cue": "Hands on the wall, back heel down and leg straight, lean in.",
+    "image": "/classes/Calf_Stretch_Hands_Against_Wall.jpg"
+   },
+   {
+    "name": "Child's pose",
+    "seconds": 60,
+    "side": false,
+    "cue": "Sit back on your heels and let your back let go.",
+    "image": "/classes/Childs_Pose.jpg"
+   }
+  ]
+ },
+ {
+  "id": "mobility_upper",
+  "kind": "mobility",
+  "title": "After upper-body day",
+  "level": "Easy",
+  "needs": [],
+  "about": "Chest, shoulders, lats and neck.",
+  "steps": [
+   {
+    "name": "Shoulder circles",
+    "seconds": 30,
+    "side": false,
+    "cue": "Slow, big circles forward, then back.",
+    "image": "/classes/Shoulder_Circles.jpg"
+   },
+   {
+    "name": "Chest and front shoulder",
+    "seconds": 40,
+    "side": false,
+    "cue": "Hands clasped behind you, lift the arms and open the chest.",
+    "image": "/classes/Chest_And_Front_Of_Shoulder_Stretch.jpg"
+   },
+   {
+    "name": "Chest stretch at the wall",
+    "seconds": 35,
+    "side": true,
+    "cue": "Palm on the wall at shoulder height, turn your body away from it.",
+    "image": "/classes/One_Arm_Against_Wall.jpg"
+   },
+   {
+    "name": "Lat stretch",
+    "seconds": 35,
+    "side": true,
+    "cue": "One arm overhead, hold the wrist and lean away.",
+    "image": "/classes/Overhead_Lat.jpg"
+   },
+   {
+    "name": "Upper back stretch",
+    "seconds": 40,
+    "side": false,
+    "cue": "Clasp your hands in front, round between the shoulder blades and push away.",
+    "image": "/classes/Upper_Back_Stretch.jpg"
+   },
+   {
+    "name": "Triceps stretch",
+    "seconds": 30,
+    "side": true,
+    "cue": "Elbow up by your ear, ease it back with the other hand.",
+    "image": "/classes/Triceps_Stretch.jpg"
+   },
+   {
+    "name": "Side neck stretch",
+    "seconds": 30,
+    "side": true,
+    "cue": "Ear toward shoulder, the opposite arm long and heavy.",
+    "image": "/classes/Side_Neck_Stretch.jpg"
+   },
+   {
+    "name": "Cat stretch",
+    "seconds": 45,
+    "side": false,
+    "cue": "Finish on hands and knees, rounding and releasing the spine.",
+    "image": "/classes/Cat_Stretch.jpg"
+   }
+  ]
+ },
+ {
+  "id": "mat_core",
+  "kind": "pilates",
+  "title": "Mat core, pilates style",
+  "level": "Moderate",
+  "needs": [
+   "mat"
+  ],
+  "about": "Controlled floor work for the deep core, hips and back. Slow and precise beats fast.",
+  "steps": [
+   {
+    "name": "Pelvic tilt into bridge",
+    "seconds": 45,
+    "side": false,
+    "cue": "Flatten your lower back, then peel the spine up one bone at a time. Roll down the same way.",
+    "image": "/classes/Pelvic_Tilt_Into_Bridge.jpg"
+   },
+   {
+    "name": "Leg lowers",
+    "seconds": 40,
+    "side": false,
+    "cue": "On your back, lower both legs only as far as your lower back stays down.",
+    "image": "/classes/Flat_Bench_Lying_Leg_Raise.jpg"
+   },
+   {
+    "name": "Scissors",
+    "seconds": 40,
+    "side": false,
+    "cue": "Legs long and low, switch them in small, even beats. Ribs down.",
+    "image": "/classes/Scissor_Kick.jpg"
+   },
+   {
+    "name": "Double leg pull",
+    "seconds": 40,
+    "side": false,
+    "cue": "Draw both knees in, then reach the legs away without arching.",
+    "image": "/classes/Leg_Pull-In.jpg"
+   },
+   {
+    "name": "Criss-cross",
+    "seconds": 40,
+    "side": false,
+    "cue": "Elbow toward the opposite knee, turning from the ribs, not the neck.",
+    "image": "/classes/Air_Bike.jpg"
+   },
+   {
+    "name": "Swimming",
+    "seconds": 40,
+    "side": false,
+    "cue": "Face down, lift opposite arm and leg and switch in a steady flutter.",
+    "image": "/classes/Superman.jpg"
+   },
+   {
+    "name": "Side plank",
+    "seconds": 30,
+    "side": true,
+    "cue": "Elbow under shoulder, one long line from head to heels.",
+    "image": "/classes/Side_Bridge.jpg"
+   },
+   {
+    "name": "Side leg lifts",
+    "seconds": 40,
+    "side": true,
+    "cue": "On your side, lift the top leg without rocking the hips.",
+    "image": "/classes/Side_Leg_Raises.jpg"
+   },
+   {
+    "name": "Plank",
+    "seconds": 40,
+    "side": false,
+    "cue": "Forearms down, squeeze your seat, breathe steadily.",
+    "image": "/classes/Plank.jpg"
+   },
+   {
+    "name": "Cat stretch",
+    "seconds": 40,
+    "side": false,
+    "cue": "Round and release the spine to ease the back.",
+    "image": "/classes/Cat_Stretch.jpg"
+   },
+   {
+    "name": "Child's pose",
+    "seconds": 60,
+    "side": false,
+    "cue": "Rest back on your heels and breathe.",
+    "image": "/classes/Childs_Pose.jpg"
+   }
+  ]
+ }
+]

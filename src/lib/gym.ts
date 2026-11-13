@@ -13,6 +13,10 @@ export const equipmentHint: Partial<Record<Equip, string>> = {
   machine: 'leg press, chest press and the like',
   other: 'sleds, boxes, chains, specialty bars',
 }
+/** Equipment that the follow-along sessions and bodyweight workouts use. A place can list these too. */
+export const EXTRA_EQUIPMENT = ['mat', 'pull_up_bar', 'dip_bars', 'rings', 'parallettes', 'yoga_block', 'yoga_strap', 'pilates_ring'] as const
+export const extraLabels: Record<string, string> = { mat: 'Exercise mat', pull_up_bar: 'Pull-up bar', dip_bars: 'Dip bars', rings: 'Gymnastic rings', parallettes: 'Parallettes', yoga_block: 'Yoga blocks', yoga_strap: 'Yoga strap', pilates_ring: 'Pilates ring' }
+export const equipmentName = (tag: string) => extraLabels[tag] ?? (equipLabels as Record<string, string>)[tag] ?? tag
 export { equipLabels }
 
 /** Our own garage, before anyone edits it. The plates come from the older plate setting if it was used. */
@@ -20,7 +24,7 @@ export const homeGym = (plates?: Record<string, number>): Gym => ({
   id: 'home',
   name: 'Home gym',
   kind: 'home',
-  equipment: ['barbell', 'smith', 'cable', 'landmine', 'dumbbell'],
+  equipment: ['barbell', 'smith', 'cable', 'landmine', 'dumbbell', 'pull_up_bar', 'dip_bars', 'mat'],
   barbell: 45,
   smith: 33,
   plates: plates ?? DEFAULT_INVENTORY,
@@ -33,7 +37,7 @@ export const publicGym = (): Gym => ({
   id: 'public',
   name: 'Public gym',
   kind: 'public',
-  equipment: [...EQUIPMENT],
+  equipment: [...EQUIPMENT, 'mat', 'pull_up_bar', 'dip_bars'],
   barbell: 45,
   smith: 25,
   plates: { '45': 6, '35': 2, '25': 4, '15': 0, '10': 4, '5': 4, '2.5': 4, '1.25': 0 },
@@ -41,7 +45,11 @@ export const publicGym = (): Gym => ({
   smithLimit: null,
 })
 
-export const gymsOf = (p: ProgramData): Gym[] => (p.gyms?.length ? p.gyms : [homeGym(p.plates), publicGym()])
+const ASSUMED = ['mat', 'pull_up_bar', 'dip_bars']
+/** A place saved before mats and bars could be listed is assumed to have the usual ones. */
+const withExtras = (g: Gym): Gym => (g.extras || EXTRA_EQUIPMENT.some((e) => g.equipment.includes(e)) ? g : { ...g, equipment: [...g.equipment, ...ASSUMED] })
+export const gymsOf = (p: ProgramData): Gym[] => (p.gyms?.length ? p.gyms : [homeGym(p.plates), publicGym()]).map(withExtras)
+export const hasAllMain = (g: Gym) => EQUIPMENT.every((e) => g.equipment.includes(e))
 export const activeGym = (p: ProgramData): Gym => {
   const all = gymsOf(p)
   return all.find((g) => g.id === p.gym) ?? all[0]

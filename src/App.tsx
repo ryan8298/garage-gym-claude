@@ -27,6 +27,7 @@ import { Intervals } from './screens/Intervals'
 import { GymEditor } from './screens/GymEditor'
 import { ProgramBuilder } from './screens/ProgramBuilder'
 import { Plan } from './screens/Plan'
+import { ClassPlayer, Classes } from './screens/Classes'
 import { SpotifyReturn } from './screens/SpotifyReturn'
 import { Cardio, CardioDetail, CardioTrack } from './screens/Cardio'
 import { useProgram } from './lib/programState'
@@ -326,6 +327,8 @@ function Shell() {
           <Route path="/photos" element={<Photos />} />
           <Route path="/spotify" element={<SpotifyReturn />} />
           <Route path="/timer" element={<Intervals />} />
+          <Route path="/classes" element={<Classes />} />
+          <Route path="/classes/:id" element={<ClassPlayer />} />
           <Route path="/cardio" element={<Cardio />} />
           <Route path="/cardio/track" element={<CardioTrack />} />
           <Route path="/cardio/:id" element={<CardioDetail />} />
