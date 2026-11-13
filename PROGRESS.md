@@ -575,7 +575,7 @@ Still to do in release D: restyle Us, the daily log, Library, the exercise page,
 2. "Search all" in that panel opens the full library search for that lift.
 3. First run only shows for someone with no workouts. To see it, invite a test account with a second email (as before): after signing in it walks through four steps, the last one saying who it is connected to. Delete the test account afterwards.
 
-## Cardio page with map tracking (built, waiting on the iPhone checklist)
+## Cardio page with map tracking (done; iPhone checklist passed 2026-11-14)
 
 Ryan could not find where to log a run after the Log tab was removed, and asked for a cardio page with GPS tracking on a map.
 
@@ -598,6 +598,18 @@ Limits:
 4. Pause and Resume work. Finish saves it and shows the route on the map.
 5. The entry appears under Recent on the Cardio page and counts toward this week's minutes.
 6. "Log one by hand" still opens the daily log for cardio without a map.
+
+## Spotify on the workout screen (built; needs Ryan's Spotify app, then the iPhone checklist)
+
+- A slim bar under the workout header shows the song playing in Spotify (art, title, artist) with previous, play or pause, and next. It controls the Spotify app already playing; it does not play music itself. Both people have Premium, which Spotify requires.
+- Sign-in is Spotify's browser flow (PKCE): no secret anywhere. The client ID of Ryan's own Spotify app is entered once in Settings and shared with the partner through the synced settings. Tokens stay on each phone and are not synced.
+- `src/lib/spotify.ts`, `src/components/NowPlaying.tsx`, `/spotify` return page, Settings card. Browser test `tests/e2e/spotify.e2e.cjs` runs against a simulated Spotify.
+
+Not verified, and only a real run will tell:
+- Whether Spotify's 2026 development-mode cuts left the playback endpoints in place. The published list of removed endpoints does not include them, but Spotify's own documentation could not be read from this build environment.
+- Whether the trip to Spotify and back returns into the home-screen app on iPhone. If it comes back in Safari instead, the connection will fail with a message and needs a different hand-off.
+
+Setup for Ryan: developer.spotify.com, Dashboard, Create app; Redirect URI `https://garage-gym-claude.vercel.app/spotify`; API: Web API; then User Management: add both Spotify account emails. Paste the client ID in Settings, Spotify.
 
 ## Next
 

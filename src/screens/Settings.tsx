@@ -12,6 +12,8 @@ import { capabilities } from '../lib/platform'
 import { requestSync, useSyncStatus } from '../lib/syncRunner'
 import { Button, Card, Icon, Label, RoundButton, cx, icons } from '../components/ui'
 import { SyncBadge } from '../components/SyncBadge'
+import { connectSpotify, disconnectSpotify, spotifyConnected, spotifyRedirect } from '../lib/spotify'
+import { usePartner } from '../lib/partner'
 import { acceptInvite, createInvite, deleteAccount, leaveGroup, usePartners } from '../lib/group'
 
 export function Settings() {
@@ -29,6 +31,11 @@ export function Settings() {
   }, [user])
   const rest = restOf(program)
   const partners = usePartners(user!.id)
+  // One Spotify app serves the group: whoever entered its ID, everyone can use it.
+  const partnerProgram = useProgram(usePartner(user!.id)?.id ?? user!.id)
+  const spotifyId = program.spotifyClientId ?? partnerProgram.spotifyClientId ?? ''
+  const [spotifyDraft, setSpotifyDraft] = useState('')
+  const [spotifyOn, setSpotifyOn] = useState(spotifyConnected)
   const [invite, setInvite] = useState<string | null>(null)
   const [code, setCode] = useState('')
   const [groupNote, setGroupNote] = useState<string | null>(null)
@@ -341,6 +348,54 @@ export function Settings() {
           <span role="status" className="text-[13px] text-muted">
             {groupNote}
           </span>
+        )}
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <Label>Spotify</Label>
+        {spotifyOn ? (
+          <>
+            <span className="text-sm">Connected. The song playing in Spotify shows on the workout screen, with previous, pause and next.</span>
+            <Button
+              variant="danger"
+              onClick={() => {
+                disconnectSpotify()
+                setSpotifyOn(false)
+              }}
+            >
+              Disconnect Spotify
+            </Button>
+          </>
+        ) : spotifyId ? (
+          <>
+            <span className="text-[13px] text-muted">Shows the song playing in Spotify on the workout screen and lets you skip without leaving it. Needs Spotify Premium. You will be sent to Spotify to approve it.</span>
+            <Button onClick={() => void connectSpotify(spotifyId)}>Connect Spotify</Button>
+            <button className="h-9 self-start text-xs text-muted" onClick={() => void saveProgram(user!.id, { spotifyClientId: '' })}>
+              Use a different client ID
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="text-[13px] leading-relaxed text-muted">
+              One-time setup: create an app at developer.spotify.com, add the redirect address below to it, and paste its client ID here.
+            </span>
+            <span className="rounded-control bg-bg px-3 py-2 text-xs break-all select-text">{spotifyRedirect()}</span>
+            <span className="flex gap-2">
+              <input
+                type="text"
+                aria-label="Spotify client ID"
+                value={spotifyDraft}
+                onChange={(e) => setSpotifyDraft(e.target.value.trim())}
+                autoCapitalize="none"
+                autoCorrect="off"
+                placeholder="Client ID"
+                className="h-12 min-w-0 flex-1 rounded-control border border-line bg-raised px-3.5 text-ink outline-none focus:border-accent"
+              />
+              <Button disabled={!/^[0-9a-f]{32}$/i.test(spotifyDraft)} onClick={() => void saveProgram(user!.id, { spotifyClientId: spotifyDraft })}>
+                Save
+              </Button>
+            </span>
+          </>
         )}
       </Card>
 

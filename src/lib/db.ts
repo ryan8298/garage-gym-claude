@@ -116,6 +116,8 @@ export interface ProgramState extends SyncFields {
     minutes?: number
     /** My own sets and rep ranges, by "<day>:<main lift id or slot role>". */
     tweaks?: Record<string, { sets?: number; low?: number; high?: number }>
+    /** The client ID of our own Spotify app, from Spotify's developer dashboard. Not a secret. */
+    spotifyClientId?: string
     /** Exercises I have added myself. */
     custom?: { key: string; name: string; group: string; equip: string; measure: string; side: boolean }[]
     /** Workouts I have named and saved to reuse. */

@@ -34,6 +34,7 @@ import {
 import { Button, Icon, Label, Sheet, cx, icons } from '../components/ui'
 import { SetPad } from '../components/SetPad'
 import { LiftQueue } from '../components/LiftQueue'
+import { NowPlaying } from '../components/NowPlaying'
 
 const isDone = (v: LiftView) => v.lift.skipped || (v.sets.length > 0 && v.sets.every((s) => s.done))
 
@@ -281,6 +282,8 @@ export function Session() {
               Finish
             </button>
           </header>
+
+          <NowPlaying />
 
           {other && otherLifts && (
             <div className="grid grid-cols-2 gap-2" role="group" aria-label="Whose turn">
