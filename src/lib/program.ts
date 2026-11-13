@@ -22,6 +22,8 @@ export interface MainLift {
 export interface Slot {
   role: string
   pool: string[]
+  /** The slot's place in the standard order. Rotation follows this, so moving a slot never changes its exercise. */
+  home?: number
 }
 
 export interface Day {

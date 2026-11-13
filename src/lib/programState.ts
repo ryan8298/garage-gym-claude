@@ -39,6 +39,7 @@ export const settingsOf = (p: ProgramData): UserSettings => ({
   pins: p.pins,
   bans: p.bans,
   mains: p.mains,
+  slotOrder: p.slotOrder,
 })
 
 export const nextDay = (p: ProgramData): DayKey => DAY_ORDER[((p.queueIndex % 4) + 4) % 4]
@@ -82,3 +83,6 @@ export function usePlan(userId: string, day?: DayKey, trainingAlone = false): { 
   }, [program, setsByGroup, day, trainingAlone])
   return { plan, program }
 }
+
+export const DEFAULT_REST = { main: 120, topup: 90, accessory: 75, finisher: 45 }
+export const restOf = (p: ProgramData) => ({ ...DEFAULT_REST, ...(p.rest ?? {}) })

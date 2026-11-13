@@ -90,6 +90,14 @@ export interface ProgramState extends SyncFields {
     shareMeasurements?: boolean
     /** Which push notifications I want. Missing means on. */
     notify?: { partnerWorkout?: boolean; reactions?: boolean }
+    /** Pairs of each plate size we own, by size. Missing means one pair of each. */
+    plates?: Record<string, number>
+    /** Rest timer lengths in seconds. */
+    rest?: { main: number; topup: number; accessory: number; finisher: number }
+    /** My own priority order for each day's accessory slots. */
+    slotOrder?: Partial<Record<'A' | 'B' | 'C' | 'D', number[]>>
+    /** The first-run setup has been completed. */
+    onboarded?: boolean
   }
 }
 

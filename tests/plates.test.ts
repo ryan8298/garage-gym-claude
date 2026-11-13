@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { achievableLoads, breakdown, loadAtOrBelow, nearestLoad, stepDown, stepUp, warmupLoads } from '../src/lib/plates'
+import { afterEach } from 'vitest'
+import { achievableLoads, breakdown, loadAtOrBelow, nearestLoad, setPlateInventory, stepDown, stepUp, warmupLoads } from '../src/lib/plates'
+
+afterEach(() => setPlateInventory())
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0)
 
@@ -74,5 +77,16 @@ describe('plate math', () => {
     }
     expect(warmupLoads('barbell', 45)).toEqual([])
     expect(warmupLoads('added', 0)).toEqual([])
+  })
+
+  it('follows the plate inventory when it changes', () => {
+    // No change plates: the barbell can only move in 20 lb steps.
+    setPlateInventory({ '45': 1, '35': 1, '25': 1, '15': 1, '10': 1 })
+    expect(achievableLoads('barbell').slice(0, 3)).toEqual([45, 65, 75])
+    expect(breakdown('barbell', 50)).toBeNull()
+    // A second pair of 45s allows two per side.
+    setPlateInventory({ '45': 2 })
+    expect(breakdown('barbell', 225)!.plates).toEqual([45, 45])
+    expect(Math.max(...achievableLoads('cable'))).toBe(180)
   })
 })

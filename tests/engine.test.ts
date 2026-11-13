@@ -148,6 +148,17 @@ describe('per-user settings', () => {
         }
   })
 
+  it("follows a user's own slot order, and ignores an order that is not a full rearrangement", () => {
+    const calvesFirst = { ...defaultSettings, slotOrder: { A: [3, 0, 1, 2, 4, 5, 6] } }
+    expect(planSession({ day: 'A', blockIndex: 0, week: 1, settings: calvesFirst }).lifts.filter((l) => l.kind === 'accessory')[0].role).toBe('Calves')
+    // Moving a slot changes its priority, never which exercise is in it.
+    const standard = planSession({ day: 'A', blockIndex: 2, week: 4 }).lifts.filter((l) => l.kind === 'accessory')
+    const moved = planSession({ day: 'A', blockIndex: 2, week: 4, settings: calvesFirst }).lifts.filter((l) => l.kind === 'accessory')
+    for (const l of moved) expect(standard.find((x) => x.role === l.role)?.key ?? l.key).toBe(l.key)
+    const broken = { ...defaultSettings, slotOrder: { A: [3, 3, 1] } }
+    expect(planSession({ day: 'A', blockIndex: 0, week: 1, settings: broken }).lifts.filter((l) => l.kind === 'accessory')[0].role).toBe('Single-leg strength')
+  })
+
   it('keeps a pinned exercise in its slot across blocks', () => {
     const settings = { ...defaultSettings, pins: ['walking_lunge'] }
     for (let b = 0; b < 6; b++) expect(keys(planSession({ day: 'A', blockIndex: b, week: 1, settings }), 'accessory')[0]).toBe('walking_lunge')

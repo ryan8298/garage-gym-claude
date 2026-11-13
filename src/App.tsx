@@ -20,6 +20,11 @@ import { Progress } from './screens/Progress'
 import { History, HistoryDetail } from './screens/History'
 import { Us } from './screens/Us'
 import { Photos } from './screens/Photos'
+import { ProgramEditor } from './screens/ProgramEditor'
+import { Onboarding } from './screens/Onboarding'
+import { useProgram } from './lib/programState'
+import { setPlateInventory } from './lib/plates'
+import { useSyncStatus } from './lib/syncRunner'
 import { renewPush, setBadge } from './lib/push'
 import { lastSeenFeed, usePartner } from './lib/partner'
 import { useActiveSession } from './lib/session'
@@ -164,6 +169,20 @@ function useFeedBadge() {
 function Shell() {
   const location = useLocation()
   useFeedBadge()
+  const { user } = useAuth()
+  const program = useProgram(user!.id)
+  // Plate math follows the inventory in Settings.
+  const inventory = JSON.stringify(program.plates ?? null)
+  useEffect(() => setPlateInventory(program.plates ?? undefined), [inventory])
+
+  // First-run setup: only for someone with no workouts, and only once the first
+  // sync has finished, so a returning user on a new phone is not asked again.
+  const sync = useSyncStatus()
+  const hasHistory = useLiveQuery(() => db.workout_sessions.where('user_id').equals(user!.id).count().then((n) => n > 0), [user!.id])
+  const profile = useLiveQuery(() => db.profiles.get(user!.id), [user!.id])
+  if (!program.onboarded && hasHistory === false && (sync.lastSynced !== null || !navigator.onLine)) {
+    return <Onboarding suggestedName={profile?.display_name ?? ''} />
+  }
   if (location.pathname === '/session') return <Session />
   if (location.pathname.startsWith('/done/'))
     return (
@@ -186,6 +205,7 @@ function Shell() {
           <Route path="/us" element={<Us />} />
           <Route path="/photos" element={<Photos />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/program" element={<ProgramEditor />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

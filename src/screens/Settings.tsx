@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { saveProfile, useProfile } from '../lib/data'
-import { saveProgram, useProgram } from '../lib/programState'
+import { restOf, saveProgram, useProgram } from '../lib/programState'
+import { DEFAULT_INVENTORY, PLATE_PAIRS } from '../lib/plates'
+import { clock, setSoundMuted, soundMuted } from '../lib/rest'
+import { deliver, dailyLogsCsv, exportAll, workoutsCsv } from '../lib/exportData'
+import { localDate } from '../lib/dates'
 import { enablePush, notify, pushPermission } from '../lib/push'
 import { capabilities } from '../lib/platform'
 import { requestSync, useSyncStatus } from '../lib/syncRunner'
@@ -17,6 +21,11 @@ export function Settings() {
   const program = useProgram(user!.id)
   const [name, setName] = useState('')
   const [confirming, setConfirming] = useState(false)
+  const [muted, setMuted] = useState(soundMuted)
+  const rest = restOf(program)
+  const plates = program.plates ?? DEFAULT_INVENTORY
+  const steps = profile?.step_target ?? 8000
+  const stepper = 'flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-raised text-lg'
   const [permission, setPermission] = useState(pushPermission)
   const [pushNote, setPushNote] = useState<string | null>(null)
   useEffect(() => setName(profile?.display_name ?? ''), [profile?.display_name])
@@ -97,11 +106,102 @@ export function Settings() {
             <input type="checkbox" checked={!!program[field]} onChange={(e) => void saveProgram(user!.id, { [field]: e.target.checked })} className="h-6 w-6 accent-[#c8f250]" />
           </label>
         ))}
+        <Link to="/settings/program" className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
+          Edit my program
+        </Link>
         {program.pins.length + program.bans.length > 0 && (
           <span className="text-xs text-muted">
             {program.pins.length} exercise{program.pins.length === 1 ? '' : 's'} always used, {program.bans.length} never used. Change these from each exercise's page in the Library.
           </span>
         )}
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <Label>Rest timer</Label>
+        {(
+          [
+            ['main', 'Main lifts'],
+            ['topup', 'Strength top-ups'],
+            ['accessory', 'Accessories'],
+            ['finisher', 'Core finisher'],
+          ] as const
+        ).map(([kind, title]) => (
+          <div key={kind} className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium">{title}</span>
+            <span className="flex items-center gap-1">
+              <button aria-label={`${title}: 15 seconds less`} className={stepper} onClick={() => void saveProgram(user!.id, { rest: { ...rest, [kind]: Math.max(15, rest[kind] - 15) } })}>
+                −
+              </button>
+              <span className="num w-12 text-center text-[15px] font-semibold">{clock(rest[kind])}</span>
+              <button aria-label={`${title}: 15 seconds more`} className={stepper} onClick={() => void saveProgram(user!.id, { rest: { ...rest, [kind]: Math.min(600, rest[kind] + 15) } })}>
+                +
+              </button>
+            </span>
+          </div>
+        ))}
+        <label className="flex min-h-[44px] items-center justify-between gap-3">
+          <span className="text-sm font-medium">Sounds (timer end and records)</span>
+          <input
+            type="checkbox"
+            checked={!muted}
+            onChange={(e) => {
+              setSoundMuted(!e.target.checked)
+              setMuted(!e.target.checked)
+            }}
+            className="h-6 w-6 accent-[#c8f250]"
+          />
+        </label>
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <Label>Plates I own (pairs)</Label>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          {PLATE_PAIRS.map((plate) => {
+            const n = plates[String(plate)] ?? 0
+            const set = (v: number) => void saveProgram(user!.id, { plates: { ...plates, [String(plate)]: Math.max(0, Math.min(6, v)) } })
+            return (
+              <div key={plate} className="flex items-center justify-between gap-2">
+                <span className="num text-sm font-medium">{plate} lb</span>
+                <span className="flex items-center gap-1">
+                  <button aria-label={`One fewer pair of ${plate} pound plates`} className={stepper} onClick={() => set(n - 1)}>
+                    −
+                  </button>
+                  <span className="num w-5 text-center text-[15px] font-semibold">{n}</span>
+                  <button aria-label={`One more pair of ${plate} pound plates`} className={stepper} onClick={() => set(n + 1)}>
+                    +
+                  </button>
+                </span>
+              </div>
+            )
+          })}
+        </div>
+        <span className="text-xs text-muted">Every suggested weight and plate breakdown uses exactly these. Dumbbells are fixed at 5 to 50 lb in 5 lb steps.</span>
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <Label>Daily targets</Label>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-medium">Steps per day</span>
+          <span className="flex items-center gap-1">
+            <button aria-label="500 fewer steps" className={stepper} onClick={() => void saveProfile(user!.id, { step_target: Math.max(1000, steps - 500) })}>
+              −
+            </button>
+            <span className="num w-16 text-center text-[15px] font-semibold">{steps.toLocaleString()}</span>
+            <button aria-label="500 more steps" className={stepper} onClick={() => void saveProfile(user!.id, { step_target: Math.min(40000, steps + 500) })}>
+              +
+            </button>
+          </span>
+        </div>
+      </Card>
+
+      <Card className="flex flex-col gap-2.5">
+        <Label>My data</Label>
+        <Button onClick={() => void exportAll(user!.id).then((d) => deliver(`garage-gym-${localDate()}.json`, JSON.stringify(d, null, 2), 'application/json'))}>Export everything (JSON)</Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button onClick={() => void workoutsCsv(user!.id).then((t) => deliver(`workouts-${localDate()}.csv`, t, 'text/csv'))}>Workouts (CSV)</Button>
+          <Button onClick={() => void dailyLogsCsv(user!.id).then((t) => deliver(`daily-log-${localDate()}.csv`, t, 'text/csv'))}>Daily log (CSV)</Button>
+        </div>
+        <span className="text-xs text-muted">Exports are made from the copy on this phone, so they work offline. Progress photos are not included.</span>
       </Card>
 
       <Card className="flex flex-col gap-3">

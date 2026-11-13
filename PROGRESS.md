@@ -146,7 +146,7 @@ Decisions and known gaps:
 8. If the earlier test workout should not count, delete it from its history page.
 9. Airplane mode: Progress, History and the Log tab all still open and accept entries.
 
-## Phase 5: together, notifications and photos (built, waiting on the iPhone checklist)
+## Phase 5: together, notifications and photos (done; iPhone checklist passed on both phones 2026-11-13, including push)
 
 Done:
 - Us tab: both of our weeks side by side (workouts against target, week streak, cardio, PRs), body weight change for both on one chart, an activity feed of finished workouts with one-tap cheers, and a recap of last week for each of us.
@@ -178,7 +178,33 @@ Both phones are needed for most of this.
 8. Either: Log tab, Progress photos, add two photos, tap both to compare. Sign in on the other phone is not needed: the other person can never see them.
 9. Us tab: open last week's recap.
 
+## Phase 6: settings, program editor, export and first-run setup (built, waiting on the iPhone checklist)
+
+Done:
+- Program editor (Settings, Edit my program): per day, change either main lift within its family, reorder the accessory slots by priority, and lock any slot or finisher to one exercise or let it rotate. A reset button puts a day back to standard. Each person edits only their own copy.
+- Settings: rest timer length for each kind of lift, sound on or off, daily step target, and the plates we own by pair. Changing the plates changes every suggested weight and breakdown.
+- Export: everything as one JSON file, plus CSV files of workouts and the daily log, through the iPhone share sheet. Made from the copy on the phone, so it works offline.
+- First-run setup for someone with no workouts yet: name, body weight, workouts per week, the pull-up question and the ankle strap.
+- Tests: 60 unit tests; the browser test reorders a slot in the editor and checks the next workout follows it.
+
+Decisions and known gaps:
+- The editor does not change sets or rep ranges, or add brand-new slots. Sets and reps come from the training phase; extra exercises are added during a workout.
+- Moving a slot changes its priority only. The exercise in it does not change.
+- Custom exercises (adding one that is not in the library) are not built.
+- Progress photos are not part of the export.
+- First-run setup is skipped for anyone who already has a workout, and waits for the first sync so a new phone does not ask a returning user again.
+
+## iPhone checklist for phase 6
+
+1. Accept "Update available". Settings, Edit my program: on Day A move Calves to the top, then check the Day A preview lists the calf exercise first among accessories.
+2. In the editor tap a main lift and choose another, then tap a slot and lock it to one exercise. The preview follows both. Tap Reset Day A to standard.
+3. Settings, Rest timer: change Main lifts to 2:30. Start a workout, tick a main-lift set: the timer starts at 2:30. Discard the workout.
+4. Settings, Sounds off: no beep at the end of a rest. Turn it back on.
+5. Settings, Plates I own: set the 2.5 lb pairs to 0. In a workout the barbell weight now steps by larger amounts. Set it back to 1.
+6. Settings, My data: export everything. The share sheet opens; save to Files and open the file.
+7. Stella, if she has no workouts yet: she sees the first-run questions once after updating.
+
 ## Next
 
-Phase 6: full settings, the program editor, data export and the first-run setup flow.
+Phase 7: the AI coach. It needs an Anthropic API key, which Ryan creates and stores as a Supabase secret.
 

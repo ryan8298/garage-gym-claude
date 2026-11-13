@@ -91,6 +91,17 @@ async function main() {
     await page.waitForFunction(() => document.body.innerText.includes('30 of 150 minutes this week'), null, { timeout: 5000 })
     if (shot) await page.screenshot({ path: `${shot}/e2e-log.png` })
 
+    // Program editor: move Calves to the top of Day A and check the next Day A workout follows it.
+    await page.goto(`${URL}/settings/program`)
+    await page.getByRole('heading', { name: 'My program' }).waitFor()
+    for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Move Calves up' }).click()
+    if (shot) await page.screenshot({ path: `${shot}/e2e-editor.png` })
+    await page.goto(`${URL}/workout/A`)
+    await page.getByText('Accessories', { exact: true }).waitFor()
+    const firstAccessory = await page.locator('section', { hasText: 'Accessories' }).locator('a').first().innerText()
+    assert.match(firstAccessory, /calf raise/i, 'the reordered slot comes first')
+    await page.goto(URL)
+
     // The Us tab lists the workout in the activity feed.
     await page.getByRole('link', { name: 'Us', exact: true }).click()
     await page.getByText('finished Legs & Lower Back').waitFor()

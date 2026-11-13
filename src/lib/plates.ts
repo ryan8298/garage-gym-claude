@@ -32,13 +32,13 @@ function better(a: number[], b: number[]): boolean {
   return false
 }
 
-/** Every total reachable using each plate at most `max` times, with the fewest plates for each total. */
-function combos(max: number): Combo {
+/** Every total reachable using each plate up to its limit, with the fewest plates for each total. */
+function combos(limit: (plate: number) => number): Combo {
   let found: Combo = new Map([[0, []]])
   for (const plate of PLATE_PAIRS) {
     const next: Combo = new Map(found)
     for (const [sum, plates] of found) {
-      for (let n = 1; n <= max; n++) {
+      for (let n = 1; n <= limit(plate); n++) {
         const total = sum + plate * n
         const candidate = [...plates, ...Array(n).fill(plate)]
         const existing = next.get(total)
@@ -50,19 +50,33 @@ function combos(max: number): Combo {
   return found
 }
 
-const PER_SIDE = combos(1) // one plate of each size on each side of a bar
-const STACK = combos(2) // both plates of each size on one cable or landmine
-
 const sorted = (values: Iterable<number>) => [...new Set(values)].sort((a, b) => a - b)
-const LOADS: Record<LoadMode, number[]> = {
-  barbell: sorted([...PER_SIDE.keys()].map((s) => BAR_WEIGHT.barbell + 2 * s)),
-  smith: sorted([...PER_SIDE.keys()].map((s) => BAR_WEIGHT.smith + 2 * s)),
-  landmine: sorted(STACK.keys()),
-  cable: sorted(STACK.keys()).filter((w) => w > 0),
-  dumbbell: DUMBBELLS,
-  added: [0, ...DUMBBELLS],
-  none: [0],
+
+/** How many pairs of each plate we own. One pair of each by default. */
+export type PlateInventory = Record<string, number>
+export const DEFAULT_INVENTORY: PlateInventory = Object.fromEntries(PLATE_PAIRS.map((p) => [String(p), 1]))
+
+let PER_SIDE: Combo // plates on each side of a bar: one per pair owned
+let STACK: Combo // plates on one cable or landmine: both plates of each pair
+let LOADS: Record<LoadMode, number[]>
+
+/** Rebuild every loadable weight from the plates we own. Called when the inventory in Settings changes. */
+export function setPlateInventory(inventory: PlateInventory = DEFAULT_INVENTORY) {
+  const pairs = (plate: number) => Math.max(0, Math.min(6, Math.floor(inventory[String(plate)] ?? 0)))
+  PER_SIDE = combos(pairs)
+  STACK = combos((plate) => pairs(plate) * 2)
+  LOADS = {
+    barbell: sorted([...PER_SIDE.keys()].map((s) => BAR_WEIGHT.barbell + 2 * s)),
+    smith: sorted([...PER_SIDE.keys()].map((s) => BAR_WEIGHT.smith + 2 * s)),
+    landmine: sorted(STACK.keys()),
+    cable: sorted(STACK.keys()).filter((w) => w > 0),
+    dumbbell: DUMBBELLS,
+    added: [0, ...DUMBBELLS],
+    none: [0],
+  }
+  if (LOADS.cable.length === 0) LOADS.cable = [0]
 }
+setPlateInventory()
 
 export const achievableLoads = (mode: LoadMode): number[] => LOADS[mode]
 

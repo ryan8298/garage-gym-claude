@@ -6,7 +6,7 @@ import type { SetRow } from '../lib/db'
 import { exercise, exercises, groupLabels, stationLabels } from '../lib/exercises'
 import { breakdown, loadModeFor } from '../lib/plates'
 import { CATCH_UP, PROGRAM, TOP_UP } from '../lib/program'
-import { saveProgram, useProgram } from '../lib/programState'
+import { restOf, saveProgram, useProgram } from '../lib/programState'
 import { adjustRest, beep, clearRest, clock, startRest, unlockSound, useRest, useWakeLock } from '../lib/rest'
 import {
   addExercise,
@@ -27,7 +27,6 @@ import {
 import { Button, Icon, Label, Sheet, cx, icons } from '../components/ui'
 import { SetPad } from '../components/SetPad'
 
-const REST_SECONDS = { main: 120, topup: 90, accessory: 75, finisher: 45 }
 const isDone = (v: LiftView) => v.lift.skipped || (v.sets.length > 0 && v.sets.every((s) => s.done))
 
 export function useElapsed(startedAt: string | undefined): string {
@@ -147,7 +146,7 @@ export function Session() {
     const group = view.lift.superset_group
     const partner = group ? lifts!.find((v) => v.lift.superset_group === group && v.lift.id !== view.lift.id) : undefined
     if (partner && partner.lift.position > view.lift.position && partner.sets.some((x) => !x.done)) return setPicked(partner.lift.id)
-    if (s.set_type !== 'warmup') startRest(REST_SECONDS[view.target.kind])
+    if (s.set_type !== 'warmup') startRest(restOf(program)[view.target.kind])
     if (partner && partner.lift.position < view.lift.position && partner.sets.some((x) => !x.done)) setPicked(partner.lift.id)
   }
 

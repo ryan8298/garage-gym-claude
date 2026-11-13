@@ -19,6 +19,8 @@ export interface UserSettings {
   bans: string[]
   /** Main lift overrides by MainLift id, for example a "training alone" swap made permanent. */
   mains: Record<string, string>
+  /** A user's own priority order for a day's accessory slots, as positions in the default list. */
+  slotOrder?: Partial<Record<DayKey, number[]>>
 }
 export const defaultSettings: UserSettings = { pullMain: 'lat_pulldown', ankleStrap: true, partner: true, pins: [], bans: [], mains: {} }
 
@@ -104,6 +106,13 @@ function lift(key: string, kind: PlannedLift['kind'], role: string, sets: number
   return { key, name: e.name, kind, role, sets, eachSide: e.side, ...target(e, range), ...(note ? { note } : {}) }
 }
 
+/** Apply a user's slot order if it is a valid rearrangement of the default one. */
+export function orderSlots(slots: Slot[], order: number[] | undefined): Slot[] {
+  const homed = slots.map((slot, home) => ({ ...slot, home }))
+  if (!order || order.length !== slots.length || new Set(order).size !== slots.length || order.some((i) => !slots[i])) return homed
+  return order.map((i) => homed[i])
+}
+
 /** Muscle groups ordered from furthest behind to furthest ahead. */
 function mostBehind(groups: string[], setsByGroup: Record<string, number>): string[] {
   return [...groups].sort((a, b) => (setsByGroup[a] ?? 0) - (setsByGroup[b] ?? 0) || groups.indexOf(a) - groups.indexOf(b))
@@ -134,7 +143,8 @@ export function planSession(input: PlanInput): SessionPlan {
   const { day, blockIndex, week } = input
   const s = input.settings ?? defaultSettings
   const sets7d = input.setsByGroup ?? {}
-  const def = PROGRAM[day]
+  const base = PROGRAM[day]
+  const def = { ...base, slots: orderSlots(base.slots, s.slotOrder?.[day]) }
   const phase = phaseOf(blockIndex)
   const recovery = isRecoveryWeek(blockIndex, week)
   const taken = new Set<string>()
@@ -160,7 +170,7 @@ export function planSession(input: PlanInput): SessionPlan {
   const accessorySets = recovery || blockIndex === 0 ? 2 : 3
   const range = ACCESSORY_REPS[phase]
   const add = (slot: Slot, index: number, kind: PlannedLift['kind'], sets: number) => {
-    const key = pickFromPool(slot.pool, index, blockIndex, s, taken)
+    const key = pickFromPool(slot.pool, slot.home ?? index, blockIndex, s, taken)
     if (!key) return false
     taken.add(key)
     lifts.push(lift(key, kind, slot.role, sets, range))
