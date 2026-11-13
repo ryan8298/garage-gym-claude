@@ -237,7 +237,33 @@ Decisions and known gaps:
 8. Settings, AI coach: the month's message count has gone up. Turn the coach off: the coach button disappears and everything else still works. Turn it back on.
 9. Airplane mode: asking the coach shows "The coach needs a connection" and nothing else breaks.
 
+## Phase 8: polish pass (built, waiting on the iPhone checklist)
+
+Done:
+- Every screen was screenshotted at phone size and reviewed against the design system.
+- On/off settings are iOS-style switches instead of browser checkboxes (Settings, workout preview, swap sheet).
+- Program editor reorder controls are proper buttons with chevrons.
+- Screen movement has direction: going deeper slides in from the right, going back slides from the left, switching tabs fades. All respect Reduce Motion.
+- Swipe from the left edge goes back on every screen that has a back button, and the screen follows the finger.
+- iOS splash screens for current iPhone sizes, so launch shows the logo on the app background, not a white flash. iOS only picks these up when the app is added to the Home Screen, so an existing install must be removed and re-added to get them.
+- Scheduled notifications: a Sunday summary (23:30 UTC, Sunday afternoon or evening in the US) and a nudge on the day the gap since the last workout reaches four days (checked daily at 22:00 UTC). Each has its own switch in Settings. The database scheduler calls the notify function with a secret generated inside the database. A test call through the scheduler path returned success.
+- Small fixes: plate labels no longer wrap, single-point charts show one axis label.
+
+Not built, by decision:
+- Custom exercises, the body-outline muscle map (bars are used), streamed coach replies, and changing sets and reps in the program editor.
+- The swipe-back is edge-only and the outgoing screen is not shown underneath, unlike a native stack.
+
+## iPhone checklist for phase 8
+
+1. Accept "Update available".
+2. Settings: every on/off control is a switch and toggles smoothly.
+3. Settings, Edit my program: the up and down buttons reorder slots.
+4. From Today open Settings, then Edit my program. Swipe from the left edge of the screen: it goes back one screen each time and follows your finger. A short swipe springs back.
+5. Tab changes fade; opening a screen slides in from the right; Back slides from the left.
+6. During a workout, swiping from the left edge does nothing (so a set is never lost by accident).
+7. Settings, Notifications: two new switches, "Sunday summary of our week" and "A nudge after 4 days without a workout". The first summary arrives this Sunday.
+8. Optional, for the splash screen: remove the app from the Home Screen, add it again from Safari, sign in. Launch now shows the logo on a dark background. Your data comes back from the server after sign-in; make sure the sync indicator showed everything synced before removing.
+
 ## Next
 
-Phase 8: polish pass. Open items carried forward: iOS splash screens, the body-outline muscle map, custom exercises, swipe-back and fuller screen transitions, the scheduled weekly summary and nudge notifications, and coach streaming.
-
+Nothing is scheduled. Candidates if wanted: custom exercises, body-outline muscle map, streamed coach replies, sets and reps in the program editor, a custom domain.

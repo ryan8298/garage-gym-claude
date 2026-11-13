@@ -44,7 +44,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         // Adds the push notification handlers to the generated service worker.
         importScripts: ['push-sw.js'],
-        globIgnores: ['push-sw.js'],
+        globIgnores: ['push-sw.js', 'splash/**'],
       },
     }),
   ],

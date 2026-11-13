@@ -89,7 +89,7 @@ export interface ProgramState extends SyncFields {
     /** Let my partner see my body measurements. */
     shareMeasurements?: boolean
     /** Which push notifications I want. Missing means on. */
-    notify?: { partnerWorkout?: boolean; reactions?: boolean }
+    notify?: { partnerWorkout?: boolean; reactions?: boolean; weekly?: boolean; nudge?: boolean }
     /** Pairs of each plate size we own, by size. Missing means one pair of each. */
     plates?: Record<string, number>
     /** Rest timer lengths in seconds. */

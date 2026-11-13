@@ -40,7 +40,7 @@ export function LineChart({ series, label, height = 110, unit = '' }: { series: 
           })}
         </svg>
         <span className="num pointer-events-none absolute top-0 left-0 text-[10px] text-muted">{fmt(y1 - pad)}</span>
-        <span className="num pointer-events-none absolute bottom-0 left-0 text-[10px] text-muted">{fmt(y0 + pad)}</span>
+        {fmt(y0 + pad) !== fmt(y1 - pad) && <span className="num pointer-events-none absolute bottom-0 left-0 text-[10px] text-muted">{fmt(y0 + pad)}</span>}
       </div>
       <div className="flex justify-between text-[11px] text-muted">
         <span>{short(dates[0])}</span>

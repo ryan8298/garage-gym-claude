@@ -103,6 +103,18 @@ a:active {
     opacity: 0;
   }
 }
+@keyframes pop-in {
+  from {
+    transform: translateX(-24px);
+    opacity: 0;
+  }
+}
+.pop {
+  animation: pop-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.fade {
+  animation: fade-in 0.14s ease-out;
+}
 .sheet {
   animation: sheet-up 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
@@ -115,8 +127,14 @@ a:active {
 @media (prefers-reduced-motion: reduce) {
   .sheet,
   .backdrop,
-  .push {
+  .push,
+  .pop,
+  .fade {
     animation: none;
+  }
+  .switch,
+  .switch::after {
+    transition: none;
   }
 }
 
@@ -130,4 +148,36 @@ a:active {
 }
 .scroll-x::-webkit-scrollbar {
   display: none;
+}
+
+/* On/off switch in the iOS style, used for every setting that is on or off. */
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 51px;
+  height: 31px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--color-line-strong);
+  transition: background 0.2s;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  transition: transform 0.2s;
+}
+.switch:checked {
+  background: var(--color-accent);
+}
+.switch:checked::after {
+  transform: translateX(20px);
 }

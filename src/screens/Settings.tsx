@@ -108,7 +108,7 @@ export function Settings() {
               <span className="text-sm font-medium">{title}</span>
               <span className="text-xs text-muted">{detail}</span>
             </span>
-            <input type="checkbox" checked={!!program[field]} onChange={(e) => void saveProgram(user!.id, { [field]: e.target.checked })} className="h-6 w-6 accent-[#c8f250]" />
+            <input type="checkbox" checked={!!program[field]} onChange={(e) => void saveProgram(user!.id, { [field]: e.target.checked })} role="switch" className="switch" />
           </label>
         ))}
         <Link to="/settings/program" className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
@@ -128,7 +128,7 @@ export function Settings() {
             <span className="text-sm font-medium">Coach switched on</span>
             <span className="text-xs text-muted">Everything else works the same with it off</span>
           </span>
-          <input type="checkbox" checked={program.coach !== false} onChange={(e) => void saveProgram(user!.id, { coach: e.target.checked })} className="h-6 w-6 accent-[#c8f250]" />
+          <input type="checkbox" checked={program.coach !== false} onChange={(e) => void saveProgram(user!.id, { coach: e.target.checked })} role="switch" className="switch" />
         </label>
         <span className="text-[13px] text-muted">
           {usage ? `This month: ${usage.messages} message${usage.messages === 1 ? '' : 's'}, about $${usage.cost.toFixed(2)} at most.` : 'Usage shows here when you are online.'} Limit: 30 messages a day each.
@@ -168,7 +168,7 @@ export function Settings() {
               setSoundMuted(!e.target.checked)
               setMuted(!e.target.checked)
             }}
-            className="h-6 w-6 accent-[#c8f250]"
+            role="switch" className="switch"
           />
         </label>
       </Card>
@@ -181,7 +181,7 @@ export function Settings() {
             const set = (v: number) => void saveProgram(user!.id, { plates: { ...plates, [String(plate)]: Math.max(0, Math.min(6, v)) } })
             return (
               <div key={plate} className="flex items-center justify-between gap-2">
-                <span className="num text-sm font-medium">{plate} lb</span>
+                <span className="num text-sm font-medium whitespace-nowrap">{plate} lb</span>
                 <span className="flex items-center gap-1">
                   <button aria-label={`One fewer pair of ${plate} pound plates`} className={stepper} onClick={() => set(n - 1)}>
                     −
@@ -232,6 +232,8 @@ export function Settings() {
               [
                 ['partnerWorkout', 'My partner finishes a workout'],
                 ['reactions', 'My partner cheers my workout'],
+                ['weekly', 'Sunday summary of our week'],
+                ['nudge', 'A nudge after 4 days without a workout'],
               ] as const
             ).map(([field, title]) => (
               <label key={field} className="flex min-h-[44px] items-center justify-between gap-3">
@@ -240,7 +242,7 @@ export function Settings() {
                   type="checkbox"
                   checked={program.notify?.[field] !== false}
                   onChange={(e) => void saveProgram(user!.id, { notify: { ...program.notify, [field]: e.target.checked } })}
-                  className="h-6 w-6 accent-[#c8f250]"
+                  role="switch" className="switch"
                 />
               </label>
             ))}

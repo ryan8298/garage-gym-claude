@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAuth } from './lib/auth'
@@ -167,8 +167,80 @@ function useFeedBadge() {
   useEffect(() => setBadge(unseen), [unseen])
 }
 
+const isTabRoot = (path: string) => tabs.some((t) => t.to === path)
+
+/**
+ * Swipe from the left edge to go back, as in a native app. The screen follows
+ * the finger; past a third of the way it goes back, otherwise it springs home.
+ */
+function useSwipeBack(enabled: boolean) {
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (!enabled) return
+    let startX = 0
+    let startY = 0
+    let dx = 0
+    let tracking = false
+    let moving = false
+    const target = () => document.querySelector<HTMLElement>('[data-swipe]')
+    const start = (e: TouchEvent) => {
+      const t = e.touches[0]
+      tracking = e.touches.length === 1 && t.clientX <= 28 && !document.querySelector('[role="dialog"]')
+      moving = false
+      dx = 0
+      startX = t.clientX
+      startY = t.clientY
+    }
+    const move = (e: TouchEvent) => {
+      if (!tracking) return
+      const t = e.touches[0]
+      dx = Math.max(0, t.clientX - startX)
+      if (!moving) {
+        if (Math.abs(t.clientY - startY) > 14 && dx < 14) tracking = false
+        if (dx < 10) return
+        moving = true
+      }
+      e.preventDefault()
+      const el = target()
+      if (el) {
+        el.style.transition = 'none'
+        el.style.transform = `translateX(${dx}px)`
+      }
+    }
+    const end = () => {
+      if (!tracking || !moving) return
+      tracking = false
+      const el = target()
+      const go = dx > Math.min(130, window.innerWidth / 3)
+      if (el) {
+        el.style.transition = go ? 'none' : 'transform .2s'
+        el.style.transform = ''
+      }
+      if (go) {
+        if ((window.history.state?.idx ?? 0) > 0) navigate(-1)
+        else navigate('/', { replace: true })
+      }
+    }
+    document.addEventListener('touchstart', start, { passive: true })
+    document.addEventListener('touchmove', move, { passive: false })
+    document.addEventListener('touchend', end)
+    document.addEventListener('touchcancel', end)
+    return () => {
+      document.removeEventListener('touchstart', start)
+      document.removeEventListener('touchmove', move)
+      document.removeEventListener('touchend', end)
+      document.removeEventListener('touchcancel', end)
+    }
+  }, [enabled, navigate])
+}
+
 function Shell() {
   const location = useLocation()
+  const navType = useNavigationType()
+  const path = location.pathname
+  useSwipeBack(!isTabRoot(path) && path !== '/session' && !path.startsWith('/done/'))
+  // Going deeper slides in from the right, going back from the left, and switching tabs fades.
+  const motion = location.key === 'default' ? '' : navType === 'POP' ? 'pop' : isTabRoot(path) ? 'fade' : 'push'
   useFeedBadge()
   const { user } = useAuth()
   const program = useProgram(user!.id)
@@ -194,7 +266,7 @@ function Shell() {
     )
   return (
     <div className="flex h-full flex-col">
-      <main key={location.pathname} className="push scroll-y pt-safe min-h-0 flex-1">
+      <main key={location.pathname} data-swipe className={cx(motion, 'scroll-y pt-safe min-h-0 flex-1')}>
         <Routes location={location}>
           <Route path="/" element={<Today />} />
           <Route path="/library" element={<Library />} />

@@ -49,7 +49,7 @@ export function WorkoutPreview() {
           <span className="text-sm font-semibold">Training alone today</span>
           <span className="text-xs text-muted">Swaps free-barbell main lifts for versions that are safe without a spotter</span>
         </span>
-        <input type="checkbox" checked={alone} onChange={(e) => setAlone(e.target.checked)} className="h-6 w-6 accent-[#c8f250]" />
+        <input type="checkbox" checked={alone} onChange={(e) => setAlone(e.target.checked)} role="switch" className="switch" />
       </label>
 
       <LiftList plan={plan} />

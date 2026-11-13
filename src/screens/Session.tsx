@@ -376,7 +376,7 @@ export function Session() {
                   <span className="text-sm font-semibold">Also change my program</span>
                   <span className="text-xs text-muted">Off: the swap is for today only</span>
                 </span>
-                <input type="checkbox" checked={alsoProgram} onChange={(e) => setAlsoProgram(e.target.checked)} className="h-6 w-6 accent-[#c8f250]" />
+                <input type="checkbox" checked={alsoProgram} onChange={(e) => setAlsoProgram(e.target.checked)} role="switch" className="switch" />
               </label>
             </div>
             <div className="overflow-hidden rounded-control border border-line bg-raised">

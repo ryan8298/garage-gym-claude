@@ -6,7 +6,7 @@ import { blockPosition, orderSlots, phaseLabel, phaseOf, pickFromPool } from '..
 import { exercise } from '../lib/exercises'
 import { DAY_ORDER, PROGRAM, type DayKey, type MainLift, type Slot } from '../lib/program'
 import { saveProgram, settingsOf, useProgram } from '../lib/programState'
-import { Button, Card, Label, RoundButton, Sheet, cx, icons } from '../components/ui'
+import { Button, Card, Label, RoundButton, Sheet, cx, icons, Icon } from '../components/ui'
 
 type Editing = { kind: 'main'; main: MainLift } | { kind: 'slot'; slot: Slot } | null
 
@@ -90,11 +90,11 @@ export function ProgramEditor() {
                   {slot.role} · {locked(slot) ? 'locked' : 'rotates each block'}
                 </span>
               </button>
-              <button aria-label={`Move ${slot.role} up`} disabled={i === 0} onClick={() => move(i, -1)} className="flex h-11 w-10 items-center justify-center text-ink disabled:text-faint">
-                ▲
+              <button aria-label={`Move ${slot.role} up`} disabled={i === 0} onClick={() => move(i, -1)} className="mr-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-raised text-ink disabled:opacity-35">
+                <Icon d="M6 15l6-6 6 6" size={18} />
               </button>
-              <button aria-label={`Move ${slot.role} down`} disabled={i === slots.length - 1} onClick={() => move(i, 1)} className="flex h-11 w-10 items-center justify-center text-ink disabled:text-faint">
-                ▼
+              <button aria-label={`Move ${slot.role} down`} disabled={i === slots.length - 1} onClick={() => move(i, 1)} className="mr-2.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-raised text-ink disabled:opacity-35">
+                <Icon d="M6 9l6 6 6-6" size={18} />
               </button>
             </div>
           )

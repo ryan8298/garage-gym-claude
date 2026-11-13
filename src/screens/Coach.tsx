@@ -183,7 +183,7 @@ export function Coach() {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div data-swipe className="push flex h-full flex-col bg-bg">
       <header className="pt-safe flex shrink-0 items-center gap-2.5 px-5 pb-2">
         <RoundButton label="Back" d={icons.back} onClick={() => navigate(-1)} />
         <div className="flex flex-1 flex-col">
