@@ -64,6 +64,13 @@ Every push to `main` deploys. The installed app shows "Update available" when a 
 
 The app shows these steps itself if it is opened in Safari.
 
+## Adding an exercise or a video
+
+- Exercise: add a line to `scripts/catalog.mjs` (name, muscle group, equipment, how it is measured, setup note, and either the matching name in free-exercise-db or your own steps), then run `node scripts/build-exercises.mjs` and commit the result. To use it in the program, add its key to a pool in `src/lib/program.ts`.
+- Video: open the exercise in the app, tap Add video and paste a YouTube link. It is saved to your account and plays inside the app.
+
+Exercise pictures and instructions come from [free-exercise-db](https://github.com/yuhonas/free-exercise-db), which is in the public domain (Unlicense).
+
 ## Layout
 
 ```

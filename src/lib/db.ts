@@ -72,6 +72,23 @@ export interface SetRow extends SyncFields {
   done_at: string | null
 }
 
+/** One row per user: their own choices on top of the shared program. */
+export interface ProgramState extends SyncFields {
+  data: {
+    queueIndex: number
+    /** Local date the first workout was started; blocks are counted from that week. */
+    startedOn: string | null
+    pullMain: 'pull_up' | 'lat_pulldown'
+    ankleStrap: boolean
+    partner: boolean
+    pins: string[]
+    bans: string[]
+    mains: Record<string, string>
+    /** YouTube links the user has added, by exercise key. */
+    videos: Record<string, string>
+  }
+}
+
 export interface OutboxEntry {
   key: string // "<table>:<id>", so many edits to one row are one entry
   table: SyncTable
@@ -85,7 +102,7 @@ export interface MetaEntry {
 }
 
 /** Parents before children, so a set is never pushed before its session. */
-export const SYNC_TABLES = ['profiles', 'daily_logs', 'workout_sessions', 'session_exercises', 'sets'] as const
+export const SYNC_TABLES = ['profiles', 'program_state', 'daily_logs', 'workout_sessions', 'session_exercises', 'sets'] as const
 export type SyncTable = (typeof SYNC_TABLES)[number]
 
 export class GymDB extends Dexie {
@@ -94,6 +111,7 @@ export class GymDB extends Dexie {
   workout_sessions!: Table<WorkoutSession, string>
   session_exercises!: Table<SessionExercise, string>
   sets!: Table<SetRow, string>
+  program_state!: Table<ProgramState, string>
   outbox!: Table<OutboxEntry, string>
   meta!: Table<MetaEntry, string>
 
@@ -108,6 +126,7 @@ export class GymDB extends Dexie {
       outbox: 'key, table',
       meta: 'key',
     })
+    this.version(2).stores({ program_state: 'id' })
   }
 }
 

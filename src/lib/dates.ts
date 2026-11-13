@@ -35,3 +35,7 @@ export function partOfDay(d = new Date()): string {
   const h = d.getHours()
   return h < 12 ? 'Morning' : h < 18 ? 'Afternoon' : 'Evening'
 }
+
+export function daysBetween(a: string, b: string): number {
+  return Math.round((parseLocal(b).getTime() - parseLocal(a).getTime()) / 86_400_000)
+}

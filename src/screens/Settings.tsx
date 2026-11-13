@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { saveProfile, useProfile } from '../lib/data'
+import { saveProgram, useProgram } from '../lib/programState'
 import { capabilities } from '../lib/platform'
 import { requestSync, useSyncStatus } from '../lib/syncRunner'
 import { Button, Card, Icon, Label, RoundButton, cx, icons } from '../components/ui'
@@ -12,6 +13,7 @@ export function Settings() {
   const navigate = useNavigate()
   const profile = useProfile(user!.id)
   const sync = useSyncStatus()
+  const program = useProgram(user!.id)
   const [name, setName] = useState('')
   const [confirming, setConfirming] = useState(false)
   useEffect(() => setName(profile?.display_name ?? ''), [profile?.display_name])
@@ -52,6 +54,50 @@ export function Settings() {
           </div>
         </div>
         <span className="text-xs text-muted">{user!.email}</span>
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <Label>My program</Label>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs text-muted">Day B pulling main lift</span>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ['pull_up', 'Pull-ups'],
+                ['lat_pulldown', 'Lat pulldown'],
+              ] as const
+            ).map(([value, text]) => (
+              <button
+                key={value}
+                aria-pressed={program.pullMain === value}
+                onClick={() => void saveProgram(user!.id, { pullMain: value })}
+                className={cx('h-11 rounded-control border text-sm font-semibold', program.pullMain === value ? 'border-accent bg-accent-dim text-accent' : 'border-line bg-raised text-muted')}
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+          <span className="text-xs text-muted">Choose pull-ups once you can do 5 or more in a set. Lat pulldown adds pull-up practice before your sets.</span>
+        </div>
+        {(
+          [
+            ['ankleStrap', 'I have an ankle strap', 'Adds cable leg curls, kickbacks and hip work'],
+            ['partner', 'I usually train with a partner', 'Allows partner-assisted exercises'],
+          ] as const
+        ).map(([field, title, detail]) => (
+          <label key={field} className="flex min-h-[48px] items-center justify-between gap-3">
+            <span className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">{title}</span>
+              <span className="text-xs text-muted">{detail}</span>
+            </span>
+            <input type="checkbox" checked={program[field]} onChange={(e) => void saveProgram(user!.id, { [field]: e.target.checked })} className="h-6 w-6 accent-[#c8f250]" />
+          </label>
+        ))}
+        {program.pins.length + program.bans.length > 0 && (
+          <span className="text-xs text-muted">
+            {program.pins.length} exercise{program.pins.length === 1 ? '' : 's'} always used, {program.bans.length} never used. Change these from each exercise's page in the Library.
+          </span>
+        )}
       </Card>
 
       <Card className="flex flex-col gap-3">

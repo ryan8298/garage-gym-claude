@@ -37,7 +37,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,woff2,jpg}'],
+        // Exercise pictures are precached so the library works offline.
+        maximumFileSizeToCacheInBytes: 3_000_000,
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
       },

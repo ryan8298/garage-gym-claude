@@ -12,6 +12,9 @@ import { Today } from './screens/Today'
 import { Log } from './screens/Log'
 import { Settings } from './screens/Settings'
 import { ComingSoon } from './screens/ComingSoon'
+import { Library } from './screens/Library'
+import { ExerciseDetail } from './screens/ExerciseDetail'
+import { WorkoutPreview } from './screens/WorkoutPreview'
 
 const tabs = [
   { to: '/', label: 'Today', d: icons.today },
@@ -29,6 +32,7 @@ function TabBar() {
           key={t.to}
           to={t.to}
           end={t.to === '/'}
+          aria-label={t.label}
           className={({ isActive }) =>
             cx('flex h-12 flex-1 flex-col items-center justify-center gap-1 text-[11px]', isActive ? 'font-semibold text-accent' : 'font-medium text-muted')
           }
@@ -119,7 +123,9 @@ function Shell() {
       <main key={location.pathname} className="push scroll-y pt-safe min-h-0 flex-1">
         <Routes location={location}>
           <Route path="/" element={<Today />} />
-          <Route path="/library" element={<ComingSoon title="Library" phase={2} what="Every exercise you can do on the M1 Pro, with setup notes, steps and video." />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/library/:key" element={<ExerciseDetail />} />
+          <Route path="/workout/:day" element={<WorkoutPreview />} />
           <Route path="/log" element={<Log />} />
           <Route path="/progress" element={<ComingSoon title="Progress" phase={4} what="Strength charts, the weekly muscle map, goals and your workout history." />} />
           <Route path="/us" element={<ComingSoon title="Us" phase={5} what="Both of your weeks side by side, the activity feed and reactions." />} />

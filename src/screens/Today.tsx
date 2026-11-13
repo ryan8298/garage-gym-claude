@@ -1,10 +1,15 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAuth } from '../lib/auth'
 import { db } from '../lib/db'
 import { useDailyLog, useProfile } from '../lib/data'
 import { localDate, longDate, partOfDay, weekDays } from '../lib/dates'
-import { Card, Icon, Label, cx, icons } from '../components/ui'
+import { Button, Card, Icon, Label, Sheet, cx, icons } from '../components/ui'
+import { targetText } from '../components/LiftList'
+import { phaseLabel } from '../lib/engine'
+import { DAY_ORDER, PROGRAM } from '../lib/program'
+import { saveProgram, usePlan } from '../lib/programState'
 import { SyncBadge } from '../components/SyncBadge'
 
 export function Today() {
@@ -22,6 +27,10 @@ export function Today() {
     new Set<string>(),
   )
   const target = profile?.weekly_target ?? 4
+  const { plan, program } = usePlan(user!.id)
+  const [swapping, setSwapping] = useState(false)
+  const mains = plan.lifts.filter((l) => l.kind === 'main')
+  const rest = plan.lifts.filter((l) => l.kind !== 'main')
   const name = profile?.display_name || user!.email.split('@')[0]
 
   return (
@@ -38,13 +47,64 @@ export function Today() {
         </Link>
       </header>
 
-      <Card className="flex flex-col gap-3 !p-[18px]">
-        <Label tone="accent">Next up</Label>
-        <h2 className="font-display text-[26px] leading-[1.1] font-bold tracking-[-0.5px]">Your program arrives in phase 2</h2>
-        <p className="text-sm leading-relaxed text-muted">
-          This is where the next workout will be, with every lift listed and a Start button. For now, the foundation is in place: sign-in, offline saving and sync.
-        </p>
+      <Card className="flex flex-col gap-3.5 !p-[18px]">
+        <div className="flex items-center justify-between">
+          <Label tone="accent">Next up · Day {plan.day}</Label>
+          <span className="text-xs text-muted">
+            {plan.lifts.length} lifts · about {plan.minutes} min
+          </span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <h2 className="font-display text-[30px] leading-[1.05] font-bold tracking-[-0.6px]">{plan.title}</h2>
+          <span className="text-[13px] text-muted">
+            {phaseLabel[plan.phase]} block · week {plan.week} of 4{plan.recovery ? ' · lighter week' : ''}
+          </span>
+        </div>
+        <div className="flex flex-col gap-2">
+          {mains.map((l) => (
+            <div key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
+              <span>{l.name}</span>
+              <span className="num shrink-0 text-muted">{targetText(l)}</span>
+            </div>
+          ))}
+          <Label>Then {rest.length} more</Label>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[13px]">
+            {rest.map((l) => (
+              <span key={l.key} className={l.kind === 'finisher' ? 'text-muted' : ''}>
+                {l.name}
+              </span>
+            ))}
+          </div>
+        </div>
+        <Link to={`/workout/${plan.day}`} className="flex h-14 items-center justify-center rounded-control bg-accent font-display text-lg font-bold text-accent-ink">
+          View workout
+        </Link>
+        <div className="grid grid-cols-2 gap-2.5">
+          <Button onClick={() => setSwapping(true)}>Swap day</Button>
+          <Button onClick={() => void saveProgram(user!.id, { queueIndex: program.queueIndex + 1 })}>Skip to next</Button>
+        </div>
+        <span className="text-center text-xs text-muted">Starting and logging a workout arrives in phase 3.</span>
       </Card>
+
+      <Sheet open={swapping} onClose={() => setSwapping(false)}>
+        <div className="flex flex-col gap-2.5 pb-3">
+          <span className="text-[15px] font-semibold">Which workout next?</span>
+          {DAY_ORDER.map((d, i) => (
+            <button
+              key={d}
+              onClick={() => {
+                void saveProgram(user!.id, { queueIndex: i })
+                setSwapping(false)
+              }}
+              className={cx('flex min-h-[56px] items-center justify-between rounded-control border px-3.5 text-left', d === plan.day ? 'border-accent bg-accent-dim' : 'border-line bg-raised')}
+            >
+              <span className="text-[15px] font-semibold">{PROGRAM[d].title}</span>
+              <span className="text-xs text-muted">Day {d}</span>
+            </button>
+          ))}
+          <span className="text-xs text-muted">The rotation carries on from whichever day you pick.</span>
+        </div>
+      </Sheet>
 
       <Card className="flex flex-col gap-2.5">
         <div className="flex items-baseline justify-between">

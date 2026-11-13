@@ -119,3 +119,15 @@ a:active {
     animation: none;
   }
 }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}

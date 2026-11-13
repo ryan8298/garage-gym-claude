@@ -1,6 +1,6 @@
-# Program proposal (awaiting approval)
+# Program (approved 2026-11-13)
 
-Free weights first: Ryan and Stella train together, so a spotter is present. The Smith bar is used where it is the better tool and as the "training alone today" swap. Nothing here is seeded until approved.
+Free weights first: Ryan and Stella train together, so a spotter is present. The Smith bar is used where it is the better tool and as the "training alone today" swap. This is the program built into the app (`src/lib/program.ts`).
 
 Equipment assumed: RitFit M1 Pro (Smith bar 33 lb, two cables at 2:1, lat bar, short bar, D-handles, rope, V-handle, close-grip row handle, landmine, dip handles, pull-up bar, J-hooks, safety arms), 45 lb barbell, adjustable bench, dumbbell pairs 5 to 50 lb in 5 lb steps, bumper plates (pairs of 10, 15, 25, 35, 45), change plates (pairs of 1.25, 2.5, 5), one ankle strap.
 
