@@ -17,6 +17,8 @@ import {
   finishSession,
   history,
   isRecord,
+  moveLift,
+  removeLift,
   swapExercise,
   updateLift,
   updateSet,
@@ -106,12 +108,21 @@ export function Session() {
   const [alsoProgram, setAlsoProgram] = useState(false)
   const [record, setRecord] = useState<string | null>(null)
   const [note, setNote] = useState('')
+  const [pinned, setPinned] = useState('')
+  const [undo, setUndo] = useState<SetRow | null>(null)
 
   const current = useMemo(() => {
     if (!lifts?.length) return null
     return lifts.find((v) => v.lift.id === picked) ?? lifts.find((v) => !isDone(v)) ?? lifts[lifts.length - 1]
   }, [lifts, picked])
   useEffect(() => setNote(current?.lift.note ?? ''), [current?.lift.id, current?.lift.note])
+  const pinnedNote = current ? (program.notes?.[current.lift.exercise_key] ?? '') : ''
+  useEffect(() => setPinned(pinnedNote), [current?.lift.exercise_key, pinnedNote])
+  useEffect(() => {
+    if (!undo) return
+    const id = setTimeout(() => setUndo(null), 6000)
+    return () => clearTimeout(id)
+  }, [undo])
 
   const past = useLiveQuery(async () => (current && session ? history(user!.id, current.lift.exercise_key, 1, session.id) : []), [current?.lift.exercise_key, session?.id], [])
 
@@ -211,6 +222,12 @@ export function Session() {
               </div>
 
               {current.target.note && <p className="rounded-xl bg-coach-dim px-3 py-2 text-[13px] leading-snug">{current.target.note}</p>}
+              {pinnedNote && (
+                <button onClick={() => setMenu(true)} className="flex flex-col gap-0.5 rounded-xl border border-line bg-surface px-3 py-2 text-left">
+                  <span className="text-[11px] font-medium text-muted">MY NOTE</span>
+                  <span className="text-sm leading-snug">{pinnedNote}</span>
+                </button>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-0.5 rounded-control border border-line bg-surface px-3 py-2.5">
@@ -246,11 +263,13 @@ export function Session() {
                   {current.sets.map((s) => {
                     if (s.set_type !== 'warmup') working++
                     const active = s.id === nextSet?.id
+                    const before = s.set_type === 'warmup' ? undefined : (past[0]?.sets[working - 1] ?? undefined)
+                    const beforeText = !before ? '' : before.reps !== null ? `last ${before.weight ? `${before.weight} × ` : ''}${before.reps}` : `last ${before.seconds}s`
                     const open = (field: 'weight' | 'reps' | 'seconds') => setPad({ setId: s.id, field })
                     return (
                       <div key={s.id} className={cx('grid items-center gap-2 rounded-control p-1', columns, active && 'border border-accent bg-surface py-2', s.done && 'opacity-70')}>
                         <span className={cx('num pl-1.5 font-bold', s.set_type === 'warmup' && 'text-warn')}>{setLabel(s, working)}</span>
-                        <span className="text-xs text-muted">{s.set_type === 'warmup' ? 'warm-up' : s.set_type === 'drop' ? 'drop set' : s.set_type === 'failure' ? 'to failure' : ''}</span>
+                        <span className="num truncate text-xs text-muted">{s.set_type === 'warmup' ? 'warm-up' : s.set_type === 'drop' ? 'drop set' : s.set_type === 'failure' ? 'to failure' : beforeText}</span>
                         {measure !== 'time' && (
                           <button aria-label={`Weight, ${weightText(s)}`} className={cell(active)} onClick={() => open('weight')}>
                             {weightText(s)}
@@ -334,14 +353,29 @@ export function Session() {
         </div>
       )}
 
+      {undo && (
+        <div role="status" className="mx-3 mt-2 flex h-12 shrink-0 items-center justify-between rounded-control border border-line-strong bg-raised pr-1.5 pl-4">
+          <span className="text-sm">Set deleted</span>
+          <button
+            className="h-10 rounded-xl px-3 text-sm font-semibold text-accent"
+            onClick={() => {
+              void updateSet(undo, { deleted: false })
+              setUndo(null)
+            }}
+          >
+            Undo
+          </button>
+        </div>
+      )}
+
       <RestBar />
 
-      {current && <SetPad view={current} set={padSet} startOn={pad?.field ?? 'weight'} onClose={() => setPad(null)} />}
+      {current && <SetPad view={current} set={padSet} startOn={pad?.field ?? 'weight'} onClose={() => setPad(null)} onDeleted={setUndo} />}
 
       {/* ---- exercise options ---- */}
       <Sheet open={menu && !!current} onClose={() => setMenu(false)}>
         {current && (
-          <div className="scroll-y flex max-h-[76vh] flex-col gap-3.5 pb-3">
+          <div className="scroll-y flex max-h-[76vh] flex-col gap-3.5 pb-3 [&>*]:shrink-0">
             <div className="flex flex-col gap-0.5">
               <span className="font-display text-[22px] font-bold">{current.lift.name}</span>
               <span className="text-[13px] text-muted">{current.exercise ? `${groupLabels[current.exercise.group]} · ${stationLabels[current.exercise.station]}` : ''}</span>
@@ -389,8 +423,18 @@ export function Session() {
                   <span className="text-[13px] text-muted">ramps up to your weight</span>
                 </button>
               )}
+              {lifts.length > 1 && (
+                <div className="grid grid-cols-2 border-b border-line">
+                  <button disabled={index === 0} className="h-[52px] border-r border-line text-[15px] disabled:text-faint" onClick={() => void moveLift(lifts, current, -1)}>
+                    Move earlier
+                  </button>
+                  <button disabled={index === lifts.length - 1} className="h-[52px] text-[15px] disabled:text-faint" onClick={() => void moveLift(lifts, current, 1)}>
+                    Move later
+                  </button>
+                </div>
+              )}
               <button
-                className="flex h-[52px] w-full items-center px-3.5 text-[15px] text-danger"
+                className="flex h-[52px] w-full items-center border-b border-line px-3.5 text-[15px] text-danger"
                 onClick={() => {
                   void updateLift(current.lift, { skipped: !current.lift.skipped })
                   setMenu(false)
@@ -398,15 +442,43 @@ export function Session() {
               >
                 {current.lift.skipped ? 'Bring back' : 'Skip today'}
               </button>
+              <button
+                className="flex h-[52px] w-full items-center px-3.5 text-[15px] text-danger"
+                onClick={() => {
+                  if (current.sets.some((x) => x.done) && !window.confirm(`Remove ${current.lift.name} and its logged sets from this workout?`)) return
+                  void removeLift(current)
+                  setPicked(null)
+                  setMenu(false)
+                }}
+              >
+                Remove from this workout
+              </button>
             </div>
             <label className="flex flex-col gap-1.5 text-xs text-muted">
-              Note for this exercise
+              My note for this exercise, shown every time
+              <input
+                type="text"
+                value={pinned}
+                onChange={(e) => setPinned(e.target.value)}
+                onBlur={() => {
+                  if (pinned.trim() === pinnedNote) return
+                  const notes = { ...(program.notes ?? {}) }
+                  if (pinned.trim()) notes[current.lift.exercise_key] = pinned.trim().slice(0, 200)
+                  else delete notes[current.lift.exercise_key]
+                  void saveProgram(user!.id, { notes })
+                }}
+                placeholder="Hook height, bench notch, grip width"
+                className="h-12 rounded-control border border-line bg-raised px-3.5 text-ink outline-none focus:border-accent"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs text-muted">
+              Note for today only
               <input
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 onBlur={() => note !== (current.lift.note ?? '') && void updateLift(current.lift, { note: note.trim() || null })}
-                placeholder="Bench angle, hook height, how it felt"
+                placeholder="How it felt today"
                 className="h-12 rounded-control border border-line bg-raised px-3.5 text-ink outline-none focus:border-accent"
               />
             </label>

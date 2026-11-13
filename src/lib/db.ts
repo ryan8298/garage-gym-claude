@@ -100,7 +100,17 @@ export interface ProgramState extends SyncFields {
     onboarded?: boolean
     /** The AI coach is switched on. Missing means on. */
     coach?: boolean
+    /** My own note for an exercise, shown every time I do it. By exercise key. */
+    notes?: Record<string, string>
+    /** Workouts I have named and saved to reuse. */
+    routines?: Routine[]
   }
+}
+
+export interface Routine {
+  id: string
+  name: string
+  lifts: { key: string; kind: string; role: string; sets: number; low: number; high: number; unit: 'reps' | 'sec'; eachSide: boolean; superset: number | null }[]
 }
 
 export interface CardioEntry extends SyncFields {

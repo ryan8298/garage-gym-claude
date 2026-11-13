@@ -10,7 +10,7 @@ import { targetText } from '../components/LiftList'
 import { phaseLabel } from '../lib/engine'
 import { DAY_ORDER, PROGRAM } from '../lib/program'
 import { saveProgram, usePlan } from '../lib/programState'
-import { startSession, useActiveSession } from '../lib/session'
+import { startRoutine, startSession, useActiveSession } from '../lib/session'
 import { unlockSound } from '../lib/rest'
 import { SyncBadge } from '../components/SyncBadge'
 import { GoalsCard } from '../components/Goals'
@@ -37,6 +37,7 @@ export function Today() {
   const sessions = useSessions(user!.id) ?? []
   const weights = useLogs(user!.id).filter((l) => l.body_weight !== null).map((l) => ({ date: l.log_date, value: l.body_weight as number }))
   const [starting, setStarting] = useState(false)
+  const [choosing, setChoosing] = useState(false)
   const navigate = useNavigate()
   const active = useActiveSession(user!.id)
   const mains = plan.lifts.filter((l) => l.kind === 'main')
@@ -117,6 +118,15 @@ export function Today() {
           <Button disabled={!!active} onClick={() => setSwapping(true)}>
             Swap day
           </Button>
+          <Button disabled={starting} onClick={() => setChoosing(true)}>
+            Other
+          </Button>
+        </div>
+      </Card>
+
+      <Sheet open={choosing} onClose={() => setChoosing(false)}>
+        <div className="scroll-y flex max-h-[76vh] flex-col gap-2.5 pb-3">
+          <span className="text-[15px] font-semibold">Something else today</span>
           <Button
             disabled={!!active || starting}
             onClick={() => {
@@ -125,10 +135,39 @@ export function Today() {
               void startSession(user!.id, null, program).then(() => navigate('/session'))
             }}
           >
-            Freestyle
+            Freestyle workout
           </Button>
+          <Link to="/timer" className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
+            Interval timer
+          </Link>
+          <Label>My routines</Label>
+          {(program.routines ?? []).length === 0 && <span className="text-sm text-muted">None yet. Open any past workout in Workout history and tap "Save as a routine".</span>}
+          {(program.routines ?? []).map((r) => (
+            <div key={r.id} className="flex items-center gap-2">
+              <button
+                disabled={!!active || starting}
+                onClick={() => {
+                  unlockSound()
+                  setStarting(true)
+                  void startRoutine(user!.id, program, r).then(() => navigate('/session'))
+                }}
+                className="flex min-h-[52px] flex-1 flex-col justify-center rounded-control border border-line bg-raised px-3.5 py-2 text-left disabled:opacity-50"
+              >
+                <span className="text-[15px] font-semibold">{r.name}</span>
+                <span className="text-xs text-muted">{r.lifts.length} lifts</span>
+              </button>
+              <button
+                aria-label={`Delete routine ${r.name}`}
+                className="h-11 px-2 text-sm text-danger"
+                onClick={() => window.confirm(`Delete the routine "${r.name}"? Past workouts are not affected.`) && void saveProgram(user!.id, { routines: (program.routines ?? []).filter((x) => x.id !== r.id) })}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+          {active && <span className="text-xs text-muted">Finish the open workout before starting another.</span>}
         </div>
-      </Card>
+      </Sheet>
 
       <Sheet open={swapping} onClose={() => setSwapping(false)}>
         <div className="flex flex-col gap-2.5 pb-3">

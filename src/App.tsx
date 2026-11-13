@@ -23,6 +23,7 @@ import { Photos } from './screens/Photos'
 import { ProgramEditor } from './screens/ProgramEditor'
 import { Onboarding } from './screens/Onboarding'
 import { Coach } from './screens/Coach'
+import { Intervals } from './screens/Intervals'
 import { useProgram } from './lib/programState'
 import { setPlateInventory } from './lib/plates'
 import { useSyncStatus } from './lib/syncRunner'
@@ -278,6 +279,7 @@ function Shell() {
           <Route path="/history/:id" element={<HistoryDetail />} />
           <Route path="/us" element={<Us />} />
           <Route path="/photos" element={<Photos />} />
+          <Route path="/timer" element={<Intervals />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/program" element={<ProgramEditor />} />
           <Route path="*" element={<Navigate to="/" replace />} />

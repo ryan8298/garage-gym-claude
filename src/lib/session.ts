@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, save, type SessionExercise, type SetRow, type WorkoutSession } from './db'
+import { db, save, type Routine, type SessionExercise, type SetRow, type WorkoutSession } from './db'
 import { localDate } from './dates'
 import type { PlannedLift, SessionPlan } from './engine'
 import { exercise, hasExercise, type Exercise } from './exercises'
@@ -194,7 +194,7 @@ export async function updateSet(set: SetRow, patch: SetPatch): Promise<SetRow> {
   return saved
 }
 
-export async function updateLift(lift: SessionExercise, patch: Partial<Pick<SessionExercise, 'note' | 'skipped' | 'deleted' | 'target' | 'exercise_key' | 'name' | 'measure'>>): Promise<void> {
+export async function updateLift(lift: SessionExercise, patch: Partial<Pick<SessionExercise, 'note' | 'skipped' | 'deleted' | 'target' | 'exercise_key' | 'name' | 'measure' | 'position'>>): Promise<void> {
   const { updated_at: _u, synced_at: _s, ...rest } = lift
   await save<SessionExercise>(db, 'session_exercises', { ...rest, ...patch })
   requestSync(1500)
@@ -205,6 +205,48 @@ export async function addSet(view: LiftView): Promise<void> {
   const copy: Suggestion = { weight: last?.weight ?? null, reps: last?.reps ?? view.target.low, seconds: last?.duration_seconds ?? null, reason: 'first', text: '' }
   await save<SetRow>(db, 'sets', blankSet(view.lift, (last?.position ?? -1) + 1, copy))
   requestSync(1500)
+}
+
+/** Move a lift one place earlier or later in the workout. */
+export async function moveLift(lifts: LiftView[], view: LiftView, dir: -1 | 1): Promise<void> {
+  const i = lifts.indexOf(view)
+  const other = lifts[i + dir]
+  if (i < 0 || !other) return
+  await updateLift(view.lift, { position: other.lift.position })
+  await updateLift(other.lift, { position: view.lift.position })
+}
+
+/** Take a lift out of the workout, with its sets. */
+export async function removeLift(view: LiftView): Promise<void> {
+  for (const s of view.sets) await updateSet(s, { deleted: true })
+  await updateLift(view.lift, { deleted: true })
+}
+
+// ---------- routines ----------
+
+/** Save the exercises of a workout under a name, to start again later. */
+export async function saveRoutine(userId: string, program: ProgramData, name: string, lifts: { lift: SessionExercise }[]): Promise<void> {
+  const routine: Routine = {
+    id: uuid(),
+    name: name.trim().slice(0, 40),
+    lifts: lifts
+      .filter(({ lift }) => hasExercise(lift.exercise_key))
+      .map(({ lift }) => {
+        const t = targetOf(lift)
+        return { key: lift.exercise_key, kind: t.kind, role: t.role, sets: t.sets, low: t.low, high: t.high, unit: t.unit, eachSide: t.eachSide, superset: lift.superset_group }
+      }),
+  }
+  await saveProgram(userId, { routines: [...(program.routines ?? []).filter((r) => r.name !== routine.name), routine] })
+}
+
+export async function startRoutine(userId: string, program: ProgramData, routine: Routine): Promise<void> {
+  const id = await startSession(userId, null, program, { title: routine.name })
+  const session = (await db.workout_sessions.get(id))!
+  for (const [i, l] of routine.lifts.entries()) {
+    if (!hasExercise(l.key)) continue
+    await addLift(session, l.key, i, { kind: l.kind as LiftTarget['kind'], role: l.role, sets: l.sets, low: l.low, high: l.high, unit: l.unit, eachSide: l.eachSide }, l.superset)
+  }
+  requestSync()
 }
 
 /** Put ramp-up sets in front of the working sets. Returns false if no working weight is set yet. */

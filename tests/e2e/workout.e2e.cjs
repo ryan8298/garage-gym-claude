@@ -44,6 +44,13 @@ async function main() {
     if (shot) await page.screenshot({ path: `${shot}/e2e-session.png` })
     await page.getByRole('button', { name: 'Skip' }).click()
 
+    // A pinned note for the exercise is saved and shown on the workout screen.
+    await page.getByRole('button', { name: 'Exercise options' }).click()
+    await page.getByPlaceholder('Hook height, bench notch, grip width').fill('Hooks at hole 14')
+    await page.getByPlaceholder('How it felt today').click()
+    await page.getByRole('button', { name: 'Close' }).click({ position: { x: 20, y: 20 } })
+    await page.getByText('Hooks at hole 14').waitFor()
+
     // Lose the connection, then close and reopen the app mid-workout.
     await page.evaluate(() => navigator.serviceWorker.ready) // the app shell has finished caching
     await context.setOffline(true)
@@ -70,6 +77,16 @@ async function main() {
     // Back on Today: one workout this week, and the rotation has moved to Day B.
     await page.getByText('Next up · Day B').waitFor()
     await page.getByText('1 of 4 workouts').waitFor()
+
+    // The interval timer runs from the Today screen.
+    await page.getByRole('button', { name: 'Other' }).click()
+    await page.getByRole('link', { name: 'Interval timer' }).click()
+    await page.getByRole('button', { name: 'Start', exact: true }).click()
+    await page.getByText('Get ready').waitFor()
+    await page.getByText('Round 1 of 8').waitFor()
+    page.once('dialog', (d) => d.accept())
+    await page.getByRole('button', { name: 'Stop' }).click()
+    await page.getByRole('button', { name: 'Back' }).click()
 
     // Progress and history reflect the workout.
     await page.getByRole('link', { name: 'Progress', exact: true }).click()

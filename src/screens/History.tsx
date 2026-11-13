@@ -8,7 +8,7 @@ import { exercise, hasExercise } from '../lib/exercises'
 import { DAY_ORDER, PROGRAM, type DayKey } from '../lib/program'
 import { settingsOf, useProgram } from '../lib/programState'
 import { useSessions, type DoneLift } from '../lib/progressData'
-import { discardSession, repeatSession, startSession, useActiveSession, type LiftTarget, type LiftView } from '../lib/session'
+import { discardSession, repeatSession, saveRoutine, startSession, useActiveSession, type LiftTarget, type LiftView } from '../lib/session'
 import { unlockSound } from '../lib/rest'
 import { Button, Card, Label, RoundButton, Sheet, cx, icons } from '../components/ui'
 import { SetPad } from '../components/SetPad'
@@ -157,6 +157,14 @@ export function HistoryDetail() {
         }}
       >
         {active ? 'Finish the open workout to repeat this one' : 'Do this workout again'}
+      </Button>
+      <Button
+        onClick={() => {
+          const name = window.prompt('Name this routine', session.title)
+          if (name?.trim()) void saveRoutine(user!.id, program, name, found.lifts).then(() => window.alert('Saved. Start it from Today, under Other.'))
+        }}
+      >
+        Save as a routine
       </Button>
       <Button
         variant="danger"

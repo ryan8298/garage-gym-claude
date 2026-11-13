@@ -264,6 +264,34 @@ Not built, by decision:
 7. Settings, Notifications: two new switches, "Sunday summary of our week" and "A nudge after 4 days without a workout". The first summary arrives this Sunday.
 8. Optional, for the splash screen: remove the app from the Home Screen, add it again from Safari, sign in. Launch now shows the logo on a dark background. Your data comes back from the server after sign-in; make sure the sync indicator showed everything synced before removing.
 
+## Release A, part 1: logging (built, waiting on the iPhone checklist)
+
+Work now follows `BACKLOG.md`. This part is epic 1.
+
+Done:
+- A pinned note per exercise (rack heights, bench notch) that shows on the workout screen every time. Edited from the exercise's options. Stored in the person's program settings, so it syncs.
+- Last time's weight and reps shown on each set row.
+- Move earlier, Move later and Remove from this workout in the exercise options.
+- Undo for a deleted set (6 seconds).
+- Saved routines: "Save as a routine" on any past workout; start one from Today, Other.
+- Interval timer (work, rest, rounds, presets) under Today, Other. Beeps at each change, keeps the screen on, and can log its minutes as cardio. Timer logic has 4 unit tests.
+- Today's third button is now "Other" (freestyle, interval timer, routines).
+- Tests: 71 unit tests; the browser test covers the pinned note and the timer.
+
+Notes:
+- Effort ("reps left in the tank") was already asked once per lift after the last set and already feeds the weight suggestions. An earlier gap analysis wrongly said it could not be entered.
+- The interval timer does not run in the background: locking the phone or leaving the app stops the sounds.
+
+## iPhone checklist for release A, part 1
+
+1. Accept "Update available".
+2. Start a workout. On a lift you have done before, each set row shows "last 135 x 8" style text.
+3. Exercise options (the three dots): type a note under "My note for this exercise, shown every time". It appears under the lift name, and again next time you do that lift.
+4. Exercise options: Move later moves the lift down the list; Remove from this workout takes it out.
+5. Tap a set's weight, then Delete set. "Set deleted, Undo" appears; Undo brings it back.
+6. Workout history, open a workout, Save as a routine. Then Today, Other: the routine is listed and starts a workout.
+7. Today, Other, Interval timer: pick 20 / 10 x 8, Start. It counts down 5 seconds, then alternates Work and Rest with a beep, and offers to log the minutes at the end.
+
 ## Next
 
-Nothing is scheduled. Candidates if wanted: custom exercises, body-outline muscle map, streamed coach replies, sets and reps in the program editor, a custom domain.
+Release A, part 2: training together on one phone (backlog epic 2). Older candidates: custom exercises, body-outline muscle map, streamed coach replies, sets and reps in the program editor, a custom domain.

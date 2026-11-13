@@ -28,6 +28,8 @@ Epic 7 comes after 3 to 6 on purpose. Redesigning first would mean redesigning t
 
 ## Epic 1: logging that beats the fastest apps
 
+Status 2026-11-13: built and deployed, waiting on the iPhone checklist. 1.1: a set with history takes one tap; a first-time lift takes one weight entry, then one tap a set. 1.3 already existed per lift (asked after the last set, and used by the weight suggestions); per-set effort was not added. 1.5 is covered by sets arriving pre-filled. 1.8 is done with Move earlier and Move later buttons, not drag.
+
 Today: number pad, carried weights, plate math, rest timer, set types. Notes belong to one workout. Effort is not recorded.
 
 | ID | Item | Priority | Size |

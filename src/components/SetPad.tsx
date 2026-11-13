@@ -31,7 +31,7 @@ function PlateStack({ plates }: { plates: number[] }) {
  * The number pad for a set. It replaces the iOS keyboard: weight moves in
  * steps we can actually load, and the plate breakdown updates as you type.
  */
-export function SetPad({ view, set, startOn, onClose }: { view: LiftView; set: SetRow | null; startOn: Field; onClose(): void }) {
+export function SetPad({ view, set, startOn, onClose, onDeleted }: { view: LiftView; set: SetRow | null; startOn: Field; onClose(): void; onDeleted?(set: SetRow): void }) {
   const measure = view.lift.measure
   const fields = fieldsFor(measure)
   const mode: LoadMode = view.exercise ? loadModeFor(view.exercise) : 'none'
@@ -174,7 +174,12 @@ export function SetPad({ view, set, startOn, onClose }: { view: LiftView; set: S
         </div>
 
         <div className="grid grid-cols-[auto_1fr] gap-2">
-          <Button variant="danger" className="px-4" onClick={() => void updateSet(set, { deleted: true }).then(onClose)}>
+          <Button variant="danger" className="px-4" onClick={() =>
+              void updateSet(set, { deleted: true }).then(() => {
+                onDeleted?.(set)
+                onClose()
+              })
+            }>
             Delete set
           </Button>
           {next ? (
