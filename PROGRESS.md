@@ -436,7 +436,7 @@ Risks to watch on the iPhone: the fixed tab bar while the keyboard is open, and 
 
 Recheck: scroll far down the Library and tap the clock; open and close a sheet on a scrolled page; type in the Library search and in a Log note with the keyboard up; swipe back from Settings.
 
-## Release C, part 1: program builder (built, waiting on the iPhone checklist)
+## Release C, part 1: program builder (done; iPhone checklist passed 2026-11-14)
 
 Backlog 5.1, 5.2, 5.3, 5.9 in part.
 
@@ -468,6 +468,45 @@ Known limits:
 8. Ask the coach "What is my program this week?": it describes the new days, not legs, upper, core, full body.
 9. Switch back to "Legs, upper, core, full body" and 60 or 75 minutes if you want your old plan. Your earlier program changes are still there.
 
+## Release C, part 2: groups (built, waiting on the iPhone checklist)
+
+Backlog 6.1, 6.2, 6.3 in part, 6.4, 6.5, 6.7.
+
+Database (`20261114000000_groups.sql`, applied):
+- `groups`, `group_members` (one group per person, up to 6) and `invites` (8-character code, one use, 7 days).
+- Every sharing rule now reads "me and the members of my group" through `my_people()`. This replaces "any signed-in user", including the wide write rule added for shared workouts. Ryan and Stella were placed in one group, so nothing changes for them.
+- Accounts are by invitation only. The database refuses a new user unless the `join` function created it; the earlier "exactly two accounts" rule is gone.
+- Functions: `create_invite`, `accept_invite`, `leave_group`, `delete_my_account`.
+- Checked in rolled-back transactions: both members see all 24 sessions and 432 sets, an outsider sees nothing; own invite refused; used and made-up codes refused; leaving shows only own data; rejoining restores sight; a sign-up without an invitation is refused.
+
+Server functions: `join` (new: invitation code, name, email, password to account in the inviter's group), `notify` (workout and cheer notifications and the Sunday summary now stay inside the group).
+
+App:
+- Sign-in screen: "I have an invitation".
+- Settings, Training partners: who is in your group, Invite a partner (code with a share button), enter a code from someone else, Leave this group.
+- Settings: Delete my account (two confirmations).
+- After joining or leaving, other people's rows are removed from the phone and everything is read again. At launch the phone also drops copies of anyone it can no longer see.
+- On your own, the Us tab points to the invitation in Settings.
+
+Known limits:
+- The `join` function has not been run end to end: this build environment cannot reach the server, and a real run creates a real account. The first invitation is the test.
+- No password reset, email confirmation or Sign in with Apple (6.3). The invited person's email is not verified.
+- With more than two people in a group, the app still treats one of them as "the partner" for shared workouts and the Us tab (2.8, 6.8).
+- Per-person privacy choices beyond measurements (6.6) and paged sync for large histories (6.9) are not built.
+- The security advisor flags the five new functions as callable by signed-in users. That is intended: each acts only for the caller.
+- Leaked-password protection is still off in the Supabase dashboard.
+
+## iPhone checklist for release C, part 2
+
+1. Accept "Update available" on both phones. Everything looks as before: each of you still sees the other on the Us tab, and the sync indicator is clean.
+2. Do one shared workout set and check it syncs to the other phone (the write rule changed).
+3. Settings, Training partners lists the other person. Tap Invite a partner: an 8-character code appears with Send it.
+4. To test a new account, use a second email address you own: sign out on one phone (after it has synced), tap "I have an invitation", and enter the code, a name, that email and a password. It signs in as the new person, who sees both of you on the Us tab.
+5. As the new person: Settings, Leave this group. The Us tab now shows only them, with the prompt to invite a partner.
+6. As the new person: Settings, Delete my account. It returns to the sign-in screen, and signing in with that email no longer works.
+7. Sign back in as yourself: your data returns after a sync.
+8. A made-up code on the sign-in screen is refused with a clear message.
+
 ## Next
 
-Release C, part 2: groups (backlog epic 6), starting with narrowing the data rules so people see only their own group. Left from epic 5: 5.4 to 5.8 and 5.10.
+Release D in BACKLOG.md (the design overhaul) or the open items of releases A to C. Open in epic 6: password reset and Sign in with Apple, groups of three or more in the screens, privacy choices, paged sync.

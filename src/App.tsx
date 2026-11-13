@@ -30,6 +30,7 @@ import { useProgram } from './lib/programState'
 import { setGear } from './lib/plates'
 import { activeGym, gearOf } from './lib/gym'
 import { registerCustom, type CustomExercise } from './lib/exercises'
+import { forgetStrangers } from './lib/group'
 import { useSyncStatus } from './lib/syncRunner'
 import { renewPush, setBadge } from './lib/push'
 import { lastSeenFeed, usePartner } from './lib/partner'
@@ -346,6 +347,8 @@ export default function App() {
       startSync()
       requestSync(0)
       void renewPush(user.id)
+      // A little after launch, once the first sync has had its turn.
+      setTimeout(() => void forgetStrangers(user.id), 10_000)
     }
   }, [user])
 

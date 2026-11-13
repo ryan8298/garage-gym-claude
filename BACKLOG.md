@@ -127,6 +127,8 @@ Today: one hand-built 4-day program with fixed main lifts, rotating accessory sl
 
 ## Epic 6: more than two people
 
+Status 2026-11-14: 6.1, 6.2, 6.4, 6.5, 6.7 built; 6.3 as invitation-only sign-up with email and password. Open: password reset, email confirmation, Sign in with Apple, 6.6, 6.8, 6.9.
+
 Today: two accounts created by hand. Every signed-in user can read every other user's shared data, because the app assumes they are partners. No sign-up, no invitations.
 
 | ID | Item | Priority | Size |

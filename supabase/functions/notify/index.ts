@@ -40,6 +40,14 @@ async function deliver(admin: Admin, messages: Message[]): Promise<number | null
   return sent
 }
 
+/** Everyone who shares a group with this person, not counting them. */
+async function partnersOf(admin: Admin, user: string): Promise<string[]> {
+  const { data: mine } = await admin.from('group_members').select('group_id').eq('user_id', user).maybeSingle()
+  if (!mine) return []
+  const { data: others } = await admin.from('group_members').select('user_id').eq('group_id', mine.group_id).neq('user_id', user)
+  return (others ?? []).map((o) => o.user_id as string)
+}
+
 /** The Sunday summary and the 4-day nudge, run by the database's scheduler. */
 async function scheduled(admin: Admin, type: string): Promise<Message[]> {
   const { data: profiles } = await admin.from('profiles').select('id, display_name, weekly_target').eq('deleted', false)
@@ -50,6 +58,8 @@ async function scheduled(admin: Admin, type: string): Promise<Message[]> {
   const mine = (id: string) => (sessions ?? []).filter((s) => s.user_id === id).map((s) => Date.parse(s.finished_at as string))
   const people = profiles ?? []
   const messages: Message[] = []
+  const { data: members } = await admin.from('group_members').select('group_id, user_id')
+  const groupOf = (id: string) => members?.find((m) => m.user_id === id)?.group_id
 
   if (type === 'weekly_summary') {
     const weekAgo = Date.now() - 7 * 86400000
@@ -57,7 +67,7 @@ async function scheduled(admin: Admin, type: string): Promise<Message[]> {
     for (const p of people) {
       if (!wants(p.id as string, 'weekly')) continue
       const own = `You did ${count(p.id as string)} of ${p.weekly_target ?? 4} workouts this week.`
-      const others = people.filter((o) => o.id !== p.id).map((o) => `${o.display_name || 'Your partner'} did ${count(o.id as string)} of ${o.weekly_target ?? 4}.`)
+      const others = people.filter((o) => o.id !== p.id && groupOf(o.id as string) && groupOf(o.id as string) === groupOf(p.id as string)).map((o) => `${o.display_name || 'Your partner'} did ${count(o.id as string)} of ${o.weekly_target ?? 4}.`)
       messages.push({ user: p.id as string, body: [own, ...others, 'Tap for the recap.'].join(' '), url: '/us' })
     }
   } else {
@@ -113,11 +123,11 @@ Deno.serve(async (req) => {
       if (!session || session.deleted || !session.finished_at) return json({ error: 'no such workout' }, 404)
       if (type === 'workout_finished') {
         if (session.user_id !== sender.id) return json({ error: 'not your workout' }, 403)
-        const { data: others } = await admin.from('profiles').select('id').neq('id', sender.id)
-        recipients = (others ?? []).map((p) => p.id)
+        recipients = await partnersOf(admin, sender.id)
         body = `${name} finished ${session.title}`
       } else {
         if (session.user_id === sender.id) return json({ sent: 0 })
+        if (!(await partnersOf(admin, sender.id)).includes(session.user_id)) return json({ error: 'not your group' }, 403)
         recipients = [session.user_id]
         body = `${name} cheered your ${session.title} workout`
       }

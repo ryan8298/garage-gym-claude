@@ -108,7 +108,7 @@ export function Us() {
         {partner ? (
           <PersonCard profile={partner} data={theirs} color="var(--color-coach)" week={week} />
         ) : (
-          <div className="flex items-center rounded-card border border-dashed border-line-strong p-3.5 text-[13px] text-muted">Your partner appears here once they have signed in and synced.</div>
+          <div className="flex items-center rounded-card border border-dashed border-line-strong p-3.5 text-[13px] text-muted">No partner yet. Invite one from Settings, under Training partners.</div>
         )}
       </div>
 

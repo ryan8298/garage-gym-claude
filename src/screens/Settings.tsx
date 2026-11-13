@@ -13,6 +13,7 @@ import { capabilities } from '../lib/platform'
 import { requestSync, useSyncStatus } from '../lib/syncRunner'
 import { Button, Card, Icon, Label, RoundButton, cx, icons } from '../components/ui'
 import { SyncBadge } from '../components/SyncBadge'
+import { acceptInvite, createInvite, deleteAccount, leaveGroup, usePartners } from '../lib/group'
 
 export function Settings() {
   const { user, signOut } = useAuth()
@@ -28,6 +29,18 @@ export function Settings() {
     void monthUsage(user!.id).then(setUsage)
   }, [user])
   const rest = restOf(program)
+  const partners = usePartners(user!.id)
+  const [invite, setInvite] = useState<string | null>(null)
+  const [code, setCode] = useState('')
+  const [groupNote, setGroupNote] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const run = async (work: () => Promise<string | null>, done: string) => {
+    setBusy(true)
+    setGroupNote(null)
+    const error = await work()
+    setGroupNote(error ?? done)
+    setBusy(false)
+  }
   const gyms = gymsOf(program)
   const gym = activeGym(program)
   const steps = profile?.step_target ?? 8000
@@ -273,6 +286,82 @@ export function Settings() {
       </Card>
 
       <Card className="flex flex-col gap-3">
+        <Label>Training partners</Label>
+        {partners.length === 0 ? (
+          <span className="text-sm text-muted">You are training on your own. Invite a partner to share workouts, see each other's progress and log together on one phone.</span>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {partners.map((p) => (
+              <span key={p.id} className="text-[15px] font-semibold">
+                {p.display_name || 'Partner'}
+              </span>
+            ))}
+            <span className="text-xs text-muted">You see each other's workouts, weight and goals. Photos and coach chats stay private; measurements are shared only if switched on above.</span>
+          </div>
+        )}
+        {invite ? (
+          <div className="flex flex-col gap-2 rounded-control bg-bg p-3.5">
+            <span className="text-xs text-muted">Invitation code, good for 7 days and one person</span>
+            <span className="num text-[28px] font-bold tracking-[4px] select-text">{invite}</span>
+            <Button
+              onClick={() => {
+                const text = `Join me on Garage Gym. Open ${window.location.origin}, tap "I have an invitation" and enter the code ${invite}.`
+                if (navigator.share) void navigator.share({ text }).catch(() => undefined)
+                else void navigator.clipboard?.writeText(text).then(() => setGroupNote('Copied.'))
+              }}
+            >
+              Send it
+            </Button>
+          </div>
+        ) : (
+          <Button disabled={busy} onClick={() => void createInvite().then((r) => (r.code ? setInvite(r.code) : setGroupNote(r.error ?? 'Could not make an invitation.')))}>
+            Invite a partner
+          </Button>
+        )}
+        <label className="flex flex-col gap-1.5 text-xs text-muted">
+          Have a code from someone else?
+          <span className="flex gap-2">
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              maxLength={8}
+              autoCapitalize="characters"
+              autoCorrect="off"
+              placeholder="8-character code"
+              className="num h-12 min-w-0 flex-1 rounded-control border border-line bg-raised px-3.5 tracking-[2px] text-ink outline-none focus:border-accent"
+            />
+            <Button
+              disabled={busy || code.trim().length !== 8}
+              onClick={() => {
+                if (partners.length > 0 && !window.confirm('Joining another group means leaving your current partners. Your own data stays yours. Continue?')) return
+                void run(() => acceptInvite(user!.id, code), 'Joined. Their workouts will appear after the next sync.').then(() => setCode(''))
+              }}
+            >
+              Join
+            </Button>
+          </span>
+        </label>
+        {partners.length > 0 && (
+          <Button
+            variant="danger"
+            disabled={busy}
+            onClick={() => {
+              if (!window.confirm('Leave your group? You stop seeing their workouts and they stop seeing yours. Your own data stays in your account.')) return
+              void run(() => leaveGroup(user!.id), 'You have left the group.')
+            }}
+          >
+            Leave this group
+          </Button>
+        )}
+        {groupNote && (
+          <span role="status" className="text-[13px] text-muted">
+            {groupNote}
+          </span>
+        )}
+      </Card>
+
+      <Card className="flex flex-col gap-3">
         <Label>Sync</Label>
         <SyncBadge />
         <span className="text-[13px] text-muted">
@@ -321,7 +410,27 @@ export function Settings() {
         )}
       </Card>
 
-      <p className="num text-center text-xs text-muted">
+            <Card className="flex flex-col gap-2.5">
+        <Label>Delete account</Label>
+        <span className="text-[13px] text-muted">Removes your account and everything in it from the server: workouts, logs, photos and coach chats. It cannot be undone. Export your data first if you want a copy.</span>
+        <Button
+          variant="danger"
+          disabled={busy}
+          onClick={() => {
+            if (!window.confirm('Delete your account and all your data for good?')) return
+            if (window.prompt('Type DELETE to confirm.') !== 'DELETE') return
+            setBusy(true)
+            void deleteAccount().then((error) => {
+              setBusy(false)
+              if (error) setGroupNote(error)
+              else void signOut()
+            })
+          }}
+        >
+          Delete my account
+        </Button>
+      </Card>
+<p className="num text-center text-xs text-muted">
         Version {__APP_VERSION__} · build {__APP_BUILD__}
       </p>
     </div>
