@@ -178,7 +178,7 @@ Both phones are needed for most of this.
 8. Either: Log tab, Progress photos, add two photos, tap both to compare. Sign in on the other phone is not needed: the other person can never see them.
 9. Us tab: open last week's recap.
 
-## Phase 6: settings, program editor, export and first-run setup (built, waiting on the iPhone checklist)
+## Phase 6: settings, program editor, export and first-run setup (done; iPhone checklist passed 2026-11-13)
 
 Done:
 - Program editor (Settings, Edit my program): per day, change either main lift within its family, reorder the accessory slots by priority, and lock any slot or finisher to one exercise or let it rotate. A reset button puts a day back to standard. Each person edits only their own copy.
@@ -204,7 +204,40 @@ Decisions and known gaps:
 6. Settings, My data: export everything. The share sheet opens; save to Files and open the file.
 7. Stella, if she has no workouts yet: she sees the first-run questions once after updating.
 
+## Phase 7: AI coach (built; needs the API key, then the iPhone checklist)
+
+Done:
+- Coach screen, opened from the button in the Today header, the finish screen and the Progress tab. Chat with suggested prompts, a post-workout debrief on request, and a weekly review.
+- Program changes come back as cards with a reason; each is accepted or rejected on its own. Accepting applies it to that person's program only. The coach can propose: swapping a main lift, locking a slot to one exercise, removing an exercise from the rotation, and reordering a day's slots.
+- One-off workouts: the coach can build a session for today, which starts with one tap.
+- Every answer is checked twice (on the server, then on the phone) against `supabase/functions/coach/rules.ts`: unknown exercises, exercises needing equipment we lack, exercises in the wrong slot, incomplete slot orders and nonsense set counts are all discarded. 7 tests feed it bad output.
+- The `coach` Edge Function calls the Anthropic API with the official TypeScript SDK (`claude-opus-5-5`, changeable with a `COACH_MODEL` secret), returns schema-checked structured output, and caches the instructions, library and program.
+- Limits: 30 messages per person per day, counted on the server. Settings shows this month's messages and an upper cost estimate, and has an on/off switch.
+- Conversations are private to each person and sync between their devices.
+- With the coach off, offline, or without a key, everything else works; the browser test checks that the coach fails politely.
+- Tests: 67 unit tests. No key or secret appears in the built app files.
+
+Decisions and known gaps:
+- Replies arrive whole, not word by word. Streaming and schema-checked output did not combine simply, and correct proposals mattered more.
+- The coach has never been called for real: there was no API key during the build. The first real question is the test.
+- Weights mentioned in the coach's text are guided by a note on what can be loaded, not enforced. Proposals carry no weights; set-by-set numbers stay with the rule-based engine.
+- Server-side refusal fallback to another model is not enabled; a declined request returns a plain "try asking another way".
+- The weekly review is on request. A scheduled Sunday review with a push notification is not built.
+- The daily limit resets at midnight UTC, not local time.
+
+## iPhone checklist for phase 7
+
+1. Accept "Update available". Today shows a coach button next to the settings gear.
+2. Ask "What should I focus on next?". A reply arrives in under about 30 seconds and refers to your own data.
+3. Tap "Only 30 minutes today". A workout card appears; tap Start this workout, then discard it from Finish.
+4. Ask it to swap a main lift, for example "Swap my squat to the Smith machine for now". A card appears. Accept it, and check the Day A preview shows the change. Then reset Day A in the program editor.
+5. Ask for something impossible: "Add leg press to my leg day". It should explain that you cannot do that exercise and must not produce a card for it.
+6. Finish a short workout and tap "Get a debrief" on the finish screen.
+7. Progress, "Ask the coach to review my week".
+8. Settings, AI coach: the month's message count has gone up. Turn the coach off: the coach button disappears and everything else still works. Turn it back on.
+9. Airplane mode: asking the coach shows "The coach needs a connection" and nothing else breaks.
+
 ## Next
 
-Phase 7: the AI coach. It needs an Anthropic API key, which Ryan creates and stores as a Supabase secret.
+Phase 8: polish pass. Open items carried forward: iOS splash screens, the body-outline muscle map, custom exercises, swipe-back and fuller screen transitions, the scheduled weekly summary and nudge notifications, and coach streaming.
 

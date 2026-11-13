@@ -8,6 +8,7 @@ import { WEEKLY_SET_TARGET } from '../lib/program'
 import { liftSeries, liftsWithHistory, records, thisWeek, useCardio, useGoals, useLogs, useSessions, weekStats } from '../lib/progressData'
 import { movingAverage } from '../lib/stats'
 import { usePartner } from '../lib/partner'
+import { useProgram } from '../lib/programState'
 import { Card, Label, Sheet, cx } from '../components/ui'
 import { LineChart } from '../components/LineChart'
 import { GoalsCard } from '../components/Goals'
@@ -29,6 +30,7 @@ function Tile({ value, label, sub, good }: { value: string; label: string; sub?:
 export function Progress() {
   const { user } = useAuth()
   const partner = usePartner(user!.id)
+  const program = useProgram(user!.id)
   const [who, setWho] = useState<'me' | 'partner'>('me')
   const viewing = who === 'partner' && partner ? partner.id : user!.id
   const mine = viewing === user!.id
@@ -167,6 +169,12 @@ export function Progress() {
           ))}
         </div>
       </Card>
+
+      {mine && program.coach !== false && (
+        <Link to="/coach?ask=weekly" className="flex h-12 items-center justify-center rounded-control border border-coach-line bg-coach-dim text-sm font-semibold text-coach">
+          Ask the coach to review my week
+        </Link>
+      )}
 
       {mine && (
         <Link to="/history" className="flex h-12 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">

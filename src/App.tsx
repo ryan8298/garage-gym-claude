@@ -22,6 +22,7 @@ import { Us } from './screens/Us'
 import { Photos } from './screens/Photos'
 import { ProgramEditor } from './screens/ProgramEditor'
 import { Onboarding } from './screens/Onboarding'
+import { Coach } from './screens/Coach'
 import { useProgram } from './lib/programState'
 import { setPlateInventory } from './lib/plates'
 import { useSyncStatus } from './lib/syncRunner'
@@ -184,6 +185,7 @@ function Shell() {
     return <Onboarding suggestedName={profile?.display_name ?? ''} />
   }
   if (location.pathname === '/session') return <Session />
+  if (location.pathname === '/coach') return <Coach />
   if (location.pathname.startsWith('/done/'))
     return (
       <Routes>

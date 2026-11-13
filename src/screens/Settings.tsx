@@ -7,6 +7,7 @@ import { DEFAULT_INVENTORY, PLATE_PAIRS } from '../lib/plates'
 import { clock, setSoundMuted, soundMuted } from '../lib/rest'
 import { deliver, dailyLogsCsv, exportAll, workoutsCsv } from '../lib/exportData'
 import { localDate } from '../lib/dates'
+import { monthUsage } from '../lib/coach'
 import { enablePush, notify, pushPermission } from '../lib/push'
 import { capabilities } from '../lib/platform'
 import { requestSync, useSyncStatus } from '../lib/syncRunner'
@@ -22,6 +23,10 @@ export function Settings() {
   const [name, setName] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [muted, setMuted] = useState(soundMuted)
+  const [usage, setUsage] = useState<{ messages: number; cost: number } | null>(null)
+  useEffect(() => {
+    void monthUsage(user!.id).then(setUsage)
+  }, [user])
   const rest = restOf(program)
   const plates = program.plates ?? DEFAULT_INVENTORY
   const steps = profile?.step_target ?? 8000
@@ -114,6 +119,21 @@ export function Settings() {
             {program.pins.length} exercise{program.pins.length === 1 ? '' : 's'} always used, {program.bans.length} never used. Change these from each exercise's page in the Library.
           </span>
         )}
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <Label>AI coach</Label>
+        <label className="flex min-h-[44px] items-center justify-between gap-3">
+          <span className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Coach switched on</span>
+            <span className="text-xs text-muted">Everything else works the same with it off</span>
+          </span>
+          <input type="checkbox" checked={program.coach !== false} onChange={(e) => void saveProgram(user!.id, { coach: e.target.checked })} className="h-6 w-6 accent-[#c8f250]" />
+        </label>
+        <span className="text-[13px] text-muted">
+          {usage ? `This month: ${usage.messages} message${usage.messages === 1 ? '' : 's'}, about $${usage.cost.toFixed(2)} at most.` : 'Usage shows here when you are online.'} Limit: 30 messages a day each.
+        </span>
+        <span className="text-xs text-muted">Coach use is billed to the Anthropic API key, separately from any Claude subscription. The figure is an upper estimate from token counts; the Anthropic console has the exact bill.</span>
       </Card>
 
       <Card className="flex flex-col gap-3">

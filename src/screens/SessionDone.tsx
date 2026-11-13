@@ -3,6 +3,9 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../lib/db'
 import { rateSession, summarize } from '../lib/session'
+import { askCoach, useCoachMessages } from '../lib/coach'
+import { useProgram } from '../lib/programState'
+import { useAuth } from '../lib/auth'
 import { Button, Label, cx } from '../components/ui'
 
 export function SessionDone() {
@@ -12,6 +15,11 @@ export function SessionDone() {
   const summary = useLiveQuery(async () => (session ? summarize(session) : null), [session?.id, session?.finished_at])
   const [effort, setEffort] = useState<number | null>(null)
   const [note, setNote] = useState('')
+  const { user } = useAuth()
+  const program = useProgram(user!.id)
+  const debrief = useCoachMessages(user!.id).find((m) => m.kind === 'debrief' && m.session_id === id)
+  const [asking, setAsking] = useState(false)
+  const [coachError, setCoachError] = useState<string | null>(null)
   useEffect(() => {
     if (session) {
       setEffort(session.effort)
@@ -81,6 +89,40 @@ export function SessionDone() {
         Note
         <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything to remember about today" className="h-12 rounded-control border border-line bg-surface px-3.5 text-ink outline-none focus:border-accent" />
       </label>
+
+      {program.coach !== false && (
+        <div className="flex flex-col gap-2 rounded-card border border-coach-line bg-coach-dim p-4">
+          <Label tone="coach">Coach debrief</Label>
+          {debrief ? (
+            <>
+              <span className="text-sm leading-relaxed whitespace-pre-line">{debrief.body}</span>
+              {(debrief.proposals.length > 0 || debrief.quick_workout) && (
+                <Link to="/coach" className="flex h-9 items-center text-sm font-semibold text-coach">
+                  The coach suggested a change. Review it
+                </Link>
+              )}
+            </>
+          ) : (
+            <>
+              {coachError && <span className="text-[13px] text-danger">{coachError}</span>}
+              <button
+                disabled={asking}
+                onClick={() => {
+                  setAsking(true)
+                  setCoachError(null)
+                  void askCoach(session.user_id, program, 'debrief', undefined, session.id).then((r) => {
+                    setCoachError(r.error ?? null)
+                    setAsking(false)
+                  })
+                }}
+                className="h-11 rounded-control bg-coach text-sm font-semibold text-accent-ink disabled:opacity-60"
+              >
+                {asking ? 'Looking at your workout…' : 'Get a debrief'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {session.template_key === 'C' && (
         <Link to="/log" replace className="flex h-11 items-center justify-center rounded-control border border-coach-line bg-coach-dim text-sm font-semibold text-coach">

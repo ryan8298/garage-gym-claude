@@ -130,6 +130,9 @@ export async function startSession(userId: string, plan: SessionPlan | null, pro
   return session.id
 }
 
+/** Add a planned lift to a session. Used for workouts built outside the standard program. */
+export const addLiftTo = (session: WorkoutSession, key: string, position: number, t: Omit<LiftTarget, 'hint'>) => addLift(session, key, position, t, null)
+
 /** Start a new workout with the same exercises as a past one, with fresh suggestions. */
 export async function repeatSession(userId: string, past: { session: WorkoutSession; lifts: { lift: SessionExercise }[] }, program: ProgramData): Promise<string> {
   const id = await startSession(userId, null, program, { title: past.session.title })

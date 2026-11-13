@@ -106,6 +106,16 @@ async function main() {
     assert.match(firstAccessory, /calf raise/i, 'the reordered slot comes first')
     await page.goto(URL)
 
+    // The coach fails politely when it cannot be reached, and nothing else is affected.
+    await page.getByRole('link', { name: 'Open coach' }).click()
+    await page.getByPlaceholder('Ask about your training').fill('Why am I stuck on squat?')
+    await page.getByRole('button', { name: 'Send' }).click()
+    await page.getByRole('alert').waitFor()
+    assert.match(await page.getByRole('alert').innerText(), /needs a connection|could not answer/)
+    if (shot) await page.screenshot({ path: `${shot}/e2e-coach.png` })
+    await page.getByRole('button', { name: 'Back' }).click()
+    await page.getByText('Next up · Day B').waitFor()
+
     // The Us tab lists the workout in the activity feed.
     await page.getByRole('link', { name: 'Us', exact: true }).click()
     await page.getByText('finished Legs & Lower Back').waitFor()

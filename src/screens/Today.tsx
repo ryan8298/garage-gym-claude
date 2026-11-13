@@ -52,9 +52,16 @@ export function Today() {
             {partOfDay()}, {name}
           </h1>
         </div>
+        <div className="flex items-center gap-2">
+          {program.coach !== false && (
+            <Link to="/coach" aria-label="Open coach" className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-coach-line bg-coach-dim text-coach">
+              <Icon d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" />
+            </Link>
+          )}
         <Link to="/settings" aria-label="Settings" className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-line bg-surface text-ink">
           <Icon d={icons.gear} />
         </Link>
+        </div>
       </header>
 
       <Card className="flex flex-col gap-3.5 !p-[18px]">

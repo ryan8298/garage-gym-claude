@@ -98,6 +98,8 @@ export interface ProgramState extends SyncFields {
     slotOrder?: Partial<Record<'A' | 'B' | 'C' | 'D', number[]>>
     /** The first-run setup has been completed. */
     onboarded?: boolean
+    /** The AI coach is switched on. Missing means on. */
+    coach?: boolean
   }
 }
 
@@ -140,6 +142,18 @@ export interface ProgressPhoto extends SyncFields {
   path: string
 }
 
+export interface CoachMessage extends SyncFields {
+  user_id: string
+  at: string
+  role: 'user' | 'coach'
+  kind: 'chat' | 'debrief' | 'weekly'
+  body: string
+  /** Proposed program changes, each with whether it was accepted, rejected or is still open. */
+  proposals: unknown[]
+  quick_workout: unknown | null
+  session_id: string | null
+}
+
 export interface OutboxEntry {
   key: string // "<table>:<id>", so many edits to one row are one entry
   table: SyncTable
@@ -153,7 +167,7 @@ export interface MetaEntry {
 }
 
 /** Parents before children, so a set is never pushed before its session. */
-export const SYNC_TABLES = ['profiles', 'program_state', 'daily_logs', 'cardio_entries', 'body_measurements', 'goals', 'workout_sessions', 'session_exercises', 'sets', 'feed_reactions', 'progress_photos'] as const
+export const SYNC_TABLES = ['profiles', 'program_state', 'daily_logs', 'cardio_entries', 'body_measurements', 'goals', 'workout_sessions', 'session_exercises', 'sets', 'feed_reactions', 'progress_photos', 'coach_messages'] as const
 export type SyncTable = (typeof SYNC_TABLES)[number]
 
 export class GymDB extends Dexie {
@@ -168,6 +182,7 @@ export class GymDB extends Dexie {
   goals!: Table<Goal, string>
   feed_reactions!: Table<FeedReaction, string>
   progress_photos!: Table<ProgressPhoto, string>
+  coach_messages!: Table<CoachMessage, string>
   outbox!: Table<OutboxEntry, string>
   meta!: Table<MetaEntry, string>
 
@@ -186,6 +201,7 @@ export class GymDB extends Dexie {
     this.version(3).stores({ session_exercises: 'id, session_id, user_id, [user_id+exercise_key]' })
     this.version(4).stores({ cardio_entries: 'id, user_id, [user_id+log_date]', body_measurements: 'id, user_id', goals: 'id, user_id' })
     this.version(5).stores({ feed_reactions: 'id, user_id, session_id', progress_photos: 'id, user_id' })
+    this.version(6).stores({ coach_messages: 'id, user_id' })
   }
 }
 
