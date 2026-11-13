@@ -4,7 +4,7 @@ import { useAuth } from '../lib/auth'
 import { askCoach, decide, startQuick, useCoachMessages, type ProposalState, type QuickWorkout } from '../lib/coach'
 import type { CoachMessage } from '../lib/db'
 import { exercise, hasExercise } from '../lib/exercises'
-import { PROGRAM, type DayKey } from '../lib/program'
+import { dayByKey } from '../lib/program'
 import { useProgram, type ProgramData } from '../lib/programState'
 import { unlockSound } from '../lib/rest'
 import { useActiveSession } from '../lib/session'
@@ -50,11 +50,11 @@ function Reply({ text }: { text: string }) {
 const nameOf = (key: string | null) => (key && hasExercise(key) ? exercise(key).name : (key ?? ''))
 
 function describe(p: ProposalState, program: ProgramData): { title: string; from?: string; to: string } {
-  const day = p.day ? `Day ${p.day}` : ''
+  const day = p.day ? (dayByKey(p.day)?.title ?? `Day ${p.day}`) : ''
   if (p.kind === 'ban_exercise') return { title: 'Remove from rotation', to: `Never use ${nameOf(p.exercise_key)}` }
   if (p.kind === 'swap_main') {
-    const main = PROGRAM[p.day as DayKey]?.mains.find((m) => m.id === p.target)
-    const current = main ? (program.mains[main.id] ?? (main.id === 'B2' ? program.pullMain : main.key)) : null
+    const main = dayByKey(p.day)?.mains.find((m) => m.id === p.target)
+    const current = main ? (program.mains[main.id] ?? (main.pull ? program.pullMain : main.key)) : null
     return { title: `${day} · swap main lift`, from: nameOf(current), to: nameOf(p.exercise_key) }
   }
   if (p.kind === 'lock_slot') return { title: `${day} · ${p.target}`, to: `Always ${nameOf(p.exercise_key)}` }

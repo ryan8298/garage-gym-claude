@@ -97,7 +97,7 @@ export interface ProgramState extends SyncFields {
     /** Rest timer lengths in seconds. */
     rest?: { main: number; topup: number; accessory: number; finisher: number }
     /** My own priority order for each day's accessory slots. */
-    slotOrder?: Partial<Record<'A' | 'B' | 'C' | 'D', number[]>>
+    slotOrder?: Partial<Record<string, number[]>>
     /** The first-run setup has been completed. */
     onboarded?: boolean
     /** The AI coach is switched on. Missing means on. */
@@ -108,6 +108,14 @@ export interface ProgramState extends SyncFields {
     gyms?: Gym[]
     /** The gym I am training at now. */
     gym?: string
+    /** Which program I follow. Missing means the standard four days. */
+    template?: string
+    /** What I am training for. Shapes how much accessory work a session gets. */
+    goal?: 'fat_loss' | 'muscle' | 'strength'
+    /** The longest a session should run, in minutes. Missing means 70. */
+    minutes?: number
+    /** My own sets and rep ranges, by "<day>:<main lift id or slot role>". */
+    tweaks?: Record<string, { sets?: number; low?: number; high?: number }>
     /** Exercises I have added myself. */
     custom?: { key: string; name: string; group: string; equip: string; measure: string; side: boolean }[]
     /** Workouts I have named and saved to reuse. */

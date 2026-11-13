@@ -4,7 +4,7 @@ import { db, save, type ProgramState } from './db'
 import { daysBetween, localDate, weekStart, addDays } from './dates'
 import { blockPosition, planSession, type SessionPlan, type UserSettings } from './engine'
 import { exercise } from './exercises'
-import { DAY_ORDER, type DayKey } from './program'
+import { programDef, type DayKey, type ProgramDef } from './program'
 import { requestSync } from './syncRunner'
 import { activeGym } from './gym'
 
@@ -42,9 +42,18 @@ export const settingsOf = (p: ProgramData): UserSettings => ({
   mains: p.mains,
   slotOrder: p.slotOrder,
   equipment: activeGym(p).equipment,
+  tweaks: p.tweaks,
+  maxMinutes: p.minutes,
+  accessoryDelta: p.goal === 'muscle' ? 1 : p.goal === 'strength' ? -1 : 0,
 })
 
-export const nextDay = (p: ProgramData): DayKey => DAY_ORDER[((p.queueIndex % 4) + 4) % 4]
+/** The program a person follows. */
+export const defOf = (p: ProgramData): ProgramDef => programDef(p.template)
+
+export const nextDay = (p: ProgramData): DayKey => {
+  const order = defOf(p).order
+  return order[((p.queueIndex % order.length) + order.length) % order.length]
+}
 
 /** Hard sets per muscle group over the last 7 days, from what was actually logged. */
 export function useSetsByGroup(userId: string): Record<string, number> {
@@ -76,14 +85,18 @@ export function useSetsByGroup(userId: string): Record<string, number> {
   )
 }
 
-export function usePlan(userId: string, day?: DayKey, trainingAlone = false, equipment?: string[]): { plan: SessionPlan; program: ProgramData } {
+/**
+ * The session a person would do. `like` builds it for someone else's place and program:
+ * a partner training alongside does the same day, with their own choices and numbers.
+ */
+export function usePlan(userId: string, day?: DayKey, trainingAlone = false, like?: { equipment: string[]; def: ProgramDef }): { plan: SessionPlan; program: ProgramData } {
   const program = useProgram(userId)
   const setsByGroup = useSetsByGroup(userId)
   const plan = useMemo(() => {
     const pos = blockPosition(program.startedOn, localDate(), weekStart, daysBetween)
-    return planSession({ day: day ?? nextDay(program), ...pos, settings: { ...settingsOf(program), ...(equipment ? { equipment } : {}) }, setsByGroup, trainingAlone })
+    return planSession({ day: day ?? nextDay(program), def: like?.def ?? defOf(program), ...pos, settings: { ...settingsOf(program), ...(like ? { equipment: like.equipment } : {}) }, setsByGroup, trainingAlone })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [program, setsByGroup, day, trainingAlone, equipment?.join()])
+  }, [program, setsByGroup, day, trainingAlone, like?.equipment.join(), like?.def.id])
   return { plan, program }
 }
 

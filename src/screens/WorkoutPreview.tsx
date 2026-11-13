@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { phaseLabel } from '../lib/engine'
-import { DAY_ORDER, type DayKey } from '../lib/program'
 import { usePlan } from '../lib/programState'
 import { Button, Card, RoundButton, icons } from '../components/ui'
 import { startSession, useActiveSession } from '../lib/session'
@@ -13,9 +12,9 @@ export function WorkoutPreview() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { day } = useParams()
-  const key = (DAY_ORDER.includes(day as DayKey) ? day : 'A') as DayKey
   const [alone, setAlone] = useState(false)
-  const { plan, program } = usePlan(user!.id, key, alone)
+  // An unknown day falls back to the first day of the person's program.
+  const { plan, program } = usePlan(user!.id, day, alone)
   const active = useActiveSession(user!.id)
   const [starting, setStarting] = useState(false)
 

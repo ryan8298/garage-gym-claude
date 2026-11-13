@@ -436,6 +436,38 @@ Risks to watch on the iPhone: the fixed tab bar while the keyboard is open, and 
 
 Recheck: scroll far down the Library and tap the clock; open and close a sheet on a scrolled page; type in the Library search and in a Log note with the keyboard up; swipe back from Settings.
 
+## Release C, part 1: program builder (built, waiting on the iPhone checklist)
+
+Backlog 5.1, 5.2, 5.3, 5.9 in part.
+
+Done:
+- Four programs to choose from, all built from the same exercises, blocks, progression and place settings: the standard four days (legs, upper, core, full body), Full body (3 days), Upper / lower (4 days) and Push / pull / legs (3 days, or run twice for 5 to 6). Defined in `src/lib/program.ts` as `TEMPLATES`.
+- "Build my program" (Settings, Edit my program, Change program): goal, days a week and longest session. It recommends a program with the reason, and any of the four can be chosen instead. Switching keeps history and records and restarts the rotation.
+- Session length is respected: shorter sessions drop the lowest-priority accessories; main lifts always stay. Goal changes accessory work by one slot (more for muscle, fewer for strength).
+- Sets and rep ranges can be set per main lift and per slot in the program editor, with "Back to automatic".
+- Each person chooses their own program. In a shared workout the partner does the phone owner's day, with their own lift choices and numbers.
+- The coach reads whichever program the person is on. The coach function was redeployed (version 5) with a day key that is no longer limited to A to D.
+- Tests: 101 unit tests (9 new: every program and day in every block, pull choice, rotation, session length, goal, own numbers, builder).
+
+Known limits:
+- The builder chooses between four fixed programs; it does not generate a new split, and experience level is not asked.
+- A program entered by hand from a coach or a book (5.10) is not built.
+- Progression that uses effort more finely, plateau detection and fatigue-based recovery weeks (5.4 to 5.6) are not built.
+- The coach has not been tried against a non-standard program with a real key.
+- Settings still offers only 3 or 4 workouts a week in the profile card; the builder sets 2 to 6.
+
+## iPhone checklist for release C, part 1
+
+1. Accept "Update available". Today and your plan are unchanged.
+2. Settings, Edit my program: a card at the top names your program. Tap Change program.
+3. In the builder, change the goal and days a week: the Recommended badge moves and its reason changes.
+4. Pick Upper / lower and tap Use this program. The editor now shows Upper 1, Lower 1, Upper 2, Lower 2, and Today shows Upper 1 next.
+5. In the editor, tap a main lift: set Sets to 4 and the rep range to 5 to 8. Today and the preview show those numbers. "Back to automatic" restores them.
+6. Start a workout together on the new program: Stella gets the same day with her own pull choice and weights.
+7. Builder, Longest session 30 min, save: Today's workout is shorter and still has both main lifts.
+8. Ask the coach "What is my program this week?": it describes the new days, not legs, upper, core, full body.
+9. Switch back to "Legs, upper, core, full body" and 60 or 75 minutes if you want your old plan. Your earlier program changes are still there.
+
 ## Next
 
-Release C in BACKLOG.md: program builder (epic 5) and groups (epic 6). Left over from release B: kg units, a finer machine list, a review of the added exercise names and text, self-hosted pictures, the library in the database, and letting the coach use the wider library.
+Release C, part 2: groups (backlog epic 6), starting with narrowing the data rules so people see only their own group. Left from epic 5: 5.4 to 5.8 and 5.10.

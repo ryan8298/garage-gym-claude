@@ -7,7 +7,7 @@ import { usePartner } from '../lib/partner'
 import type { SetRow } from '../lib/db'
 import { exercise, exercises, groupLabels, equipLabels, matchesQuery } from '../lib/exercises'
 import { breakdown, loadModeFor } from '../lib/plates'
-import { CATCH_UP, PROGRAM, TOP_UP } from '../lib/program'
+import { ALL_DAYS, CATCH_UP, TOP_UP, dayByKey } from '../lib/program'
 import { restOf, saveProgram, useProgram, useSetsByGroup } from '../lib/programState'
 import { WEEKLY_SET_TARGET, gapSuggestions } from '../lib/gaps'
 import { activeGym, availableAt } from '../lib/gym'
@@ -49,14 +49,14 @@ export function useElapsed(startedAt: string | undefined): string {
 
 /** Every exercise that can stand in for this one: same main lift family, or same slot pool. */
 function alternativesFor(key: string): string[] {
-  for (const day of Object.values(PROGRAM)) {
+  for (const day of ALL_DAYS) {
     for (const m of day.mains) {
       const family = [m.key, m.alone, ...m.alternatives].filter((k): k is string => !!k)
       if (family.includes(key)) return family.filter((k) => k !== key)
     }
   }
   const pools = [
-    ...Object.values(PROGRAM).flatMap((d) => [...d.slots, ...d.finisher].map((s) => s.pool)),
+    ...ALL_DAYS.flatMap((d) => [...d.slots, ...d.finisher].map((s) => s.pool)),
     ...Object.values(TOP_UP).flatMap((c) => Object.values(c)),
     ...Object.values(CATCH_UP),
   ]
@@ -161,7 +161,7 @@ export function Session() {
   const upNext = lifts.find((v, i) => i > index && !isDone(v)) ?? lifts.find((v) => !isDone(v) && v !== current)
   const gym = activeGym(myProgram)
   // What fits today's kind of workout comes first when suggesting additions.
-  const day = session.template_key && session.template_key in PROGRAM ? PROGRAM[session.template_key as keyof typeof PROGRAM] : null
+  const day = dayByKey(session.template_key)
   const preferred = day ? [...day.slots, ...day.finisher].flatMap((x) => x.pool) : []
   const suggestions = suggesting
     ? gapSuggestions({
@@ -489,8 +489,8 @@ export function Session() {
                       const old = current.lift.exercise_key
                       void swapExercise(current, k)
                       if (alsoProgram) {
-                        const main = Object.values(PROGRAM).flatMap((d) => d.mains).find((m) => [m.key, m.alone, ...m.alternatives].includes(old))
-                        if (main?.id === 'B2' && (k === 'pull_up' || k === 'lat_pulldown')) void saveProgram(viewer, { pullMain: k })
+                        const main = (dayByKey(session.template_key)?.mains ?? ALL_DAYS.flatMap((d) => d.mains)).find((m) => [m.key, m.alone, ...m.alternatives].includes(old))
+                        if (main?.pull && (k === 'pull_up' || k === 'lat_pulldown')) void saveProgram(viewer, { pullMain: k })
                         else if (main && current.target.kind === 'main') void saveProgram(viewer, { mains: { ...program.mains, [main.id]: k } })
                         else void saveProgram(viewer, { pins: [...program.pins.filter((p) => p !== old), k] })
                       }

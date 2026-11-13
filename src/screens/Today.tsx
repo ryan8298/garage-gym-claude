@@ -8,8 +8,7 @@ import { localDate, longDate, partOfDay, weekDays } from '../lib/dates'
 import { Button, Card, Icon, Label, Sheet, cx, icons } from '../components/ui'
 import { targetText } from '../components/LiftList'
 import { phaseLabel } from '../lib/engine'
-import { DAY_ORDER, PROGRAM } from '../lib/program'
-import { saveProgram, usePlan } from '../lib/programState'
+import { defOf, saveProgram, usePlan } from '../lib/programState'
 import { startPair, startRoutine, startSession, useActiveSession } from '../lib/session'
 import { usePartner } from '../lib/partner'
 import { activeGym, gymsOf } from '../lib/gym'
@@ -45,7 +44,7 @@ export function Today() {
   const navigate = useNavigate()
   const active = useActiveSession(user!.id)
   const partner = usePartner(user!.id)
-  const partnerPlan = usePlan(partner?.id ?? user!.id, plan.day, false, activeGym(program).equipment)
+  const partnerPlan = usePlan(partner?.id ?? user!.id, plan.day, false, { equipment: activeGym(program).equipment, def: defOf(program) })
   const partnerActive = useActiveSession(partner?.id)
   const [together, setTogether] = useState(() => localStorage.getItem('gg.together') !== '0')
   const paired = !!partner && together && !partnerActive
@@ -76,7 +75,7 @@ export function Today() {
 
       <Card className="flex flex-col gap-3.5 !p-[18px]">
         <div className="flex items-center justify-between">
-          <Label tone="accent">Next up · Day {plan.day}</Label>
+          <Label tone="accent">Next up{plan.day.length === 1 ? ` · Day ${plan.day}` : ''}</Label>
           <span className="text-xs text-muted">
             {plan.lifts.length} lifts · about {plan.minutes} min
           </span>
@@ -233,7 +232,7 @@ export function Today() {
       <Sheet open={swapping} onClose={() => setSwapping(false)}>
         <div className="flex flex-col gap-2.5 pb-3">
           <span className="text-[15px] font-semibold">Which workout next?</span>
-          {DAY_ORDER.map((d, i) => (
+          {defOf(program).order.map((d, i) => (
             <button
               key={d}
               onClick={() => {
@@ -242,7 +241,7 @@ export function Today() {
               }}
               className={cx('flex min-h-[56px] items-center justify-between rounded-control border px-3.5 text-left', d === plan.day ? 'border-accent bg-accent-dim' : 'border-line bg-raised')}
             >
-              <span className="text-[15px] font-semibold">{PROGRAM[d].title}</span>
+              <span className="text-[15px] font-semibold">{defOf(program).days[d].title}</span>
               <span className="text-xs text-muted">Day {d}</span>
             </button>
           ))}

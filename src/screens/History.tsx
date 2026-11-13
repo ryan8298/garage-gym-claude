@@ -5,8 +5,8 @@ import type { SetRow } from '../lib/db'
 import { addDays, localDate, parseLocal } from '../lib/dates'
 import { planSession, phaseLabel } from '../lib/engine'
 import { exercise, hasExercise } from '../lib/exercises'
-import { DAY_ORDER, PROGRAM, type DayKey } from '../lib/program'
-import { settingsOf, useProgram } from '../lib/programState'
+import type { DayKey } from '../lib/program'
+import { defOf, settingsOf, useProgram } from '../lib/programState'
 import { useSessions, type DoneLift } from '../lib/progressData'
 import { discardSession, repeatSession, saveRoutine, startSession, useActiveSession, type LiftTarget, type LiftView } from '../lib/session'
 import { unlockSound } from '../lib/rest'
@@ -28,7 +28,8 @@ export function History() {
   const active = useActiveSession(user!.id)
   const [logging, setLogging] = useState(false)
   const [date, setDate] = useState(addDays(localDate(), -1))
-  const [which, setWhich] = useState<DayKey | 'free'>('A')
+  const def = defOf(program)
+  const [which, setWhich] = useState<DayKey | 'free'>(def.order[0])
 
   return (
     <div className="flex flex-col gap-3 px-5 pt-3 pb-6">
@@ -60,9 +61,9 @@ export function History() {
             <input type="date" value={date} max={localDate()} onChange={(e) => setDate(e.target.value)} className="h-12 rounded-control border border-line bg-raised px-3.5 text-ink outline-none" />
           </label>
           <div className="flex flex-col gap-2">
-            {([...DAY_ORDER, 'free'] as const).map((d) => (
+            {[...def.order, 'free'].map((d) => (
               <button key={d} aria-pressed={which === d} onClick={() => setWhich(d)} className={cx('min-h-[48px] rounded-control border px-3.5 text-left text-[15px] font-semibold', which === d ? 'border-accent bg-accent-dim' : 'border-line bg-raised')}>
-                {d === 'free' ? 'Something else (empty workout)' : `Day ${d} · ${PROGRAM[d].title}`}
+                {d === 'free' ? 'Something else (empty workout)' : def.days[d].title}
               </button>
             ))}
           </div>
@@ -71,7 +72,7 @@ export function History() {
             disabled={!date}
             onClick={() => {
               unlockSound()
-              const plan = which === 'free' ? null : planSession({ day: which, blockIndex: 0, week: 1, settings: settingsOf(program) })
+              const plan = which === 'free' ? null : planSession({ day: which, def, blockIndex: 0, week: 1, settings: settingsOf(program) })
               void startSession(user!.id, plan, program, { date }).then(() => navigate('/session'))
             }}
           >

@@ -1,5 +1,5 @@
 import { exercise, exercises, type Exercise } from './exercises'
-import { CATCH_UP, CATCH_UP_ORDER, PROGRAM, TOP_UP, type DayKey, type MainLift, type Slot } from './program'
+import { CATCH_UP, CATCH_UP_ORDER, STANDARD, TOP_UP, type DayKey, type MainLift, type ProgramDef, type Slot } from './program'
 
 /**
  * The programming engine. Pure functions: given the day, where we are in the
@@ -21,6 +21,12 @@ export interface UserSettings {
   mains: Record<string, string>
   /** A user's own priority order for a day's accessory slots, as positions in the default list. */
   slotOrder?: Partial<Record<DayKey, number[]>>
+  /** A person's own sets and rep ranges, by "<day>:<main lift id or slot role>". */
+  tweaks?: Record<string, { sets?: number; low?: number; high?: number }>
+  /** The longest a session should run. */
+  maxMinutes?: number
+  /** More or fewer accessory slots than the block calls for. */
+  accessoryDelta?: number
   /** Equipment at the place being trained in. Missing means everything our program was written for. */
   equipment?: string[]
 }
@@ -151,6 +157,8 @@ export function estimateMinutes(lifts: PlannedLift[]): number {
 
 export interface PlanInput {
   day: DayKey
+  /** The program the day belongs to. Missing means the standard one. */
+  def?: ProgramDef
   blockIndex: number
   /** 1 to 4 */
   week: number
@@ -165,7 +173,18 @@ export function planSession(input: PlanInput): SessionPlan {
   const { day, blockIndex, week } = input
   const s = input.settings ?? defaultSettings
   const sets7d = input.setsByGroup ?? {}
-  const base = PROGRAM[day]
+  const program = input.def ?? STANDARD
+  const base = program.days[day] ?? program.days[program.order[0]]
+  const maxMinutes = s.maxMinutes ?? MAX_MINUTES
+  // A person's own numbers for a lift replace the block's, within sensible limits.
+  const tweaked = (l: PlannedLift, id: string): PlannedLift => {
+    const t = s.tweaks?.[`${base.key}:${id}`]
+    if (!t) return l
+    const sets = t.sets ? Math.max(1, Math.min(6, t.sets)) : l.sets
+    const low = t.low && l.unit === 'reps' ? Math.max(1, Math.min(30, t.low)) : l.low
+    const high = t.high && l.unit === 'reps' ? Math.max(low, Math.min(40, t.high)) : Math.max(low, l.high)
+    return { ...l, sets, low, high }
+  }
   const def = { ...base, slots: orderSlots(base.slots, s.slotOrder?.[day]) }
   const phase = phaseOf(blockIndex)
   const recovery = isRecoveryWeek(blockIndex, week)
@@ -178,7 +197,7 @@ export function planSession(input: PlanInput): SessionPlan {
   for (const m of def.mains) {
     let key = s.mains[m.id] ?? m.key
     let note: string | undefined
-    if (m.id === 'B2' && !s.mains[m.id]) {
+    if (m.pull && !s.mains[m.id]) {
       key = s.pullMain
       if (s.pullMain === 'lat_pulldown') note = 'Before your sets: 3 single pull-ups or slow lowerings for practice.'
       else note = 'Add weight once you reach the top of the range on every set.'
@@ -195,22 +214,22 @@ export function planSession(input: PlanInput): SessionPlan {
       }
     }
     taken.add(key)
-    lifts.push(lift(key, 'main', 'Main lift', mainSets, MAIN_REPS[m.reps][phase], note))
+    lifts.push(tweaked(lift(key, 'main', 'Main lift', mainSets, MAIN_REPS[m.reps][phase], note), m.id))
   }
 
   // ---- accessories ----
-  const count = accessoryCount(blockIndex, week)
+  const count = Math.max(2, accessoryCount(blockIndex, week) + (recovery ? 0 : (s.accessoryDelta ?? 0)))
   const accessorySets = recovery || blockIndex === 0 ? 2 : 3
   const range = ACCESSORY_REPS[phase]
   const add = (slot: Slot, index: number, kind: PlannedLift['kind'], sets: number) => {
     const key = pickFromPool(slot.pool, slot.home ?? index, blockIndex, s, taken)
     if (!key) return false
     taken.add(key)
-    lifts.push(lift(key, kind, slot.role, sets, range))
+    lifts.push(tweaked(lift(key, kind, slot.role, sets, range), slot.role))
     return true
   }
 
-  if (day === 'C') {
+  if (base.topUps) {
     // Top-ups first: one leg, one push, one pull, from whichever group is furthest behind.
     const topUps = recovery ? 2 : 3
     const order: (keyof typeof TOP_UP)[] = ['legs', 'push', 'pull']
@@ -225,7 +244,7 @@ export function planSession(input: PlanInput): SessionPlan {
     def.slots.slice(0, count).forEach((slot, i) => {
       if (add(slot, i, 'accessory', accessorySets)) filled++
     })
-    if (day === 'D') {
+    if (base.catchUp) {
       // Remaining slots go to whichever muscle groups are furthest behind this week.
       const covered = new Set(lifts.map((l) => exercise(l.key).group))
       const behind = mostBehind(CATCH_UP_ORDER, sets7d).filter((g) => !covered.has(g))
@@ -251,14 +270,15 @@ export function planSession(input: PlanInput): SessionPlan {
   }
 
   // ---- keep within the time cap by dropping the lowest-priority accessory ----
-  while (estimateMinutes(lifts) > MAX_MINUTES) {
+  const floor = maxMinutes < 45 ? 1 : 3
+  while (estimateMinutes(lifts) > maxMinutes) {
     const last = lifts.map((l) => l.kind).lastIndexOf('accessory')
-    if (last === -1 || lifts.filter((l) => l.kind === 'accessory').length <= 3) break
+    if (last === -1 || lifts.filter((l) => l.kind === 'accessory').length <= floor) break
     const [removed] = lifts.splice(last, 1)
     if (removed.superset) lifts.forEach((l) => l.superset === removed.superset && delete l.superset)
   }
 
-  return { day, title: def.title, blockIndex, week, phase, recovery, lifts, minutes: estimateMinutes(lifts), adapted }
+  return { day: base.key, title: def.title, blockIndex, week, phase, recovery, lifts, minutes: estimateMinutes(lifts), adapted }
 }
 
 /** Where a date falls in the blocks, counted in whole weeks from the program's first Monday. */

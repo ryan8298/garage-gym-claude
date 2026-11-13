@@ -5,9 +5,9 @@ import { addDays, daysBetween, localDate, weekStart } from './dates'
 import { blockPosition, phaseOf, planSession } from './engine'
 import { exercise, curatedExercises } from './exercises'
 import { achievableLoads } from './plates'
-import { DAY_ORDER, PROGRAM } from './program'
+import { dayByKey } from './program'
 import { loadSessions, weekStats } from './progressData'
-import { saveProgram, settingsOf, type ProgramData } from './programState'
+import { saveProgram, settingsOf, type ProgramData, defOf } from './programState'
 import { addLiftTo, startSession } from './session'
 import { movingAverage } from './stats'
 import { supabase } from './supabase'
@@ -18,16 +18,17 @@ export type ProposalState = Proposal & { status: 'open' | 'accepted' | 'rejected
 
 /** The library and program, described for the coach and for checking its answers. Same for everyone except equipment. */
 export function coachContext(program: ProgramData): CoachContext {
+  const def = defOf(program)
   return {
     catalog: curatedExercises.map((e) => ({ key: e.key, name: e.name, group: e.group, station: e.station, ...(e.needs ? { needs: e.needs } : {}) })),
     program: {
       days: Object.fromEntries(
-        DAY_ORDER.map((d) => [
+        def.order.map((d) => [
           d,
           {
-            title: PROGRAM[d].title,
-            mains: PROGRAM[d].mains.map((m) => ({ id: m.id, options: [m.key, m.alone, ...m.alternatives].filter((k): k is string => !!k) })),
-            slots: [...PROGRAM[d].slots.map((s) => ({ role: s.role, pool: s.pool, reorderable: true })), ...PROGRAM[d].finisher.map((s) => ({ role: s.role, pool: s.pool, reorderable: false }))],
+            title: def.days[d].title,
+            mains: def.days[d].mains.map((m) => ({ id: m.id, options: [m.key, m.alone, ...m.alternatives].filter((k): k is string => !!k) })),
+            slots: [...def.days[d].slots.map((s) => ({ role: s.role, pool: s.pool, reorderable: true })), ...def.days[d].finisher.map((s) => ({ role: s.role, pool: s.pool, reorderable: false }))],
           },
         ]),
       ),
@@ -94,7 +95,7 @@ export async function trainingData(userId: string, program: ProgramData, latestS
     daily_step_target: profile?.step_target ?? 8000,
     training_block: { phase: phaseOf(pos.blockIndex), week_of_4: pos.week, block_number: pos.blockIndex + 1, program_started: program.startedOn },
     days_since_last_workout: sessions[0] ? daysBetween(sessions[0].session.local_date, today) : null,
-    next_workouts: Object.fromEntries(DAY_ORDER.map((d) => [d, planSession({ day: d, ...pos, settings }).lifts.map((l) => `${l.key} (${l.kind}${l.kind === 'accessory' || l.kind === 'finisher' ? `: ${l.role}` : ''}) ${l.sets}x${l.low}-${l.high}`)])),
+    next_workouts: Object.fromEntries(defOf(program).order.map((d) => [d, planSession({ day: d, def: defOf(program), ...pos, settings }).lifts.map((l) => `${l.key} (${l.kind}${l.kind === 'accessory' || l.kind === 'finisher' ? `: ${l.role}` : ''}) ${l.sets}x${l.low}-${l.high}`)])),
     my_choices: { pulling_main_lift: program.pullMain, locked_exercises: program.pins, never_use: program.bans, main_lift_changes: program.mains },
     this_week: weekStats(thisWeek, sessions, logs, cardio),
     last_week: weekStats(addDays(thisWeek, -7), sessions, logs, cardio),
@@ -157,11 +158,11 @@ export async function askCoach(userId: string, program: ProgramData, mode: Coach
 export function programPatch(p: Proposal, program: ProgramData): Partial<ProgramData> {
   const key = p.exercise_key!
   if (p.kind === 'ban_exercise') return { bans: [...new Set([...program.bans, key])], pins: program.pins.filter((x) => x !== key) }
-  const day = PROGRAM[p.day as keyof typeof PROGRAM]
+  const day = dayByKey(p.day)!
   if (p.kind === 'swap_main') {
     const main = day.mains.find((m) => m.id === p.target)!
     const { [main.id]: _old, ...rest } = program.mains
-    if (main.id === 'B2' && (key === 'pull_up' || key === 'lat_pulldown')) return { pullMain: key, mains: rest }
+    if (main.pull && (key === 'pull_up' || key === 'lat_pulldown')) return { pullMain: key, mains: rest }
     return { mains: key === main.key ? rest : { ...rest, [main.id]: key } }
   }
   if (p.kind === 'lock_slot') {

@@ -25,6 +25,7 @@ import { Onboarding } from './screens/Onboarding'
 import { Coach } from './screens/Coach'
 import { Intervals } from './screens/Intervals'
 import { GymEditor } from './screens/GymEditor'
+import { ProgramBuilder } from './screens/ProgramBuilder'
 import { useProgram } from './lib/programState'
 import { setGear } from './lib/plates'
 import { activeGym, gearOf } from './lib/gym'
@@ -323,6 +324,7 @@ function Shell() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/program" element={<ProgramEditor />} />
           <Route path="/settings/gym/:id" element={<GymEditor />} />
+          <Route path="/settings/program/builder" element={<ProgramBuilder />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

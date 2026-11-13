@@ -108,6 +108,8 @@ Today: 86 exercises, 69 with pictures, chosen for one garage. No custom exercise
 
 ## Epic 5: a program for anyone
 
+Status 2026-11-14: 5.1 as a chooser between four programs, 5.2, 5.3 for sets and reps, 5.9 in part. Open: 5.4 to 5.8, 5.10, adding and removing slots and days.
+
 Today: one hand-built 4-day program with fixed main lifts, rotating accessory slots, 4-week blocks and a recovery week. The editor swaps and reorders but cannot change sets, reps or the split.
 
 | ID | Item | Priority | Size |
