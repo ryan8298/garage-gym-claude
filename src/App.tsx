@@ -27,6 +27,7 @@ import { Intervals } from './screens/Intervals'
 import { GymEditor } from './screens/GymEditor'
 import { ProgramBuilder } from './screens/ProgramBuilder'
 import { Plan } from './screens/Plan'
+import { Cardio, CardioDetail, CardioTrack } from './screens/Cardio'
 import { useProgram } from './lib/programState'
 import { setGear } from './lib/plates'
 import { activeGym, gearOf } from './lib/gym'
@@ -323,6 +324,9 @@ function Shell() {
           <Route path="/us" element={<Us />} />
           <Route path="/photos" element={<Photos />} />
           <Route path="/timer" element={<Intervals />} />
+          <Route path="/cardio" element={<Cardio />} />
+          <Route path="/cardio/track" element={<CardioTrack />} />
+          <Route path="/cardio/:id" element={<CardioDetail />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/program" element={<ProgramEditor />} />
           <Route path="/settings/gym/:id" element={<GymEditor />} />

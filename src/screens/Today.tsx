@@ -243,6 +243,9 @@ export function Today() {
           >
             Freestyle workout
           </Button>
+          <Link to="/cardio" className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
+            Cardio: run, walk or hike
+          </Link>
           <Link to="/timer" className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
             Interval timer
           </Link>
@@ -330,6 +333,15 @@ export function Today() {
           </button>
         ))}
       </div>
+      <Link to="/cardio" className="flex min-h-[56px] items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-2.5">
+        <span className="flex flex-col gap-0.5">
+          <span className="text-[15px] font-semibold">Cardio</span>
+          <span className="text-xs text-muted">Track a run or walk on the map, or log one</span>
+        </span>
+        <span className="text-muted">
+          <Icon d={icons.next} size={18} />
+        </span>
+      </Link>
       <Link to="/log" className="-mt-1.5 flex h-11 items-center justify-center text-[13px] font-semibold text-muted">
         Full daily log: energy, soreness, cardio, measurements
       </Link>

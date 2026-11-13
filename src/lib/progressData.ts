@@ -128,9 +128,11 @@ const strip = <T extends { updated_at: string; synced_at?: string }>(row: T) => 
   return rest
 }
 
-export async function saveCardio(userId: string, entry: { date: string; kind: string; minutes: number | null; distance: number | null }) {
-  await save<CardioEntry>(db, 'cardio_entries', { id: crypto.randomUUID(), user_id: userId, log_date: entry.date, kind: entry.kind, minutes: entry.minutes, distance: entry.distance })
+export async function saveCardio(userId: string, entry: { date: string; kind: string; minutes: number | null; distance: number | null; route?: [number, number][] | null }): Promise<string> {
+  const id = crypto.randomUUID()
+  await save<CardioEntry>(db, 'cardio_entries', { id, user_id: userId, log_date: entry.date, kind: entry.kind, minutes: entry.minutes, distance: entry.distance, route: entry.route ?? null })
   requestSync()
+  return id
 }
 export async function deleteCardio(entry: CardioEntry) {
   await save<CardioEntry>(db, 'cardio_entries', { ...strip(entry), deleted: true })

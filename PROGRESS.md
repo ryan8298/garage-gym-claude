@@ -561,7 +561,7 @@ Not built yet from the mockups: swap suggestions opening in place inside the lif
 - Training together, the turn no longer passes when someone finishes their last set of a lift. Their "reps left in the tank" card stays, in their own colour, with a "Now <partner>" button that passes the turn. After the second person's card, "Next: <lift>" moves on.
 - The body figure and bars now count what was actually worked: one set gives a full set to the lift's main muscle and half a set to each muscle that helps (squats now show on glutes and hamstrings as well as quads). The same counting feeds the gap suggestions and the plan's top-ups, so the numbers agree everywhere. Half sets show as, for example, 4.5.
 
-### Part 3: swaps in place and the first run (built, waiting on the iPhone checklist)
+### Part 3: swaps in place and the first run (swaps confirmed 2026-11-14; first run not yet seen on a phone)
 
 - In the lift sheet, swiping a lift right now opens its swap choices under that row: up to three alternatives for the same movement (ones that fit the place first), "Search all", a "use it every time" switch and "Keep it". No second sheet.
 - First run is four steps with a progress bar and Back: about you (name, weight); what you train for (goal, days, session length, with the recommended program shown); where you train (home with equipment chips, or a gym; pull-ups; ankle strap); who you train with (get a code to send, enter a code, or on your own). It saves the program, the home gym's equipment and the active place. A person who joined by invitation sees who they are connected to.
@@ -574,6 +574,30 @@ Still to do in release D: restyle Us, the daily log, Library, the exercise page,
 1. Accept "Update available". In a workout, open the lift sheet and swipe a lift right: its swap choices open under it. Pick one: the lift changes and the panel closes. "Keep it" closes it without changing anything.
 2. "Search all" in that panel opens the full library search for that lift.
 3. First run only shows for someone with no workouts. To see it, invite a test account with a second email (as before): after signing in it walks through four steps, the last one saying who it is connected to. Delete the test account afterwards.
+
+## Cardio page with map tracking (built, waiting on the iPhone checklist)
+
+Ryan could not find where to log a run after the Log tab was removed, and asked for a cardio page with GPS tracking on a map.
+
+- Cardio page (`/cardio`), opened from Today (a Cardio row, and "Something else") and from Plan: this week's minutes against 150, "Track a run or walk", "Log one by hand", the interval timer, and recent entries.
+- Live tracking (`/cardio/track`): Run, Walk, Hike or Bike; distance, time and pace; the route drawn on an OpenStreetMap street map that follows you; Pause, Resume, Finish, Discard. A reload mid-run keeps the route, paused. Readings the phone is unsure of, tiny moves and impossible jumps are ignored (`src/lib/track.ts`, 4 unit tests).
+- Each entry has a page with its map, miles, minutes and pace. `cardio_entries.route` (a list of points) was added to the database; partners can see each other's routes, as with all cardio.
+- New browser test `tests/e2e/cardio.e2e.cjs` walks a simulated route and checks the saved distance and route.
+
+Limits:
+- Tracking only works while the app is open with the screen on. A home-screen web app cannot follow location with the phone locked or another app in front; only an App Store app can. The gap is joined with a straight line.
+- Map pictures need a connection; without one the route shows on a plain ground. OpenStreetMap's free map service is fine for two people but not for a public launch.
+- Time is saved in whole minutes, so pace on a short entry is approximate.
+- Not tested on a real phone: the iPhone location prompt, accuracy, and battery use.
+
+### iPhone checklist for cardio
+
+1. Accept "Update available". Today has a Cardio row. Open it.
+2. Tap "Track a run or walk", choose Walk, Start. Allow location when iPhone asks.
+3. Walk outside for a couple of minutes with the screen on: the map follows you and distance, time and pace update.
+4. Pause and Resume work. Finish saves it and shows the route on the map.
+5. The entry appears under Recent on the Cardio page and counts toward this week's minutes.
+6. "Log one by hand" still opens the daily log for cardio without a map.
 
 ## Next
 

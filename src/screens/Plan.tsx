@@ -93,6 +93,7 @@ export function Plan() {
           [
             ['/library', 'Exercise library', `${doable} you can do at ${gym.name}`],
             ['/history', 'Workout history', 'Past workouts, and save any as a routine'],
+            ['/cardio', 'Cardio', 'Track a run or walk on the map'],
             ['/timer', 'Interval timer', 'For conditioning days'],
           ] as const
         ).map(([to, title, detail], i) => (

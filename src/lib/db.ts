@@ -148,6 +148,8 @@ export interface CardioEntry extends SyncFields {
   kind: string
   minutes: number | null
   distance: number | null
+  /** Where a tracked run or walk went: [latitude, longitude] points in order. */
+  route?: [number, number][] | null
 }
 
 export interface BodyMeasurement extends SyncFields {
