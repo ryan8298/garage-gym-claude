@@ -292,7 +292,7 @@ Notes:
 6. Workout history, open a workout, Save as a routine. Then Today, Other: the routine is listed and starts a workout.
 7. Today, Other, Interval timer: pick 20 / 10 x 8, Start. It counts down 5 seconds, then alternates Work and Rest with a beep, and offers to log the minutes at the end.
 
-## Release A, part 1b: the exercise queue (built, waiting on the iPhone checklist)
+## Release A, part 1b: the exercise queue (done; iPhone checklist passed 2026-11-13)
 
 From Ryan's feedback: reordering through the three-dot menu was not friendly, and the list of today's exercises should be edited directly, the way a Spotify queue is.
 
@@ -312,6 +312,17 @@ Decision: the suggestions are worked out on the phone from the last 7 days, not 
 4. Swipe a row right past "Release to swap": the swap choices for that lift open.
 5. Scrolling the page up and down with a finger on the list still works, and a normal tap on a row still jumps to that lift.
 6. Tap "Suggest for gaps": it lists exercises with a reason such as "Calves: 2 of 10 sets this week". Tap one: it joins the end of the queue.
+
+## Release A, part 1c: swap for anything (built, waiting on the iPhone check)
+
+From Ryan's feedback: the swap list was too short. Any lift should be swappable for any other, with recommendations leading and nothing hidden.
+
+Done:
+- The swap list is now "Recommended swaps", followed by "Choose any exercise", which searches the whole library with the same muscle group listed first.
+- A swap chosen from the whole library is for today only. Changing the program itself to any exercise is backlog item 4.11.
+- BACKLOG.md now carries two standing rules: recommend, never restrict; and any lift can be swapped for any other. Items 3.10 (where am I training today) and 4.10 (swaps drawn from the whole library) were added.
+
+iPhone check: in a workout, three dots, Choose any exercise. Search, pick one: the lift is replaced and its sets get fresh suggestions.
 
 ## Next
 

@@ -14,6 +14,11 @@ Still a personal app today. Nothing here commits to a launch date.
 - Size: **S** about a day, **M** a few days, **L** one to two weeks, **XL** more than two weeks. Sizes are rough estimates for planning order, not promises.
 - "Today" describes how the app works now, so each item's starting point is clear.
 
+## Rules that apply across the backlog
+
+- **Recommend, never restrict.** Equipment, location and program shape what the app suggests and the order things are listed in. They never remove an exercise from what a person can choose. Someone who trains at home and at a public gym sees the full library in both places.
+- **Any lift can be swapped for any other.** Recommendations lead; the whole library is always one tap further.
+
 ## Suggested order
 
 1. Release A, better for the two of you: epics 1 and 2 (logging and training together).
@@ -74,6 +79,7 @@ Today: the equipment is fixed in the code. One rack, one barbell at 45 lb, a Smi
 | 3.6 | The plan, the library and the coach all filter by the active profile | P0 | L |
 | 3.7 | Edit equipment later; the program adapts and says what changed | P1 | M |
 | 3.8 | A shared profile for partners who train in the same place | P1 | S |
+| 3.10 | Where am I training? Asked before a workout starts (home gym, public gym, or a saved profile). The answer ranks and recommends; it never hides an exercise from being chosen | P0 | M |
 | 3.9 | Move plate math and loading rules from fixed code to profile data | P0 | L |
 
 ## Epic 4: exercise library
@@ -90,6 +96,8 @@ Today: 86 exercises, 69 with pictures, chosen for one garage. No custom exercise
 | 4.6 | Search that handles other names ("RDL", "skull crusher") and filters by muscle and equipment | P1 | M |
 | 4.7 | Short demo clips or consistent illustrations in place of mixed photos | P2 | XL |
 | 4.8 | Move the library from a file in the app to the database, so it can grow without an app update | P1 | M |
+| 4.10 | Swapping draws on the whole library: recommended alternatives first (same movement, then same muscle group, then what fits the equipment where you are), with everything else still searchable. Today the recommended list is short because the library is 86 exercises | P0 | M |
+| 4.11 | Swap any lift for any exercise in the program itself, not only for today. Today a program-level swap is limited to each main lift's listed alternatives | P1 | M |
 | 4.9 | Rights check on all exercise media and text for commercial use | P0 | S |
 
 ## Epic 5: a program for anyone

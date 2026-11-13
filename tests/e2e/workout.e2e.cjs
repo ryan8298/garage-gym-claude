@@ -79,6 +79,15 @@ async function main() {
     assert.equal(after[2], before[3], 'the dragged lift moved up one place')
     assert.equal(after[3], before[2])
 
+    // Any exercise in the library can stand in for a lift, with the same muscle group listed first.
+    await page.locator('[data-row]').nth(5).getByRole('button').first().click()
+    await page.getByRole('button', { name: 'Exercise options' }).click()
+    await page.getByRole('button', { name: 'Choose any exercise' }).click()
+    await page.getByPlaceholder('Search all exercises').fill('hammer')
+    await page.getByRole('dialog').getByRole('button', { name: /Hammer curl/i }).first().click()
+    await page.getByRole('heading', { name: /Hammer curl/i }).waitFor()
+    await page.locator('[data-row]').first().getByRole('button').first().click()
+
     // Suggestions for muscle groups that are short this week can be added in one tap.
     await page.getByRole('button', { name: 'Suggest for gaps' }).click()
     await page.getByText('Fill the gaps').waitFor()

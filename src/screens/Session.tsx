@@ -114,6 +114,7 @@ export function Session() {
   const [pinned, setPinned] = useState('')
   const [undo, setUndo] = useState<{ text: string; run(): void } | null>(null)
   const [suggesting, setSuggesting] = useState(false)
+  const [swapFor, setSwapFor] = useState<string | null>(null)
   const weekSets = useSetsByGroup(user!.id)
 
   const current = useMemo(() => {
@@ -156,6 +157,7 @@ export function Session() {
         partner: program.partner,
       })
     : []
+  const swapTarget = swapFor ? (lifts.find((v) => v.lift.id === swapFor) ?? null) : null
   const remaining = lifts.reduce((n, v) => n + (v.lift.skipped ? 0 : v.sets.filter((s) => !s.done).length), 0)
 
   async function toggleDone(view: LiftView, s: SetRow) {
@@ -412,7 +414,7 @@ export function Session() {
               <span className="text-[13px] text-muted">{current.exercise ? `${groupLabels[current.exercise.group]} · ${stationLabels[current.exercise.station]}` : ''}</span>
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Swap for the same movement</Label>
+              <Label>Recommended swaps</Label>
               {alternativesFor(current.lift.exercise_key).map((k) => {
                 const e = exercise(k)
                 return (
@@ -443,6 +445,16 @@ export function Session() {
                 </span>
                 <input type="checkbox" checked={alsoProgram} onChange={(e) => setAlsoProgram(e.target.checked)} role="switch" className="switch" />
               </label>
+              <Button
+                onClick={() => {
+                  setSwapFor(current.lift.id)
+                  setQuery('')
+                  setMenu(false)
+                  setAdding(true)
+                }}
+              >
+                Choose any exercise
+              </Button>
             </div>
             <div className="overflow-hidden rounded-control border border-line bg-raised">
               {mode !== 'none' && mode !== 'added' && (
@@ -507,29 +519,45 @@ export function Session() {
         )}
       </Sheet>
 
-      {/* ---- add an exercise ---- */}
-      <Sheet open={adding} onClose={() => setAdding(false)}>
+      {/* ---- add an exercise, or swap the current one for anything in the library ---- */}
+      <Sheet
+        open={adding}
+        onClose={() => {
+          setAdding(false)
+          setSwapFor(null)
+        }}
+      >
         <div className="flex h-[70vh] flex-col gap-3 pb-3">
+          {swapTarget && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[15px] font-semibold">Swap {swapTarget.lift.name} for</span>
+              <span className="text-xs text-muted">For today only. {swapTarget.exercise ? `${groupLabels[swapTarget.exercise.group]} exercises are listed first.` : ''}</span>
+            </div>
+          )}
           <label className="flex flex-col">
             <span className="sr-only">Search exercises</span>
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search exercises" className="h-12 rounded-control border border-line bg-raised px-4 text-ink outline-none focus:border-accent" />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search all exercises" className="h-12 rounded-control border border-line bg-raised px-4 text-ink outline-none focus:border-accent" />
           </label>
           <div className="scroll-y min-h-0 flex-1 overflow-hidden rounded-control border border-line">
             {exercises
               .filter((e) => e.name.toLowerCase().includes(query.trim().toLowerCase()) && !lifts.some((v) => v.lift.exercise_key === e.key))
-              .sort((a, b) => a.name.localeCompare(b.name))
+              .sort((a, b) => Number(b.group === swapTarget?.exercise?.group) - Number(a.group === swapTarget?.exercise?.group) || a.name.localeCompare(b.name))
               .map((e) => (
                 <button
                   key={e.key}
                   onClick={() => {
-                    void addExercise(session, e.key)
+                    if (swapTarget) void swapExercise(swapTarget, e.key)
+                    else void addExercise(session, e.key)
                     setAdding(false)
+                    setSwapFor(null)
                     setQuery('')
                   }}
                   className="flex min-h-[52px] w-full items-center justify-between gap-3 border-b border-line bg-raised px-3.5 py-2 text-left last:border-b-0"
                 >
                   <span className="text-[15px] font-medium">{e.name}</span>
-                  <span className="shrink-0 text-xs text-muted">{groupLabels[e.group]}</span>
+                  <span className="shrink-0 text-xs text-muted">
+                    {groupLabels[e.group]} · {stationLabels[e.station]}
+                  </span>
                 </button>
               ))}
           </div>
