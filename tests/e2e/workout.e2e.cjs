@@ -51,6 +51,45 @@ async function main() {
     await page.getByRole('button', { name: 'Close' }).click({ position: { x: 20, y: 20 } })
     await page.getByText('Hooks at hole 14').waitFor()
 
+    // The exercise queue: swipe a row left to remove it, undo, then drag one row above another.
+    const names = () => page.locator('[data-row]').evaluateAll((rows) => rows.map((r) => r.querySelector('span').textContent))
+    const before = await names()
+    const row = page.locator('[data-row]').nth(3)
+    await row.scrollIntoViewIfNeeded()
+    let box = await row.boundingBox()
+    await page.mouse.move(box.x + 200, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(box.x + 60, box.y + box.height / 2, { steps: 6 })
+    await page.getByText('Release to remove').waitFor()
+    await page.mouse.up()
+    await page.getByText(`${before[3]} removed`).waitFor()
+    await page.waitForFunction((n) => document.querySelectorAll('[data-row]').length === n, before.length - 1)
+    await page.getByRole('button', { name: 'Undo' }).click()
+    await page.waitForFunction((n) => document.querySelectorAll('[data-row]').length === n, before.length)
+    assert.deepEqual(await names(), before, 'undo restores the lift in its place')
+
+    const handle = page.getByRole('button', { name: `Drag to reorder ${before[3]}` })
+    box = await handle.boundingBox()
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 - box.height * 1.1, { steps: 8 })
+    await page.mouse.up()
+    await page.waitForTimeout(400)
+    const after = await names()
+    assert.equal(after[2], before[3], 'the dragged lift moved up one place')
+    assert.equal(after[3], before[2])
+
+    // Suggestions for muscle groups that are short this week can be added in one tap.
+    await page.getByRole('button', { name: 'Suggest for gaps' }).click()
+    await page.getByText('Fill the gaps').waitFor()
+    if (shot) await page.screenshot({ path: `${shot}/e2e-gaps.png` })
+    const offered = await page.getByRole('dialog').getByText('+ Add').count()
+    assert.ok(offered > 0, 'a first-week workout leaves gaps to suggest for')
+    await page.getByRole('dialog').getByText('+ Add').first().click()
+    await page.getByRole('button', { name: 'Close' }).click({ position: { x: 20, y: 20 } })
+    await page.waitForFunction((n) => document.querySelectorAll('[data-row]').length === n, before.length + 1)
+    if (shot) { await page.locator('[data-row]').first().scrollIntoViewIfNeeded(); await page.screenshot({ path: `${shot}/e2e-queue.png` }) }
+
     // Lose the connection, then close and reopen the app mid-workout.
     await page.evaluate(() => navigator.serviceWorker.ready) // the app shell has finished caching
     await context.setOffline(true)

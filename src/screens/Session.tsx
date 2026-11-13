@@ -6,7 +6,8 @@ import type { SetRow } from '../lib/db'
 import { exercise, exercises, groupLabels, stationLabels } from '../lib/exercises'
 import { breakdown, loadModeFor } from '../lib/plates'
 import { CATCH_UP, PROGRAM, TOP_UP } from '../lib/program'
-import { restOf, saveProgram, useProgram } from '../lib/programState'
+import { restOf, saveProgram, useProgram, useSetsByGroup } from '../lib/programState'
+import { WEEKLY_SET_TARGET, gapSuggestions } from '../lib/gaps'
 import { adjustRest, beep, clearRest, clock, startRest, unlockSound, useRest, useWakeLock } from '../lib/rest'
 import {
   addExercise,
@@ -17,8 +18,9 @@ import {
   finishSession,
   history,
   isRecord,
-  moveLift,
   removeLift,
+  reorderLifts,
+  restoreLift,
   swapExercise,
   updateLift,
   updateSet,
@@ -28,6 +30,7 @@ import {
 } from '../lib/session'
 import { Button, Icon, Label, Sheet, cx, icons } from '../components/ui'
 import { SetPad } from '../components/SetPad'
+import { LiftQueue } from '../components/LiftQueue'
 
 const isDone = (v: LiftView) => v.lift.skipped || (v.sets.length > 0 && v.sets.every((s) => s.done))
 
@@ -109,7 +112,9 @@ export function Session() {
   const [record, setRecord] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [pinned, setPinned] = useState('')
-  const [undo, setUndo] = useState<SetRow | null>(null)
+  const [undo, setUndo] = useState<{ text: string; run(): void } | null>(null)
+  const [suggesting, setSuggesting] = useState(false)
+  const weekSets = useSetsByGroup(user!.id)
 
   const current = useMemo(() => {
     if (!lifts?.length) return null
@@ -137,6 +142,20 @@ export function Session() {
   const padSet = pad && current ? (current.sets.find((s) => s.id === pad.setId) ?? null) : null
   const allDone = current ? isDone(current) && !current.lift.skipped : false
   const upNext = lifts.find((v, i) => i > index && !isDone(v)) ?? lifts.find((v) => !isDone(v) && v !== current)
+  // What fits today's kind of workout comes first when suggesting additions.
+  const day = session.template_key && session.template_key in PROGRAM ? PROGRAM[session.template_key as keyof typeof PROGRAM] : null
+  const preferred = day ? [...day.slots, ...day.finisher].flatMap((x) => x.pool) : []
+  const suggestions = suggesting
+    ? gapSuggestions({
+        weekSets,
+        session: lifts.filter((v) => v.exercise && !v.lift.skipped).map((v) => ({ key: v.lift.exercise_key, group: v.exercise!.group, remaining: v.sets.filter((x) => !x.done && x.set_type !== 'warmup').length })),
+        catalog: exercises,
+        preferred,
+        bans: program.bans,
+        ankleStrap: program.ankleStrap,
+        partner: program.partner,
+      })
+    : []
   const remaining = lifts.reduce((n, v) => n + (v.lift.skipped ? 0 : v.sets.filter((s) => !s.done).length), 0)
 
   async function toggleDone(view: LiftView, s: SetRow) {
@@ -329,20 +348,32 @@ export function Session() {
             </>
           )}
 
-          {lifts.length > 1 && (
+          {lifts.length > 0 && (
             <div className="flex flex-col gap-2">
-              <Label>All exercises</Label>
-              <div className="overflow-hidden rounded-card border border-line bg-surface">
-                {lifts.map((v, i) => (
-                  <button key={v.lift.id} onClick={() => setPicked(v.lift.id)} className={cx('flex min-h-[48px] w-full items-center justify-between gap-3 px-3.5 py-2 text-left', i > 0 && 'border-t border-line', v === current && 'bg-raised')}>
-                    <span className={cx('text-[15px]', v.target.kind === 'main' ? 'font-semibold' : 'font-medium', isDone(v) && 'text-muted')}>{v.lift.name}</span>
-                    <span className="num shrink-0 text-[13px] text-muted">{v.lift.skipped ? 'skipped' : `${v.sets.filter((s) => s.done).length} / ${v.sets.length}`}</span>
-                  </button>
-                ))}
-              </div>
+              <Label>Today's exercises</Label>
+              <LiftQueue
+                lifts={lifts}
+                currentId={current?.lift.id}
+                isDone={isDone}
+                onPick={setPicked}
+                onReorder={(ids) => void reorderLifts(lifts, ids)}
+                onRemove={(v) => {
+                  void removeLift(v)
+                  if (picked === v.lift.id) setPicked(null)
+                  setUndo({ text: `${v.lift.name} removed`, run: () => void restoreLift(v) })
+                }}
+                onSwap={(v) => {
+                  setPicked(v.lift.id)
+                  setMenu(true)
+                }}
+              />
+              <span className="text-xs text-muted">Drag the handle to reorder. Swipe left to remove, right to swap.</span>
             </div>
           )}
-          <Button onClick={() => setAdding(true)}>+ Add an exercise</Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={() => setAdding(true)}>+ Add exercise</Button>
+            <Button onClick={() => setSuggesting(true)}>Suggest for gaps</Button>
+          </div>
         </div>
       </div>
 
@@ -355,11 +386,11 @@ export function Session() {
 
       {undo && (
         <div role="status" className="mx-3 mt-2 flex h-12 shrink-0 items-center justify-between rounded-control border border-line-strong bg-raised pr-1.5 pl-4">
-          <span className="text-sm">Set deleted</span>
+          <span className="truncate text-sm">{undo.text}</span>
           <button
             className="h-10 rounded-xl px-3 text-sm font-semibold text-accent"
             onClick={() => {
-              void updateSet(undo, { deleted: false })
+              undo.run()
               setUndo(null)
             }}
           >
@@ -370,7 +401,7 @@ export function Session() {
 
       <RestBar />
 
-      {current && <SetPad view={current} set={padSet} startOn={pad?.field ?? 'weight'} onClose={() => setPad(null)} onDeleted={setUndo} />}
+      {current && <SetPad view={current} set={padSet} startOn={pad?.field ?? 'weight'} onClose={() => setPad(null)} onDeleted={(deleted) => setUndo({ text: 'Set deleted', run: () => void updateSet(deleted, { deleted: false }) })} />}
 
       {/* ---- exercise options ---- */}
       <Sheet open={menu && !!current} onClose={() => setMenu(false)}>
@@ -422,16 +453,6 @@ export function Session() {
                   <span>Add warm-up sets</span>
                   <span className="text-[13px] text-muted">ramps up to your weight</span>
                 </button>
-              )}
-              {lifts.length > 1 && (
-                <div className="grid grid-cols-2 border-b border-line">
-                  <button disabled={index === 0} className="h-[52px] border-r border-line text-[15px] disabled:text-faint" onClick={() => void moveLift(lifts, current, -1)}>
-                    Move earlier
-                  </button>
-                  <button disabled={index === lifts.length - 1} className="h-[52px] text-[15px] disabled:text-faint" onClick={() => void moveLift(lifts, current, 1)}>
-                    Move later
-                  </button>
-                </div>
               )}
               <button
                 className="flex h-[52px] w-full items-center border-b border-line px-3.5 text-[15px] text-danger"
@@ -512,6 +533,36 @@ export function Session() {
                 </button>
               ))}
           </div>
+        </div>
+      </Sheet>
+
+      {/* ---- suggestions for muscle groups that are short this week ---- */}
+      <Sheet open={suggesting} onClose={() => setSuggesting(false)}>
+        <div className="scroll-y flex max-h-[76vh] flex-col gap-2.5 pb-3 [&>*]:shrink-0">
+          <div className="flex flex-col gap-0.5">
+            <span className="font-display text-[22px] font-bold">Fill the gaps</span>
+            <span className="text-[13px] text-muted">Muscle groups that will still be under {WEEKLY_SET_TARGET} sets this week after this workout.</span>
+          </div>
+          {suggestions.length === 0 && <span className="rounded-control border border-line bg-raised p-3.5 text-sm text-muted">Nothing to add. This workout puts every muscle group on target for the week.</span>}
+          {suggestions.map((g) => {
+            const e = exercise(g.key)
+            return (
+              <button
+                key={g.key}
+                onClick={() => void addExercise(session, g.key)}
+                className="flex min-h-[60px] items-center justify-between gap-3 rounded-control border border-line bg-raised px-3.5 py-2 text-left"
+              >
+                <span className="flex min-w-0 flex-col gap-0.5">
+                  <span className="truncate text-[15px] font-semibold">{e.name}</span>
+                  <span className="text-xs text-muted">
+                    {groupLabels[g.group]}: {g.sets} of {WEEKLY_SET_TARGET} sets this week · {stationLabels[e.station]}
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm font-semibold text-accent">+ Add</span>
+              </button>
+            )
+          })}
+          <span className="text-xs text-muted">Worked out on this phone from your last 7 days, so it works without signal.</span>
         </div>
       </Sheet>
 

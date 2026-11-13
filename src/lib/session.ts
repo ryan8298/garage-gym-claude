@@ -216,6 +216,20 @@ export async function moveLift(lifts: LiftView[], view: LiftView, dir: -1 | 1): 
   await updateLift(other.lift, { position: view.lift.position })
 }
 
+/** Save a new order for the lifts of a workout. */
+export async function reorderLifts(lifts: LiftView[], ids: string[]): Promise<void> {
+  for (const [position, id] of ids.entries()) {
+    const view = lifts.find((v) => v.lift.id === id)
+    if (view && view.lift.position !== position) await updateLift(view.lift, { position })
+  }
+}
+
+/** Bring back a lift that was just removed, with the sets it had. */
+export async function restoreLift(view: LiftView): Promise<void> {
+  await updateLift(view.lift, { deleted: false })
+  for (const s of view.sets) await updateSet(s, { deleted: false })
+}
+
 /** Take a lift out of the workout, with its sets. */
 export async function removeLift(view: LiftView): Promise<void> {
   for (const s of view.sets) await updateSet(s, { deleted: true })

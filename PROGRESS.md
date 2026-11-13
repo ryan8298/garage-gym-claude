@@ -264,7 +264,7 @@ Not built, by decision:
 7. Settings, Notifications: two new switches, "Sunday summary of our week" and "A nudge after 4 days without a workout". The first summary arrives this Sunday.
 8. Optional, for the splash screen: remove the app from the Home Screen, add it again from Safari, sign in. Launch now shows the logo on a dark background. Your data comes back from the server after sign-in; make sure the sync indicator showed everything synced before removing.
 
-## Release A, part 1: logging (built, waiting on the iPhone checklist)
+## Release A, part 1: logging (done; iPhone checklist passed 2026-11-13)
 
 Work now follows `BACKLOG.md`. This part is epic 1.
 
@@ -291,6 +291,27 @@ Notes:
 5. Tap a set's weight, then Delete set. "Set deleted, Undo" appears; Undo brings it back.
 6. Workout history, open a workout, Save as a routine. Then Today, Other: the routine is listed and starts a workout.
 7. Today, Other, Interval timer: pick 20 / 10 x 8, Start. It counts down 5 seconds, then alternates Work and Rest with a beep, and offers to log the minutes at the end.
+
+## Release A, part 1b: the exercise queue (built, waiting on the iPhone checklist)
+
+From Ryan's feedback: reordering through the three-dot menu was not friendly, and the list of today's exercises should be edited directly, the way a Spotify queue is.
+
+Done:
+- "Today's exercises" on the workout screen is now a queue. Drag the handle on the right of a row to reorder. Swipe a row left to remove it (with Undo), or right to open its swap choices. Tap still jumps to the lift.
+- Move earlier and Move later were removed from the three-dot menu. Remove and Skip remain there too.
+- "Suggest for gaps" next to "+ Add exercise": lists up to four exercises for muscle groups that will still be under 10 sets this week after this workout, each added with one tap. Groups that fit today's kind of workout come first.
+- Tests: 75 unit tests (4 for the suggestions); the browser test swipes, undoes, drags and adds a suggestion.
+
+Decision: the suggestions are worked out on the phone from the last 7 days, not by the AI coach. That makes them instant, free and usable without signal in the garage. A coach-written version could be added behind the same button later.
+
+## iPhone checklist for release A, part 1b
+
+1. Accept "Update available" and start a workout. Scroll to "Today's exercises".
+2. Press the handle (two lines) on a row and drag up or down: the row follows your finger and the others make room. It stays where you drop it.
+3. Swipe a row left past "Release to remove": it goes, and "removed, Undo" appears. Undo puts it back in the same place.
+4. Swipe a row right past "Release to swap": the swap choices for that lift open.
+5. Scrolling the page up and down with a finger on the list still works, and a normal tap on a row still jumps to that lift.
+6. Tap "Suggest for gaps": it lists exercises with a reason such as "Calves: 2 of 10 sets this week". Tap one: it joins the end of the queue.
 
 ## Next
 
