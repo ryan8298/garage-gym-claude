@@ -95,6 +95,10 @@ async function main() {
     await page.goto(`${URL}/settings/program`)
     await page.getByRole('heading', { name: 'My program' }).waitFor()
     for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Move Calves up' }).click()
+    // Leave through the app's own navigation, as a person would, so the last save is not cut off by a page load.
+    await page.getByRole('button', { name: 'Move Calves up' }).isDisabled()
+    await page.waitForFunction(() => document.querySelector('button[aria-label="Move Calves up"]')?.hasAttribute('disabled'))
+    await page.waitForTimeout(400)
     if (shot) await page.screenshot({ path: `${shot}/e2e-editor.png` })
     await page.goto(`${URL}/workout/A`)
     await page.getByText('Accessories', { exact: true }).waitFor()

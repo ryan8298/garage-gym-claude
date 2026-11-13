@@ -19,7 +19,9 @@ export function ProgramEditor() {
   const [editing, setEditing] = useState<Editing>(null)
   const def = PROGRAM[day]
   const { blockIndex, week } = blockPosition(program.startedOn, localDate(), weekStart, daysBetween)
-  const order = program.slotOrder?.[day] ?? def.slots.map((_, i) => i)
+  // Kept on screen first and saved after, so quick taps in a row each build on the last one.
+  const [pending, setPending] = useState<Partial<Record<DayKey, number[]>>>({})
+  const order = pending[day] ?? program.slotOrder?.[day] ?? def.slots.map((_, i) => i)
   const slots = orderSlots(def.slots, order)
 
   const mainKey = (m: MainLift) => program.mains[m.id] ?? (m.id === 'B2' ? program.pullMain : m.key)
@@ -28,7 +30,9 @@ export function ProgramEditor() {
   const move = (i: number, by: -1 | 1) => {
     const next = [...order]
     ;[next[i], next[i + by]] = [next[i + by], next[i]]
-    void saveProgram(user!.id, { slotOrder: { ...program.slotOrder, [day]: next } })
+    const all = { ...program.slotOrder, ...pending, [day]: next }
+    setPending((p) => ({ ...p, [day]: next }))
+    void saveProgram(user!.id, { slotOrder: all })
   }
   const lock = (slot: Slot, key: string | null) => {
     const others = program.pins.filter((p) => !slot.pool.includes(p))
@@ -41,7 +45,7 @@ export function ProgramEditor() {
     else void saveProgram(user!.id, { mains: key === m.key ? rest : { ...rest, [m.id]: key } })
     setEditing(null)
   }
-  const changed = !!program.slotOrder?.[day] || def.mains.some((m) => program.mains[m.id]) || [...def.slots, ...def.finisher].some(locked)
+  const changed = !!pending[day] || !!program.slotOrder?.[day] || def.mains.some((m) => program.mains[m.id]) || [...def.slots, ...def.finisher].some(locked)
 
   const row = 'flex min-h-[56px] w-full items-center gap-3 px-3.5 py-2 text-left'
   return (
@@ -127,6 +131,7 @@ export function ProgramEditor() {
             const pools = [...def.slots, ...def.finisher].flatMap((s) => s.pool)
             const mains = Object.fromEntries(Object.entries(program.mains).filter(([id]) => !def.mains.some((m) => m.id === id)))
             const { [day]: _gone, ...slotOrder } = program.slotOrder ?? {}
+            setPending((p) => ({ ...p, [day]: undefined }))
             void saveProgram(user!.id, { mains, slotOrder, pins: program.pins.filter((p) => !pools.includes(p)) })
           }}
         >
