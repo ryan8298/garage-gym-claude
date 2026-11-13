@@ -26,6 +26,7 @@ import { Coach } from './screens/Coach'
 import { Intervals } from './screens/Intervals'
 import { GymEditor } from './screens/GymEditor'
 import { ProgramBuilder } from './screens/ProgramBuilder'
+import { Plan } from './screens/Plan'
 import { useProgram } from './lib/programState'
 import { setGear } from './lib/plates'
 import { activeGym, gearOf } from './lib/gym'
@@ -39,8 +40,7 @@ import { clock, useRest } from './lib/rest'
 
 const tabs = [
   { to: '/', label: 'Today', d: icons.today },
-  { to: '/library', label: 'Library', d: icons.library },
-  { to: '/log', label: 'Log', d: icons.log },
+  { to: '/plan', label: 'Plan', d: icons.log },
   { to: '/progress', label: 'Progress', d: icons.progress },
   { to: '/us', label: 'Us', d: icons.us },
 ]
@@ -312,6 +312,7 @@ function Shell() {
       <main key={location.pathname} data-swipe className={cx(motion, 'pt-safe')} style={{ paddingBottom: barHeight }}>
         <Routes location={location}>
           <Route path="/" element={<Today />} />
+          <Route path="/plan" element={<Plan />} />
           <Route path="/library" element={<Library />} />
           <Route path="/library/:key" element={<ExerciseDetail />} />
           <Route path="/workout/:day" element={<WorkoutPreview />} />

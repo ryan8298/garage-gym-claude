@@ -3,13 +3,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAuth } from '../lib/auth'
 import { db } from '../lib/db'
-import { useDailyLog, useProfile } from '../lib/data'
+import { saveDailyLog, useDailyLog, useProfile } from '../lib/data'
 import { localDate, longDate, partOfDay, weekDays } from '../lib/dates'
-import { Button, Card, Icon, Label, Sheet, cx, icons } from '../components/ui'
-import { targetText } from '../components/LiftList'
+import { Button, Card, Icon, Label, NumberPad, Sheet, cx, icons } from '../components/ui'
 import { phaseLabel } from '../lib/engine'
 import { defOf, saveProgram, usePlan } from '../lib/programState'
-import { startPair, startRoutine, startSession, useActiveSession } from '../lib/session'
+import { history, startPair, startRoutine, startSession, useActiveSession } from '../lib/session'
+import { exercise } from '../lib/exercises'
+import { loadModeFor } from '../lib/plates'
+import { suggest } from '../lib/progression'
 import { usePartner } from '../lib/partner'
 import { activeGym, gymsOf } from '../lib/gym'
 import { unlockSound } from '../lib/rest'
@@ -51,6 +53,40 @@ export function Today() {
   const mains = plan.lifts.filter((l) => l.kind === 'main')
   const rest = plan.lifts.filter((l) => l.kind !== 'main')
   const name = profile?.display_name || user!.email.split('@')[0]
+  // Today's weight for each main lift, and why, from the last time it was done.
+  const mainKeys = mains.map((l) => `${l.key}:${l.low}:${l.high}`).join()
+  const targets = useLiveQuery(
+    async () => {
+      const out: Record<string, { weight: number | null; why: string }> = {}
+      for (const l of mains) {
+        const e = exercise(l.key)
+        const s = suggest({ history: await history(user!.id, l.key, 2), low: l.low, high: l.high, unit: l.unit, mode: loadModeFor(e), today })
+        const why = { first: 'first time: find your weight', add_weight: 'weight goes up today', add_rep: 'same weight, one more rep', longer: 'a little longer than last time', time_off: 'lighter after time off', ease_back: 'lighter to build back up' }[s.reason] ?? ''
+        out[l.key] = { weight: s.weight, why }
+      }
+      return out
+    },
+    [user!.id, mainKeys, today],
+    {} as Record<string, { weight: number | null; why: string }>,
+  )
+  const partnerTrained = useLiveQuery(
+    async () => {
+      if (!partner) return new Set<string>()
+      const rows = await db.workout_sessions.where('[user_id+local_date]').between([partner.id, days[0]], [partner.id, days[6]], true, true).toArray()
+      return new Set(rows.filter((r) => r.finished_at && !r.deleted).map((r) => r.local_date))
+    },
+    [partner?.id, days[0]],
+    new Set<string>(),
+  )
+  const [pad, setPad] = useState<'body_weight' | 'steps' | 'sleep_hours' | null>(null)
+  const pads = {
+    body_weight: { title: 'Body weight', unit: 'lb', step: 0.2, decimals: 1 },
+    steps: { title: 'Steps', unit: 'steps', step: 500, decimals: 0 },
+    sleep_hours: { title: 'Sleep', unit: 'hours', step: 0.5, decimals: 1 },
+  }
+  const partnerName = partner?.display_name || 'Partner'
+  const chip = 'flex h-11 items-center gap-2 rounded-full border border-line-strong bg-raised px-3.5 text-[13px] font-semibold'
+  const avatar = 'flex h-[30px] w-[30px] items-center justify-center rounded-full text-[13px] font-bold text-accent-ink'
 
   return (
     <div className="flex flex-col gap-3.5 px-5 pt-3 pb-6">
@@ -74,36 +110,72 @@ export function Today() {
       </header>
 
       <Card className="flex flex-col gap-3.5 !p-[18px]">
-        <div className="flex items-center justify-between">
-          <Label tone="accent">Next up{plan.day.length === 1 ? ` · Day ${plan.day}` : ''}</Label>
-          <span className="text-xs text-muted">
-            {plan.lifts.length} lifts · about {plan.minutes} min
-          </span>
-        </div>
         <div className="flex flex-col gap-1">
+          <Label tone="accent">
+            Next up · {phaseLabel[plan.phase]} week {plan.week}
+            {plan.recovery ? ' · lighter week' : ''}
+          </Label>
           <h2 className="font-display text-[30px] leading-[1.05] font-bold tracking-[-0.6px]">{plan.title}</h2>
-          <span className="text-[13px] text-muted">
-            {phaseLabel[plan.phase]} block · week {plan.week} of 4{plan.recovery ? ' · lighter week' : ''}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {partner && (
+            <button
+              disabled={!!active || !!partnerActive}
+              aria-pressed={paired}
+              aria-label={paired ? `Training with ${partnerName}. Tap to train on your own.` : `Training on your own. Tap to train with ${partnerName}.`}
+              onClick={() => {
+                localStorage.setItem('gg.together', paired ? '0' : '1')
+                setTogether(!paired)
+              }}
+              className={cx(chip, '!pl-1.5 disabled:opacity-60', paired && '!border-accent')}
+            >
+              <span className="flex">
+                <span className={cx(avatar, 'bg-accent')}>{name[0]?.toUpperCase()}</span>
+                {paired && <span className={cx(avatar, '-ml-2 border-2 border-raised bg-coach')}>{partnerName[0]?.toUpperCase()}</span>}
+              </span>
+              {paired ? `With ${partnerName}` : 'On my own'}
+            </button>
+          )}
+          <button onClick={() => setPlacing(true)} className={chip}>
+            <Icon d={icons.today} size={16} />
+            {gym.name}
+          </button>
+          <span className="num px-1 text-[13px] text-muted">{plan.minutes} min</span>
+        </div>
+        {partnerActive && !active && <span className="-mt-1.5 text-xs text-muted">{partnerName} already has a workout open, so this one is for you alone.</span>}
+        {plan.adapted.length > 0 && <span className="-mt-1.5 text-xs text-muted">Adapted for {gym.name}: {plan.adapted.join('; ')}</span>}
+
+        <div className="flex flex-col gap-2">
+          {mains.map((l) => {
+            const t = targets[l.key]
+            return (
+              <div key={l.key} className="flex items-center justify-between gap-3 rounded-control bg-raised px-3.5 py-3">
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <span className="truncate text-base font-semibold">{l.name}</span>
+                  <span className="text-xs text-muted">
+                    {l.sets} sets of {l.low} to {l.high}
+                    {l.unit === 'sec' ? ' sec' : ''}
+                    {t?.why ? ` · ${t.why}` : ''}
+                  </span>
+                </div>
+                {t?.weight ? (
+                  <span className="num shrink-0 text-[22px] font-bold">
+                    {t.weight}
+                    <span className="font-sans text-xs font-medium text-muted"> lb</span>
+                  </span>
+                ) : null}
+              </div>
+            )
+          })}
+          <span className="px-0.5 text-[13px] text-muted">
+            Then {rest.length} more: {rest.slice(0, 4).map((l) => l.name.replace(/^(Barbell|Dumbbell|Standing|Smith|Cable) /, '').toLowerCase()).join(', ')}
+            {rest.length > 4 ? ' and more' : ''}
           </span>
         </div>
-        <div className="flex flex-col gap-2">
-          {mains.map((l) => (
-            <div key={l.key} className="flex items-baseline justify-between gap-3 text-sm">
-              <span>{l.name}</span>
-              <span className="num shrink-0 text-muted">{targetText(l)}</span>
-            </div>
-          ))}
-          <Label>Then {rest.length} more</Label>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[13px]">
-            {rest.map((l) => (
-              <span key={l.key} className={l.kind === 'finisher' ? 'text-muted' : ''}>
-                {l.name}
-              </span>
-            ))}
-          </div>
-        </div>
+
         {active ? (
-          <Link to="/session" className="flex h-14 items-center justify-center rounded-control bg-accent font-display text-lg font-bold text-accent-ink">
+          <Link to="/session" className="flex h-[58px] items-center justify-center rounded-2xl bg-accent font-display text-[19px] font-bold text-accent-ink">
             Resume workout
           </Link>
         ) : (
@@ -115,47 +187,21 @@ export function Today() {
               const begin = paired ? startPair({ id: user!.id, plan, program }, { id: partner!.id, plan: partnerPlan.plan, program: partnerPlan.program }) : startSession(user!.id, plan, program)
               void begin.then(() => navigate('/session'))
             }}
-            className="flex h-14 items-center justify-center rounded-control bg-accent font-display text-lg font-bold text-accent-ink disabled:opacity-60"
+            className="flex h-[58px] items-center justify-center rounded-2xl bg-accent font-display text-[19px] font-bold text-accent-ink disabled:opacity-60"
           >
             {starting ? 'Starting…' : paired ? 'Start workout together' : 'Start workout'}
           </button>
         )}
-        {partner && !active && (
-          <label className="flex min-h-[44px] items-center justify-between gap-3">
-            <span className="flex flex-col gap-0.5">
-              <span className="text-sm font-semibold">Training with {partner.display_name || 'my partner'}</span>
-              <span className="text-xs text-muted">{partnerActive ? `${partner.display_name || 'Your partner'} already has a workout open` : 'One phone logs for both of you, taking turns'}</span>
-            </span>
-            <input
-              type="checkbox"
-              role="switch"
-              className="switch"
-              disabled={!!partnerActive}
-              checked={paired}
-              onChange={(e) => {
-                localStorage.setItem('gg.together', e.target.checked ? '1' : '0')
-                setTogether(e.target.checked)
-              }}
-            />
-          </label>
-        )}
-        <button onClick={() => setPlacing(true)} className="flex min-h-[44px] items-center justify-between gap-3 text-left">
-          <span className="flex flex-col gap-0.5">
-            <span className="text-sm font-semibold">Training at {gym.name}</span>
-            <span className="text-xs text-muted">{plan.adapted.length ? `Adapted for here: ${plan.adapted.join('; ')}` : 'The plan, recommendations and plate math follow this'}</span>
-          </span>
-          <span className="text-sm font-semibold text-accent">Change</span>
-        </button>
-        <div className="grid grid-cols-3 gap-2">
-          <Link to={`/workout/${plan.day}`} className="flex h-11 items-center justify-center rounded-control border border-line bg-raised text-sm font-semibold">
+        <div className="-my-1 flex justify-between">
+          <Link to={`/workout/${plan.day}`} className="flex h-11 items-center text-sm font-semibold text-accent">
             Preview
           </Link>
-          <Button disabled={!!active} onClick={() => setSwapping(true)}>
-            Swap day
-          </Button>
-          <Button disabled={starting} onClick={() => setChoosing(true)}>
-            Other
-          </Button>
+          <button disabled={!!active} onClick={() => setSwapping(true)} className="h-11 text-sm font-semibold text-accent disabled:text-faint">
+            Different day
+          </button>
+          <button disabled={starting} onClick={() => setChoosing(true)} className="h-11 text-sm font-semibold text-accent">
+            Something else
+          </button>
         </div>
       </Card>
 
@@ -178,8 +224,8 @@ export function Today() {
               </span>
             </button>
           ))}
-          <Link to="/settings" className="flex h-11 items-center justify-center text-sm font-semibold text-muted">
-            Add or edit places in Settings
+          <Link to="/plan" className="flex h-11 items-center justify-center text-sm font-semibold text-muted">
+            Add or edit places in Plan
           </Link>
         </div>
       </Sheet>
@@ -249,40 +295,54 @@ export function Today() {
         </div>
       </Sheet>
 
-      <Card className="flex flex-col gap-2.5">
-        <div className="flex items-baseline justify-between">
-          <span className="text-sm font-semibold">This week</span>
-          <span className="text-[13px] text-muted">
-            <span className="num font-semibold text-ink">{trained.size}</span> of {target} workouts
-          </span>
-        </div>
-        <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] text-muted">
-          {days.map((d) => (
-            <div key={d} className="flex flex-col items-center gap-1.5">
-              <span className={cx(d === today && 'font-semibold text-ink')}>{'MTWTFSS'[days.indexOf(d)]}</span>
-              <span className={cx('h-7 w-7 rounded-full', trained.has(d) ? 'bg-accent' : d === today ? 'border-2 border-accent' : 'bg-raised')} />
+      <Card className="flex flex-col gap-2.5 !py-3.5">
+        {(
+          [
+            [name, trained, target, 'bg-accent', 'text-accent'],
+            ...(partner ? [[partnerName, partnerTrained, partner.weekly_target ?? 4, 'bg-coach', 'text-coach'] as const] : []),
+          ] as [string, Set<string>, number, string, string][]
+        ).map(([who, done, goal, fill, text]) => (
+          <div key={who} className="flex items-center gap-3">
+            <span className={cx('w-14 truncate text-[13px] font-semibold', text)}>{who}</span>
+            <div className="grid flex-1 grid-cols-7 gap-1.5" role="img" aria-label={`${who}: ${done.size} of ${goal} workouts this week`}>
+              {days.map((d) => (
+                <span key={d} className={cx('h-2.5 rounded-full', done.has(d) ? fill : 'bg-line', d === today && 'ring-2 ring-ink ring-offset-1 ring-offset-surface')} />
+              ))}
             </div>
-          ))}
-        </div>
+            <span className="num w-11 text-right text-[13px] text-muted">
+              {done.size} of {goal}
+            </span>
+          </div>
+        ))}
       </Card>
 
-      <Link to="/log" className="block">
-        <Card className="flex items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <Label>Body weight today</Label>
-            {log?.body_weight != null ? (
-              <span className="num text-[26px] font-bold">
-                {log.body_weight.toFixed(1)} <span className="font-sans text-sm font-normal text-muted">lb</span>
-              </span>
-            ) : (
-              <span className="text-[15px] font-medium text-accent">Tap to log</span>
-            )}
-          </div>
-          <span className="text-muted">
-            <Icon d={icons.next} size={20} />
-          </span>
-        </Card>
+      <div className="grid grid-cols-3 gap-2">
+        {(
+          [
+            ['body_weight', 'Weight', log?.body_weight != null ? log.body_weight.toFixed(1) : null],
+            ['steps', 'Steps', log?.steps != null ? log.steps.toLocaleString() : null],
+            ['sleep_hours', 'Sleep', log?.sleep_hours != null ? `${log.sleep_hours} h` : null],
+          ] as const
+        ).map(([field, label, value]) => (
+          <button key={field} aria-label={`${label} today: ${value ?? 'not logged'}`} onClick={() => setPad(field)} className={cx('flex h-16 flex-col items-start justify-center gap-0.5 rounded-2xl border px-3.5', value ? 'border-line bg-surface' : 'border-dashed border-line-strong')}>
+            <span className="text-[11px] text-muted">{label}</span>
+            {value ? <span className="num text-lg font-bold">{value}</span> : <span className="text-[15px] font-semibold text-accent">+ Add</span>}
+          </button>
+        ))}
+      </div>
+      <Link to="/log" className="-mt-1.5 flex h-11 items-center justify-center text-[13px] font-semibold text-muted">
+        Full daily log: energy, soreness, cardio, measurements
       </Link>
+      <NumberPad
+        open={pad !== null}
+        {...pads[pad ?? 'body_weight']}
+        initial={pad ? (log?.[pad] ?? null) : null}
+        onClose={() => setPad(null)}
+        onDone={(value) => {
+          if (pad) void saveDailyLog(user!.id, today, { [pad]: value })
+          setPad(null)
+        }}
+      />
 
       <GoalsCard compact userId={user!.id} goals={goals} weights={weights} sessions={sessions} />
 

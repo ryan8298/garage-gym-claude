@@ -507,6 +507,30 @@ Known limits:
 7. Sign back in as yourself: your data returns after a sync.
 8. A made-up code on the sign-in screen is refused with a clear message.
 
+## Release D: redesign (in progress)
+
+Design canvas with the six approved mockups: https://claude.ai/artifact/TmVyfo15Gz41xz11pTg6Q9 (sources in the build scratchpad, not in this repo). Ryan approved on 2026-11-14: four tabs with a new Plan tab; one set at a time on the workout screen; Progress with both a body figure and the bars. Each person has a colour everywhere: the phone owner lime, the partner blue.
+
+### Part 1: tabs, Today, Plan (built, waiting on the iPhone checklist)
+
+- Tabs are now Today, Plan, Progress, Us. Library and Log are no longer tabs: Library opens from Plan, and the daily log from Today. Both have a way back and swipe-back.
+- Today: one card with who (a chip that switches between together and alone), where (a chip that opens the place picker), time, each main lift with today's weight and the reason, one Start button, and three links (Preview, Different day, Something else). Both people's weeks as two coloured rows. Weight, steps and sleep as tiles that open the number pad in place.
+- Plan: the program with its days (tap a day to edit it), Change program, the places (tap to train there, Edit, Add a place), and links to the library, workout history and interval timer.
+- Settings still holds its own copies of the program and places cards for now.
+
+Still to build from the mockups: the one-set-at-a-time workout screen, the queue sheet with swaps in place, Progress with the body figure, and the four-step first run.
+
+### iPhone checklist for release D, part 1
+
+1. Accept "Update available". The tab bar shows Today, Plan, Progress, Us.
+2. Today: the card shows a "With Stella" chip and a "Home gym" chip. Tapping the first switches to "On my own" and the button to "Start workout"; tapping again switches back.
+3. The place chip opens the picker; choosing Public gym changes the chip.
+4. Each main lift shows today's weight on the right and a reason under its name.
+5. Under the card, two coloured rows show each of your weeks.
+6. Tap the Weight tile, enter a number, Done: the tile shows it. Same for Steps and Sleep. "Full daily log" opens the old Log page, with a Today link back.
+7. Plan tab: tap a day and the editor opens on that day. Tap Public gym, then Home gym: "Here now" moves. Exercise library opens the Library with a back button.
+8. Start a workout from Today and finish it: nothing else has changed yet.
+
 ## Next
 
 Release D in BACKLOG.md (the design overhaul) or the open items of releases A to C. Open in epic 6: password reset and Sign in with Apple, groups of three or more in the screens, privacy choices, paged sync.

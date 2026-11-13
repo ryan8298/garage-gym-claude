@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { equipLabels, exercises, groupLabels, matchesQuery, type CustomExercise, type Equip, type Measure } from '../lib/exercises'
 import { activeGym, availableAt } from '../lib/gym'
 import { saveProgram, useProgram } from '../lib/programState'
-import { Button, Sheet, cx } from '../components/ui'
+import { Button, RoundButton, Sheet, cx, icons } from '../components/ui'
 
 function Chips<T extends string>({ label, options, value, onChange }: { label: string; options: [T, string][]; value: T | null; onChange(v: T | null): void }) {
   return (
@@ -32,6 +32,7 @@ export function Library() {
   const program = useProgram(user!.id)
   const gym = activeGym(program)
   const [adding, setAdding] = useState(false)
+  const navigate = useNavigate()
   const [draft, setDraft] = useState<{ name: string; group: string; equip: Equip; measure: Measure; side: boolean }>({ name: '', group: 'chest', equip: 'dumbbell', measure: 'wr', side: false })
   const gymKey = `${gym.id}:${gym.equipment.join()}`
   const list = useMemo(() => {
@@ -46,7 +47,10 @@ export function Library() {
   return (
     <div className="flex flex-col gap-3 px-5 pt-3 pb-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="font-display text-[28px] font-bold tracking-[-0.5px]">Library</h1>
+        <div className="flex items-center gap-2.5">
+          <RoundButton label="Back" d={icons.back} onClick={() => navigate(-1)} />
+          <h1 className="font-display text-[24px] font-bold tracking-[-0.5px]">Library</h1>
+        </div>
         <button
           className="h-11 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-accent"
           onClick={() => {

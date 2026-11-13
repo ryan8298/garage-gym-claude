@@ -42,7 +42,7 @@ async function main() {
       [ME, PARTNER],
     )
     await page.reload()
-    await page.getByText('Training with Stella').waitFor()
+    await page.getByRole('button', { name: /Training with Stella/ }).waitFor()
     if (shot) await page.screenshot({ path: `${shot}/pair-today.png` })
     await page.getByRole('button', { name: 'Start workout together' }).click()
     await page.waitForURL('**/session')

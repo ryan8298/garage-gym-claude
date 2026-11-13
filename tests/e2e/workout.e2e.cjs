@@ -123,11 +123,11 @@ async function main() {
     await page.getByRole('button', { name: 'Save workout' }).click()
 
     // Back on Today: one workout this week, and the rotation has moved to Day B.
-    await page.getByText('Next up · Day B').waitFor()
-    await page.getByText('1 of 4 workouts').waitFor()
+    await page.getByRole('heading', { name: 'Arms, Upper Back & Shoulders' }).waitFor()
+    await page.getByText('1 of 4', { exact: true }).waitFor()
 
     // The interval timer runs from the Today screen.
-    await page.getByRole('button', { name: 'Other' }).click()
+    await page.getByRole('button', { name: 'Something else' }).click()
     await page.getByRole('link', { name: 'Interval timer' }).click()
     await page.getByRole('button', { name: 'Start', exact: true }).click()
     await page.getByText('Get ready').waitFor()
@@ -147,7 +147,7 @@ async function main() {
     if (shot) await page.screenshot({ path: `${shot}/e2e-history.png` })
 
     // Cardio on the Log tab counts toward the weekly target.
-    await page.getByRole('link', { name: 'Log', exact: true }).click()
+    await page.goto(`${URL}/log`)
     await page.getByRole('button', { name: '+ Add' }).click()
     await page.getByRole('button', { name: 'Minutes' }).click()
     for (const k of ['3', '0']) await page.getByRole('dialog').last().getByRole('button', { name: k, exact: true }).click()
@@ -194,7 +194,7 @@ async function main() {
     assert.match(await page.getByRole('alert').innerText(), /needs a connection|could not answer/)
     if (shot) await page.screenshot({ path: `${shot}/e2e-coach.png` })
     await page.getByRole('button', { name: 'Back' }).click()
-    await page.getByText('Next up · Day B').waitFor()
+    await page.getByRole('heading', { name: 'Arms, Upper Back & Shoulders' }).waitFor()
 
     // The Us tab lists the workout in the activity feed.
     await page.getByRole('link', { name: 'Us', exact: true }).click()

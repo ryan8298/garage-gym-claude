@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { daysBetween, localDate, weekStart } from '../lib/dates'
 import { blockPosition, orderSlots, phaseLabel, phaseOf, pickFromPool, planSession } from '../lib/engine'
@@ -16,7 +16,8 @@ export function ProgramEditor() {
   const program = useProgram(user!.id)
   const settings = settingsOf(program)
   const whole = defOf(program)
-  const [chosen, setDay] = useState<DayKey>(whole.order[0])
+  const [params] = useSearchParams()
+  const [chosen, setDay] = useState<DayKey>(params.get('day') ?? whole.order[0])
   const day = whole.days[chosen] ? chosen : whole.order[0]
   const [editing, setEditing] = useState<Editing>(null)
   const def = whole.days[day]

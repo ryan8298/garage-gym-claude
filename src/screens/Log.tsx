@@ -4,7 +4,7 @@ import { useAuth } from '../lib/auth'
 import { lastBodyWeight, saveDailyLog, useDailyLog } from '../lib/data'
 import { addDays, localDate, shortDate, weekStart } from '../lib/dates'
 import { deleteCardio, saveCardio, saveMeasurement, useCardio, useMeasurements } from '../lib/progressData'
-import { Button, Card, Label, NumberPad, Rating, RoundButton, Sheet, icons } from '../components/ui'
+import { Button, Card, Icon, Label, NumberPad, Rating, RoundButton, Sheet, icons } from '../components/ui'
 import { SyncBadge } from '../components/SyncBadge'
 
 type TapeField = 'waist' | 'chest' | 'hips' | 'arm' | 'thigh'
@@ -59,6 +59,10 @@ export function Log() {
 
   return (
     <div className="flex flex-col gap-3 px-5 pt-3 pb-6">
+      <Link to="/" className="-mb-1 flex h-9 items-center gap-1 self-start text-sm font-semibold text-muted">
+        <Icon d={icons.back} size={16} />
+        Today
+      </Link>
       <header className="flex items-center justify-between">
         <RoundButton label="Previous day" d={icons.back} onClick={() => setDate(addDays(date, -1))} />
         <div className="flex flex-col items-center gap-0.5">
