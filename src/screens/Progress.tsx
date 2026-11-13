@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth'
 import { useProfile } from '../lib/data'
 import { addDays, localDate, parseLocal, weekStart } from '../lib/dates'
 import { groupLabels } from '../lib/exercises'
+import { BodyMap, levelBar, levelOf } from '../components/BodyMap'
 import { WEEKLY_SET_TARGET } from '../lib/program'
 import { liftSeries, liftsWithHistory, records, thisWeek, useCardio, useGoals, useLogs, useSessions, weekStats } from '../lib/progressData'
 import { movingAverage } from '../lib/stats'
@@ -102,24 +103,27 @@ export function Progress() {
         )}
       </Card>
 
-      <Card className="flex flex-col gap-2.5">
+      <Card className="flex flex-col gap-3.5">
         <div className="flex items-baseline justify-between">
-          <span className="text-sm font-semibold">Sets per muscle this week</span>
-          <span className="text-xs text-muted">target {WEEKLY_SET_TARGET}</span>
+          <Label>Sets by muscle</Label>
+          <span className="text-xs text-muted">target {WEEKLY_SET_TARGET} a week</span>
         </div>
-        {groups.map((g) => {
-          const n = now.setsByGroup[g] ?? 0
-          return (
-            <div key={g} className="grid grid-cols-[84px_1fr_24px] items-center gap-2.5 text-[13px]">
-              <span>{groupLabels[g]}</span>
-              <span className="h-2.5 overflow-hidden rounded-full bg-raised">
-                <span className={cx('block h-full rounded-full', n >= WEEKLY_SET_TARGET * 0.8 ? 'bg-accent' : 'bg-warn')} style={{ width: `${Math.min(100, (n / WEEKLY_SET_TARGET) * 100)}%` }} />
-              </span>
-              <span className="num text-right font-semibold">{n}</span>
-            </div>
-          )
-        })}
-        <span className="text-xs text-muted">Amber is under target so far this week. Warm-up sets are not counted.</span>
+        <BodyMap sets={now.setsByGroup} target={WEEKLY_SET_TARGET} />
+        <div className="grid grid-cols-2 gap-x-[18px] gap-y-2">
+          {groups.map((g) => {
+            const n = now.setsByGroup[g] ?? 0
+            return (
+              <div key={g} className="flex items-center gap-2 text-[13px]">
+                <span className="w-[74px] truncate">{groupLabels[g]}</span>
+                <span className="h-2 flex-1 overflow-hidden rounded-full bg-raised">
+                  <span className={cx('block h-full rounded-full', levelBar[levelOf(n, WEEKLY_SET_TARGET)])} style={{ width: `${Math.min(100, (n / WEEKLY_SET_TARGET) * 100)}%` }} />
+                </span>
+                <span className="num w-5 text-right text-xs font-semibold">{n}</span>
+              </div>
+            )
+          })}
+        </div>
+        <span className="text-xs text-muted">Hard sets in the last 7 days. Warm-up sets are not counted.</span>
       </Card>
 
       <Card className="flex flex-col gap-2.5">

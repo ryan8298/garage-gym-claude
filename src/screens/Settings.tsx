@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { saveProfile, useProfile } from '../lib/data'
 import { restOf, saveProgram, useProgram } from '../lib/programState'
-import { activeGym, gymsOf, publicGym } from '../lib/gym'
 import { clock, setSoundMuted, soundMuted } from '../lib/rest'
 import { deliver, dailyLogsCsv, exportAll, workoutsCsv } from '../lib/exportData'
 import { localDate } from '../lib/dates'
@@ -41,8 +40,6 @@ export function Settings() {
     setGroupNote(error ?? done)
     setBusy(false)
   }
-  const gyms = gymsOf(program)
-  const gym = activeGym(program)
   const steps = profile?.step_target ?? 8000
   const stepper = 'flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-raised text-lg'
   const [permission, setPermission] = useState(pushPermission)
@@ -187,29 +184,15 @@ export function Settings() {
         </label>
       </Card>
 
-      <Card className="flex flex-col gap-2.5">
-        <Label>Where I train</Label>
-        {gyms.map((g) => (
-          <Link key={g.id} to={`/settings/gym/${g.id}`} className="flex min-h-[52px] items-center justify-between gap-3 rounded-control border border-line bg-raised px-3.5 py-2">
-            <span className="flex flex-col gap-0.5">
-              <span className="text-[15px] font-semibold">{g.name}</span>
-              <span className="text-xs text-muted">
-                {g.kind === 'home' ? 'Home' : 'Public'} · {g.equipment.length} {g.equipment.length === 1 ? 'kind' : 'kinds'} of equipment
-              </span>
-            </span>
-            <span className="text-sm text-muted">{g.id === gym.id ? 'Here now' : 'Edit'}</span>
-          </Link>
-        ))}
-        <Button
-          onClick={() => {
-            const fresh = { ...publicGym(), id: crypto.randomUUID(), name: 'New gym' }
-            void saveProgram(user!.id, { gyms: [...gyms, fresh] }).then(() => navigate(`/settings/gym/${fresh.id}`))
-          }}
-        >
-          + Add a place
-        </Button>
-        <span className="text-xs text-muted">Pick where you are on Today before a workout. It changes what is recommended and how plates are worked out, never what you are allowed to choose.</span>
-      </Card>
+      <Link to="/plan" className="flex min-h-[56px] items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3">
+        <span className="flex flex-col gap-0.5">
+          <span className="text-[15px] font-semibold">Program and places</span>
+          <span className="text-xs text-muted">Your program, where you train and the exercise library are on the Plan tab</span>
+        </span>
+        <span className="text-muted">
+          <Icon d={icons.next} size={18} />
+        </span>
+      </Link>
 
       <Card className="flex flex-col gap-3">
         <Label>Daily targets</Label>

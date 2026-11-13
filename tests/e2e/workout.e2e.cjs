@@ -52,6 +52,12 @@ async function main() {
     await page.getByText('Hooks at hole 14').waitFor()
 
     // The exercise queue: swipe a row left to remove it, undo, then drag one row above another.
+    const openQueue = async () => {
+      await page.getByRole('button', { name: /All \d+ lifts/ }).click()
+      await page.getByText("Today's lifts").waitFor()
+      await page.waitForTimeout(400)
+    }
+    await openQueue()
     const names = () => page.locator('[data-row]').evaluateAll((rows) => rows.map((r) => r.querySelector('span').textContent))
     const before = await names()
     const row = page.locator('[data-row]').nth(3)
@@ -86,7 +92,9 @@ async function main() {
     await page.getByPlaceholder('Search all exercises').fill('hammer')
     await page.getByRole('dialog').getByRole('button', { name: /Hammer curl/i }).first().click()
     await page.getByRole('heading', { name: /Hammer curl/i }).waitFor()
+    await openQueue()
     await page.locator('[data-row]').first().getByRole('button').first().click()
+    await openQueue()
 
     // Suggestions for muscle groups that are short this week can be added in one tap.
     await page.getByRole('button', { name: 'Suggest for gaps' }).click()
@@ -96,8 +104,10 @@ async function main() {
     assert.ok(offered > 0, 'a first-week workout leaves gaps to suggest for')
     await page.getByRole('dialog').getByText('+ Add').first().click()
     await page.getByRole('button', { name: 'Close' }).click({ position: { x: 20, y: 20 } })
+    await openQueue()
     await page.waitForFunction((n) => document.querySelectorAll('[data-row]').length === n, before.length + 1)
-    if (shot) { await page.locator('[data-row]').first().scrollIntoViewIfNeeded(); await page.screenshot({ path: `${shot}/e2e-queue.png` }) }
+    if (shot) await page.screenshot({ path: `${shot}/e2e-queue.png` })
+    await page.getByRole('button', { name: 'Close' }).click({ position: { x: 20, y: 20 } })
 
     // Lose the connection, then close and reopen the app mid-workout.
     await page.evaluate(() => navigator.serviceWorker.ready) // the app shell has finished caching
@@ -172,7 +182,7 @@ async function main() {
     await page.goto(URL)
 
     // A newly added place opens in its editor and can be changed.
-    await page.goto(`${URL}/settings`)
+    await page.goto(`${URL}/plan`)
     await page.getByRole('button', { name: '+ Add a place' }).click()
     await page.getByRole('heading', { name: 'New gym' }).waitFor()
     await page.getByRole('button', { name: 'Clear all' }).click()
@@ -183,7 +193,8 @@ async function main() {
     await page.getByLabel('Name').blur()
     await page.getByRole('heading', { name: 'Hotel' }).waitFor()
     await page.getByRole('button', { name: 'Back' }).click()
-    await page.getByText('1 kind of equipment').waitFor()
+    await page.getByText('Hotel', { exact: true }).waitFor()
+    await page.getByText('Dumbbell', { exact: true }).waitFor()
     await page.goto(URL)
 
     // The coach fails politely when it cannot be reached, and nothing else is affected.

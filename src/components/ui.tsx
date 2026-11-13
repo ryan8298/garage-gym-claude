@@ -42,7 +42,7 @@ export function Button({ variant = 'secondary', className, ...rest }: ButtonProp
       {...rest}
       className={cx(
         'flex items-center justify-center rounded-control font-semibold disabled:opacity-40',
-        variant === 'primary' && 'h-14 bg-accent font-display text-lg font-bold text-accent-ink',
+        variant === 'primary' && 'h-[58px] !rounded-2xl bg-accent font-display text-[19px] font-bold text-accent-ink',
         variant === 'secondary' && 'h-11 border border-line bg-raised text-sm text-ink',
         variant === 'ghost' && 'h-11 text-sm text-accent',
         variant === 'danger' && 'h-11 border border-line bg-raised text-sm text-danger',

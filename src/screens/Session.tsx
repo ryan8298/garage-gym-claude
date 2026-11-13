@@ -6,7 +6,7 @@ import { useProfile } from '../lib/data'
 import { usePartner } from '../lib/partner'
 import type { SetRow } from '../lib/db'
 import { exercise, exercises, groupLabels, equipLabels, matchesQuery } from '../lib/exercises'
-import { breakdown, loadModeFor } from '../lib/plates'
+import { breakdown, loadModeFor, stepDown, stepUp } from '../lib/plates'
 import { ALL_DAYS, CATCH_UP, TOP_UP, dayByKey } from '../lib/program'
 import { restOf, saveProgram, useProgram, useSetsByGroup } from '../lib/programState'
 import { WEEKLY_SET_TARGET, gapSuggestions } from '../lib/gaps'
@@ -16,7 +16,6 @@ import {
   addExercise,
   addSet,
   addWarmups,
-  describeSets,
   discardSession,
   finishSession,
   history,
@@ -131,6 +130,8 @@ export function Session() {
   const [undo, setUndo] = useState<{ text: string; run(): void } | null>(null)
   const [suggesting, setSuggesting] = useState(false)
   const [swapFor, setSwapFor] = useState<string | null>(null)
+  const [queue, setQueue] = useState(false)
+  const [focusId, setFocusId] = useState<string | null>(null)
   const weekSets = useSetsByGroup(viewer)
 
   const current = useMemo(() => {
@@ -154,7 +155,8 @@ export function Session() {
   const index = current ? lifts.indexOf(current) : 0
   const nextSet = current?.sets.find((s) => !s.done)
   const mode = current?.exercise ? loadModeFor(current.exercise) : 'none'
-  const plates = nextSet?.weight != null && mode !== 'none' ? breakdown(mode, nextSet.weight) : null
+  const shownSet = current?.sets.find((x) => x.id === focusId && !x.done) ?? nextSet
+  const plates = shownSet?.weight != null && mode !== 'none' ? breakdown(mode, shownSet.weight) : null
   const measure = current?.lift.measure ?? 'wr'
   const padSet = pad && current ? (current.sets.find((s) => s.id === pad.setId) ?? null) : null
   const allDone = current ? isDone(current) && !current.lift.skipped : false
@@ -205,6 +207,8 @@ export function Session() {
       if (s.set_type !== 'warmup') startRest(restOf(program)[view.target.kind])
       return
     }
+    // The last set of a lift: stay on it, so "reps left in the tank" can be answered before moving on.
+    if (view.sets.every((x) => x.done || x.id === s.id)) setPicked(view.lift.id)
     // Supersets: go straight to the partner after the first lift, rest after the second.
     const group = view.lift.superset_group
     const partner = group ? lifts!.find((v) => v.lift.superset_group === group && v.lift.id !== view.lift.id) : undefined
@@ -213,10 +217,29 @@ export function Session() {
     if (partner && partner.lift.position < view.lift.position && partner.sets.some((x) => !x.done)) setPicked(partner.lift.id)
   }
 
-  const cell = (active: boolean) => cx('num flex items-center justify-center rounded-[10px] font-semibold', active ? 'h-[52px] bg-raised text-2xl font-bold' : 'h-11 bg-surface text-lg')
   const weightText = (s: SetRow) => (s.weight === null ? '—' : measure === 'bw' && s.weight === 0 ? 'BW' : measure === 'bw' ? `+${s.weight}` : String(s.weight))
-  const columns = measure === 'time' ? 'grid-cols-[36px_1fr_96px_48px]' : 'grid-cols-[36px_1fr_78px_64px_48px]'
   let working = 0
+  // One set at a time: the next one to do, unless another has been tapped.
+  const focus = current ? (current.sets.find((x) => x.id === focusId && !x.done) ?? nextSet ?? null) : null
+  const workingSets = current ? current.sets.filter((x) => x.set_type !== 'warmup') : []
+  const workingTotal = workingSets.length
+  const focusNumber = focus ? workingSets.indexOf(focus) + 1 : 0
+  const before = focus && focus.set_type !== 'warmup' ? past[0]?.sets[focusNumber - 1] : undefined
+  const focusBefore = !before ? '' : before.reps !== null ? `${before.weight ? `${before.weight} × ` : ''}${before.reps}` : `${before.seconds}s`
+  // Each person has a colour: the phone's owner lime, their partner blue.
+  const tone =
+    other && session !== mine
+      ? { fill: 'bg-coach', card: 'border-coach-line bg-coach-dim', line: 'border-coach-line', ring: 'border-coach', label: 'coach' as const }
+      : { fill: 'bg-accent', card: 'border-line bg-surface', line: 'border-line-strong', ring: 'border-accent', label: 'accent' as const }
+  const turnNote = (() => {
+    if (!other || !otherLifts || !current || !focus) return ''
+    const match = otherLifts.find((v) => v.lift.exercise_key === current.lift.exercise_key) ?? otherLifts.find((v) => v.lift.position === current.lift.position)
+    const theirs = match?.sets.find((x) => !x.done)
+    if (!match || match.lift.skipped || !theirs) return ''
+    const who = session === mine ? partnerName : myName
+    const what = theirs.reps !== null ? `${theirs.weight ?? '—'} × ${theirs.reps}` : `${theirs.duration_seconds ?? '—'}s`
+    return `Then ${who}: ${what}`
+  })()
 
   return (
     <div className="flex h-dvh flex-col">
@@ -259,11 +282,10 @@ export function Session() {
                       setPicked(match?.lift.id ?? null)
                       setWho(key)
                     }}
-                    className={cx('flex h-14 flex-col items-center justify-center rounded-control border', on ? 'border-accent bg-accent-dim' : 'border-line bg-surface')}
+                    className={cx('flex h-14 flex-col items-center justify-center rounded-2xl border-2', !on ? 'border-line bg-surface' : key === 'partner' ? 'border-coach bg-coach-dim' : 'border-accent bg-accent-dim')}
                   >
-                    <span className={cx('font-display text-[17px] leading-tight font-bold', on ? 'text-accent' : 'text-muted')}>{label}</span>
+                    <span className={cx('font-display text-[17px] leading-tight font-bold', !on ? 'text-muted' : key === 'partner' ? 'text-coach' : 'text-accent')}>{on ? `${label}'s turn` : label}</span>
                     <span className="num text-[11px] text-muted">
-                      {on ? 'logging now · ' : ''}
                       {sets.filter((x) => x.done).length} of {sets.length} sets
                     </span>
                   </button>
@@ -302,8 +324,8 @@ export function Session() {
                     How to · setup notes
                   </Link>
                 </div>
-                <button aria-label="Exercise options" onClick={() => setMenu(true)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface">
-                  <Icon d="M5 12h.01M12 12h.01M19 12h.01" size={22} />
+                <button aria-label="Exercise options" onClick={() => setMenu(true)} className="h-11 shrink-0 rounded-full border border-line bg-surface px-4 text-[13px] font-semibold">
+                  Swap
                 </button>
               </div>
 
@@ -315,21 +337,6 @@ export function Session() {
                 </button>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col gap-0.5 rounded-control border border-line bg-surface px-3 py-2.5">
-                  <span className="text-[11px] font-medium text-muted">LAST TIME</span>
-                  <span className="num text-[15px] font-semibold">{describeSets(past[0])}</span>
-                </div>
-                <div className="flex flex-col gap-0.5 rounded-control border border-line bg-surface px-3 py-2.5">
-                  <span className="text-[11px] font-medium text-muted">TARGET</span>
-                  <span className="num text-[15px] font-semibold">
-                    {current.target.low}–{current.target.high} {current.target.unit === 'sec' ? 'sec' : 'reps'}
-                    {current.target.eachSide ? ' each' : ''}
-                  </span>
-                </div>
-              </div>
-              {current.target.hint && <p className="-mt-1.5 text-[13px] text-muted">{current.target.hint}</p>}
-
               {current.lift.skipped ? (
                 <div className="flex items-center justify-between rounded-card border border-line bg-surface p-4">
                   <span className="text-sm text-muted">Skipped today</span>
@@ -338,56 +345,76 @@ export function Session() {
                   </Button>
                 </div>
               ) : (
-                <div className="flex flex-col gap-1.5">
-                  <div className={cx('grid gap-2 px-1 text-[11px] font-medium text-muted', columns)}>
-                    <span>SET</span>
-                    <span />
-                    {measure !== 'time' && <span className="text-center">{measure === 'bw' ? 'ADDED' : 'LB'}</span>}
-                    <span className="text-center">{measure === 'time' || measure === 'carry' ? 'SEC' : 'REPS'}</span>
-                    <span />
-                  </div>
-                  {current.sets.map((s) => {
-                    if (s.set_type !== 'warmup') working++
-                    const active = s.id === nextSet?.id
-                    const before = s.set_type === 'warmup' ? undefined : (past[0]?.sets[working - 1] ?? undefined)
-                    const beforeText = !before ? '' : before.reps !== null ? `last ${before.weight ? `${before.weight} × ` : ''}${before.reps}` : `last ${before.seconds}s`
-                    const open = (field: 'weight' | 'reps' | 'seconds') => setPad({ setId: s.id, field })
-                    return (
-                      <div key={s.id} className={cx('grid items-center gap-2 rounded-control p-1', columns, active && 'border border-accent bg-surface py-2', s.done && 'opacity-70')}>
-                        <span className={cx('num pl-1.5 font-bold', s.set_type === 'warmup' && 'text-warn')}>{setLabel(s, working)}</span>
-                        <span className="num truncate text-xs text-muted">{s.set_type === 'warmup' ? 'warm-up' : s.set_type === 'drop' ? 'drop set' : s.set_type === 'failure' ? 'to failure' : beforeText}</span>
-                        {measure !== 'time' && (
-                          <button aria-label={`Weight, ${weightText(s)}`} className={cell(active)} onClick={() => open('weight')}>
-                            {weightText(s)}
-                          </button>
-                        )}
-                        {measure === 'time' || measure === 'carry' ? (
-                          <button aria-label={`Seconds, ${s.duration_seconds ?? 'not set'}`} className={cell(active)} onClick={() => open('seconds')}>
-                            {s.duration_seconds ?? '—'}
-                          </button>
-                        ) : (
-                          <button aria-label={`Reps, ${s.reps ?? 'not set'}`} className={cell(active)} onClick={() => open('reps')}>
-                            {s.reps ?? '—'}
-                          </button>
-                        )}
-                        <button
-                          aria-label={s.done ? 'Mark set not done' : 'Mark set done'}
-                          aria-pressed={s.done}
-                          onClick={() => void toggleDone(current, s)}
-                          className={cx('flex w-11 items-center justify-center rounded-xl', active ? 'h-[52px]' : 'h-11', s.done ? 'bg-accent text-accent-ink' : 'border-2 border-faint text-muted')}
-                        >
-                          <Icon d={icons.check} size={20} />
+                <>
+                  {/* Every set of this lift as a chip: done ones show their numbers, the one in focus is outlined. */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {current.sets.map((s) => {
+                      if (s.set_type !== 'warmup') working++
+                      const text = s.reps !== null ? `${weightText(s)} × ${s.reps}` : s.duration_seconds !== null ? `${s.weight ? `${s.weight} · ` : ''}${s.duration_seconds}s` : setLabel(s, working)
+                      return s.done ? (
+                        <button key={s.id} aria-label="Mark set not done" aria-pressed="true" onClick={() => void toggleDone(current, s)} className={cx('num flex h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-accent-ink', tone.fill)}>
+                          <Icon d={icons.check} size={16} />
+                          {text}
                         </button>
-                      </div>
-                    )
-                  })}
-                  <div className="flex min-h-11 items-center justify-between px-1">
-                    <span className="text-[13px] text-muted">{plates?.text ?? ''}</span>
-                    <button className="h-11 shrink-0 px-2 text-sm font-semibold text-accent" onClick={() => void addSet(current)}>
+                      ) : (
+                        <button key={s.id} aria-label={`Go to set ${setLabel(s, working)}`} onClick={() => setFocusId(s.id)} className={cx('num flex h-11 min-w-11 items-center justify-center rounded-xl border px-3 text-sm font-semibold', s.id === focus?.id ? cx(tone.ring, 'text-ink') : 'border-line text-muted')}>
+                          {setLabel(s, working)}
+                        </button>
+                      )
+                    })}
+                    <button className="h-11 px-2 text-sm font-semibold text-accent" onClick={() => void addSet(current)}>
                       + Add set
                     </button>
                   </div>
-                </div>
+
+                  {focus && (
+                    <div className={cx('flex flex-col gap-3.5 rounded-[22px] border p-[18px]', tone.card)}>
+                      <div className="flex items-center justify-between gap-3">
+                        <Label tone={tone.label}>
+                          {focus.set_type === 'warmup' ? 'Warm-up set' : `Set ${focusNumber} of ${workingTotal}`}
+                          {focus.set_type === 'drop' ? ' · drop set' : focus.set_type === 'failure' ? ' · to failure' : ''}
+                        </Label>
+                        <span className="num text-[13px] text-muted">{focusBefore ? `Last time ${focusBefore}` : `Target ${current.target.low} to ${current.target.high}${current.target.unit === 'sec' ? ' sec' : ''}${current.target.eachSide ? ' each' : ''}`}</span>
+                      </div>
+                      <div className={cx('grid gap-2.5', measure === 'time' ? 'grid-cols-1' : 'grid-cols-2')}>
+                        {(measure === 'time' ? (['seconds'] as const) : measure === 'carry' ? (['weight', 'seconds'] as const) : (['weight', 'reps'] as const)).map((field) => {
+                          const value = field === 'weight' ? weightText(focus) : field === 'reps' ? (focus.reps ?? '—') : (focus.duration_seconds ?? '—')
+                          const unit = field === 'weight' ? (measure === 'bw' ? 'lb added' : 'lb') : field === 'reps' ? (current.target.eachSide ? 'reps each' : 'reps') : 'sec'
+                          const step = (dir: 1 | -1) => {
+                            if (field === 'weight') {
+                              const w = focus.weight ?? 0
+                              const next = mode === 'none' ? Math.max(0, w + dir * 5) : dir > 0 ? stepUp(mode, w) : stepDown(mode, w)
+                              // The later sets that shared the old weight follow, as they do in the number pad.
+                              for (const later of current.sets) if (later.position > focus.position && !later.done && later.set_type !== 'warmup' && (later.weight === null || later.weight === focus.weight)) void updateSet(later, { weight: next })
+                              void updateSet(focus, { weight: next })
+                            } else if (field === 'reps') void updateSet(focus, { reps: Math.max(0, (focus.reps ?? current.target.low) + dir) })
+                            else void updateSet(focus, { duration_seconds: Math.max(0, (focus.duration_seconds ?? current.target.low) + dir * 5) })
+                          }
+                          const name = field === 'weight' ? 'Weight' : field === 'reps' ? 'Reps' : 'Seconds'
+                          return (
+                            <div key={field} className="flex flex-col items-center gap-2">
+                              <button aria-label={`${name}, ${value}`} onClick={() => setPad({ setId: focus.id, field })} className={cx('num h-[92px] w-full rounded-[18px] border bg-bg text-[56px] leading-none font-bold tracking-[-2px]', tone.line)}>
+                                {value}
+                              </button>
+                              <div className="flex items-center gap-1.5">
+                                <button aria-label={`Less ${name.toLowerCase()}`} className={cx('h-11 w-11 rounded-control border bg-bg text-xl', tone.line)} onClick={() => step(-1)}>
+                                  −
+                                </button>
+                                <span className="w-12 text-center text-xs text-muted">{unit}</span>
+                                <button aria-label={`More ${name.toLowerCase()}`} className={cx('h-11 w-11 rounded-control border bg-bg text-xl', tone.line)} onClick={() => step(1)}>
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      {plates?.text ? <span className="text-sm font-semibold">{plates.text}</span> : null}
+                      {current.target.hint && !focusBefore && <span className="text-[13px] text-muted">{current.target.hint}</span>}
+                    </div>
+                  )}
+                  {focus && turnNote && <span className="px-0.5 text-[13px] text-muted">{turnNote}</span>}
+                </>
               )}
 
               {allDone && (
@@ -415,32 +442,7 @@ export function Session() {
             </>
           )}
 
-          {lifts.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <Label>Today's exercises</Label>
-              <LiftQueue
-                lifts={lifts}
-                currentId={current?.lift.id}
-                isDone={isDone}
-                onPick={setPicked}
-                onReorder={(ids) => void reorderLifts(lifts, ids)}
-                onRemove={(v) => {
-                  void removeLift(v)
-                  if (picked === v.lift.id) setPicked(null)
-                  setUndo({ text: `${v.lift.name} removed`, run: () => void restoreLift(v) })
-                }}
-                onSwap={(v) => {
-                  setPicked(v.lift.id)
-                  setMenu(true)
-                }}
-              />
-              <span className="text-xs text-muted">Drag the handle to reorder. Swipe left to remove, right to swap.</span>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-2">
-            <Button onClick={() => setAdding(true)}>+ Add exercise</Button>
-            <Button onClick={() => setSuggesting(true)}>Suggest for gaps</Button>
-          </div>
+          {lifts.length === 0 && <Button onClick={() => setAdding(true)}>+ Add an exercise</Button>}
         </div>
       </div>
 
@@ -451,7 +453,7 @@ export function Session() {
         </div>
       )}
 
-      {undo && (
+      {undo && !queue && (
         <div role="status" className="mx-3 mt-2 flex h-12 shrink-0 items-center justify-between rounded-control border border-line-strong bg-raised pr-1.5 pl-4">
           <span className="truncate text-sm">{undo.text}</span>
           <button
@@ -467,6 +469,89 @@ export function Session() {
       )}
 
       <RestBar />
+
+      {current && !current.lift.skipped && focus && (
+        <div className="shrink-0 px-5 pt-2">
+          <button onClick={() => void toggleDone(current, focus)} aria-label="Mark set done" className={cx('h-16 w-full rounded-[18px] font-display text-xl font-bold text-accent-ink', tone.fill)}>
+            {other ? `${session === mine ? myName : partnerName} did it` : 'Set done'}
+          </button>
+        </div>
+      )}
+      <button onClick={() => setQueue(true)} className="pb-safe mt-2 flex shrink-0 items-center justify-between gap-3 border-t border-line bg-bar px-5 pt-3 text-left">
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-[11px] font-semibold tracking-[1px] text-muted">{upNext ? 'UP NEXT' : 'LAST LIFT'}</span>
+          <span className="truncate text-[15px] font-semibold">{upNext ? upNext.lift.name : (current?.lift.name ?? 'Add an exercise')}</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-2 text-[13px] font-semibold text-muted">
+          All {lifts.length} lifts
+          <Icon d="M6 15l6-6 6 6" size={18} />
+        </span>
+      </button>
+
+      {/* ---- today's lifts ---- */}
+      <Sheet open={queue} onClose={() => setQueue(false)}>
+        <div className="scroll-y flex max-h-[78vh] flex-col gap-3 pb-3 [&>*]:shrink-0">
+          <div className="flex items-baseline justify-between">
+            <span className="font-display text-[22px] font-bold">Today's lifts</span>
+            <span className="num text-[13px] text-muted">
+              {lifts.filter(isDone).length} of {lifts.length} done
+            </span>
+          </div>
+          {undo && (
+            <div role="status" className="flex h-12 items-center justify-between rounded-control border border-line-strong bg-raised pr-1.5 pl-4">
+              <span className="truncate text-sm">{undo.text}</span>
+              <button
+                className="h-10 rounded-xl px-3 text-sm font-semibold text-accent"
+                onClick={() => {
+                  undo.run()
+                  setUndo(null)
+                }}
+              >
+                Undo
+              </button>
+            </div>
+          )}
+          <LiftQueue
+            lifts={lifts}
+            currentId={current?.lift.id}
+            isDone={isDone}
+            onPick={(id) => {
+              setPicked(id)
+              setQueue(false)
+            }}
+            onReorder={(ids) => void reorderLifts(lifts, ids)}
+            onRemove={(v) => {
+              void removeLift(v)
+              if (picked === v.lift.id) setPicked(null)
+              setUndo({ text: `${v.lift.name} removed`, run: () => void restoreLift(v) })
+            }}
+            onSwap={(v) => {
+              setPicked(v.lift.id)
+              setQueue(false)
+              setMenu(true)
+            }}
+          />
+          <span className="text-xs text-muted">Drag the handle to reorder. Swipe left to remove, right to swap.</span>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={() => {
+                setQueue(false)
+                setAdding(true)
+              }}
+            >
+              + Add exercise
+            </Button>
+            <Button
+              onClick={() => {
+                setQueue(false)
+                setSuggesting(true)
+              }}
+            >
+              Suggest for gaps
+            </Button>
+          </div>
+        </div>
+      </Sheet>
 
       {current && <SetPad view={current} set={padSet} startOn={pad?.field ?? 'weight'} onClose={() => setPad(null)} onDeleted={(deleted) => setUndo({ text: 'Set deleted', run: () => void updateSet(deleted, { deleted: false }) })} />}
 

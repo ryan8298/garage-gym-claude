@@ -511,7 +511,7 @@ Known limits:
 
 Design canvas with the six approved mockups: https://claude.ai/artifact/TmVyfo15Gz41xz11pTg6Q9 (sources in the build scratchpad, not in this repo). Ryan approved on 2026-11-14: four tabs with a new Plan tab; one set at a time on the workout screen; Progress with both a body figure and the bars. Each person has a colour everywhere: the phone owner lime, the partner blue.
 
-### Part 1: tabs, Today, Plan (built, waiting on the iPhone checklist)
+### Part 1: tabs, Today, Plan (done; iPhone checklist passed 2026-11-14)
 
 - Tabs are now Today, Plan, Progress, Us. Library and Log are no longer tabs: Library opens from Plan, and the daily log from Today. Both have a way back and swipe-back.
 - Today: one card with who (a chip that switches between together and alone), where (a chip that opens the place picker), time, each main lift with today's weight and the reason, one Start button, and three links (Preview, Different day, Something else). Both people's weeks as two coloured rows. Weight, steps and sleep as tiles that open the number pad in place.
@@ -530,6 +530,31 @@ Still to build from the mockups: the one-set-at-a-time workout screen, the queue
 6. Tap the Weight tile, enter a number, Done: the tile shows it. Same for Steps and Sleep. "Full daily log" opens the old Log page, with a Today link back.
 7. Plan tab: tap a day and the editor opens on that day. Tap Public gym, then Home gym: "Here now" moves. Exercise library opens the Library with a back button.
 8. Start a workout from Today and finish it: nothing else has changed yet.
+
+### Part 2: workout screen, Progress figure, shared styles (built, waiting on the iPhone checklist)
+
+Ryan's feedback on part 1: it worked, but screens outside the ones just rebuilt still had the old look. And the first body figure in the mockup "looked horrible"; it was redrawn as a faceted muscle figure (39 pieces, front and back, mirrored from one half) and Ryan was sent a preview.
+
+- Workout screen: one set at a time. Sets are chips (done ones show their numbers; tap one to un-tick it). The set in focus has weight and reps at 56 px with plus and minus under each, the plate breakdown, and last time's numbers. One full-width button marks it done: "Set done" alone, or "<name> did it" in that person's colour when training together, with a line saying who goes next. The three dots became a Swap button.
+- Today's lifts moved from the bottom of the page into a sheet opened from an "Up next / All N lifts" bar. Drag, swipe, add and gap suggestions work inside it, and Undo shows there too.
+- Finishing the last set of a lift now keeps that lift on screen, so "reps left in the tank" is always asked before moving on. Before, it was skipped unless the lift had been tapped.
+- Progress: the body figure above the bars, each piece coloured by its muscle group's sets this week (none, low, part way, on target); bars in two columns with the same colours.
+- Shared look: card corners 22 px and the large primary button everywhere; each person's turn in their own colour.
+- Settings no longer repeats the places card; it links to Plan.
+
+Not built yet from the mockups: swap suggestions opening in place inside the lift sheet, the four-step first run, the "Coach noticed" card and the Ryan / Stella / Both switch on Progress. Screens not yet restyled beyond the shared corners and buttons: Us, Log, Library, exercise page, history, coach, Settings.
+
+### iPhone checklist for release D, part 2
+
+1. Accept "Update available" and start a workout together.
+2. The screen shows one set with large weight and reps. Plus and minus under each change it; tapping a number opens the pad.
+3. The big button reads "Ryan did it" in lime. Tap it: the screen switches to Stella in blue, and the button reads "Stella did it". After hers, the rest timer starts.
+4. Done sets appear as chips with their numbers. Tapping one un-ticks it.
+5. After the last set of a lift, "Reps left in the tank" appears with a "Next" button.
+6. The bar at the bottom shows what is up next. Tap it: the lift sheet opens. Drag to reorder, swipe left to remove (Undo appears in the sheet), swipe right to swap, tap a lift to jump to it.
+7. The Swap button next to the lift name opens the swap choices.
+8. Progress: the body figure shows, front and back, coloured where you have trained this week, with the bars beneath in matching colours.
+9. Settings has a "Program and places" link to the Plan tab.
 
 ## Next
 
