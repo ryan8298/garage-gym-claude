@@ -237,7 +237,7 @@ Decisions and known gaps:
 8. Settings, AI coach: the month's message count has gone up. Turn the coach off: the coach button disappears and everything else still works. Turn it back on.
 9. Airplane mode: asking the coach shows "The coach needs a connection" and nothing else breaks.
 
-## Phase 8: polish pass (built, waiting on the iPhone checklist)
+## Phase 8: polish pass (done; iPhone checklist passed 2026-11-13)
 
 Done:
 - Every screen was screenshotted at phone size and reviewed against the design system.
@@ -260,7 +260,7 @@ Not built, by decision:
 3. Settings, Edit my program: the up and down buttons reorder slots.
 4. From Today open Settings, then Edit my program. Swipe from the left edge of the screen: it goes back one screen each time and follows your finger. A short swipe springs back.
 5. Tab changes fade; opening a screen slides in from the right; Back slides from the left.
-6. During a workout, swiping from the left edge does nothing (so a set is never lost by accident).
+6. During a workout the app's own swipe-back is off, but iOS's edge swipe still minimizes the workout to the home screen. Ryan prefers this; the workout stays open behind the resume bar. Keep it.
 7. Settings, Notifications: two new switches, "Sunday summary of our week" and "A nudge after 4 days without a workout". The first summary arrives this Sunday.
 8. Optional, for the splash screen: remove the app from the Home Screen, add it again from Safari, sign in. Launch now shows the logo on a dark background. Your data comes back from the server after sign-in; make sure the sync indicator showed everything synced before removing.
 
