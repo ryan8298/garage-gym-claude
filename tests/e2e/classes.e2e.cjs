@@ -25,7 +25,7 @@ async function main() {
     await page.getByRole('heading', { name: 'Other workouts' }).waitFor()
     if (shot) await page.screenshot({ path: `${shot}/classes.png`, fullPage: true })
 
-    await page.getByRole('link', { name: /Whole-body loosen up/ }).click()
+    await page.getByRole('link', { name: process.env.CLASS ? new RegExp(process.env.CLASS) : /Whole-body loosen up/ }).click()
     await page.waitForURL('**/classes/*')
     await page.getByText('Photo credits', { exact: false }).or(page.getByText('sec', { exact: false }).first()).first().waitFor()
     await page.getByRole('button', { name: 'Start', exact: true }).waitFor()

@@ -633,8 +633,9 @@ Optional workout types for days the two want something different. They sit outsi
 - Places can now list a mat, pull-up bar, dip bars, rings, parallettes, yoga blocks, a strap and a pilates ring. Each workout says what it uses and whether the current place lists it; nothing is hidden. Places saved earlier are assumed to have a mat, pull-up bar and dip bars until the person says otherwise.
 - `scripts/build-classes.mjs` builds `src/data/classes.json` and `public/classes/` from the public-domain exercise set; `src/lib/classes.ts`, `src/screens/Classes.tsx`, `tests/classes.test.ts`, `tests/e2e/classes.e2e.cjs`.
 
+Yoga (added after): two sessions, "Standing and balance" and "Seated and floor", 18 photos from one consistent Wikimedia Commons series (Kennguru, CC BY 3.0), stored in `public/classes/yoga/` and credited under each photo and on the session page. `src/data/yoga.json` is written by hand. The series has no downward dog, child's pose, warrior or corpse pose, so those are not in the sessions.
+
 Not done yet:
-- Yoga. Ryan chose freely licensed Wikimedia Commons photos with credit. Commons throttled the downloads from this build environment, so no photos have arrived yet. The player already shows a credit line per photo.
 - Real pilates photos: Commons has almost none. The mat core session uses exercise-set photos.
 
 iPhone checklist:
@@ -644,6 +645,7 @@ iPhone checklist:
 4. Pause, back and skip work; the screen stays awake.
 5. Finishing and "Save to my history" shows the done screen, and the session appears in history.
 6. Settings, a place: the new "For bodyweight work, yoga and pilates" switches save.
+7. Yoga: both sessions list their poses with photos, play like the mobility ones, and show the photo credit.
 
 ## Next
 

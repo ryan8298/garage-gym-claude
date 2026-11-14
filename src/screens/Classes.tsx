@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
-import { beatAt, calisthenics, classSeconds, classes, kindLabels, logClass, missingFor, startCalisthenics, timeline, type GymClass } from '../lib/classes'
+import { beatAt, calisthenics, classSeconds, classes, kindLabels, logClass, missingFor, startCalisthenics, timeline, whole, type GymClass } from '../lib/classes'
 import { exercise, hasExercise } from '../lib/exercises'
 import { activeGym, equipmentName } from '../lib/gym'
 import { useProgram } from '../lib/programState'
@@ -73,7 +73,7 @@ export function Classes() {
             <span className="-mt-2 text-[13px] text-muted">Follow along: each pose shows with a picture, a cue and a timer.</span>
             {list.map((c) => (
               <Link key={c.id} to={`/classes/${c.id}`} className="flex items-center gap-3 rounded-card border border-line bg-surface p-3">
-                <img src={c.steps[0]?.image} alt="" className="h-[72px] w-[72px] shrink-0 rounded-xl object-cover" />
+                <img src={c.steps[0]?.image} alt="" className={cx('h-[72px] w-[72px] shrink-0 rounded-xl', whole(c.steps[0]?.image ?? '') ? 'bg-white object-contain' : 'object-cover')} />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-base font-semibold">{c.title}</span>
                   <span className="text-xs text-muted">
@@ -158,7 +158,7 @@ export function ClassPlayer() {
         <div className="overflow-hidden rounded-card border border-line bg-surface">
           {c.steps.map((s, i) => (
             <div key={i} className={cx('flex items-center gap-3 p-2.5', i > 0 && 'border-t border-line')}>
-              <img src={s.image} alt="" loading="lazy" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+              <img src={s.image} alt="" loading="lazy" className={cx('h-14 w-14 shrink-0 rounded-lg', whole(s.image) ? 'bg-white object-contain' : 'object-cover')} />
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-[15px] font-medium">{s.name}</span>
                 <span className="num text-xs text-muted">
@@ -203,7 +203,7 @@ export function ClassPlayer() {
         </div>
       ) : (
         <>
-          <img src={beat.step.image} alt={beat.step.name} className="aspect-[4/3] w-full rounded-card border border-line object-cover" />
+          <img src={beat.step.image} alt={beat.step.name} className={cx('aspect-[4/3] w-full rounded-card border border-line', whole(beat.step.image) ? 'bg-white object-contain' : 'object-cover')} />
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 flex-col gap-1">
               <Label tone={now.phase === 'hold' ? 'accent' : undefined}>

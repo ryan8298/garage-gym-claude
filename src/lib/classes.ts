@@ -1,4 +1,5 @@
 import raw from '../data/classes.json'
+import yoga from '../data/yoga.json'
 import { db, save, type WorkoutSession } from './db'
 import { localDate } from './dates'
 import { hasExercise } from './exercises'
@@ -29,7 +30,9 @@ export interface GymClass {
   about: string
   steps: ClassStep[]
 }
-export const classes = raw as GymClass[]
+export const classes = [...raw, ...yoga] as GymClass[]
+/** Photos shot on a white background show whole, not cropped. */
+export const whole = (image: string) => image.startsWith('/classes/yoga/')
 export const kindLabels: Record<GymClass['kind'] | 'calisthenics', string> = { calisthenics: 'Calisthenics', mobility: 'Mobility and stretching', pilates: 'Pilates', yoga: 'Yoga' }
 
 /** One thing the player shows at a time: a pose, on one side if it has sides. */

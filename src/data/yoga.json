@@ -1,0 +1,178 @@
+[
+ {
+  "id": "yoga_standing",
+  "kind": "yoga",
+  "title": "Standing and balance",
+  "level": "Moderate",
+  "needs": [
+   "mat"
+  ],
+  "about": "Standing poses for legs, hips and balance, finishing on the floor. A block helps for half moon.",
+  "steps": [
+   {
+    "name": "Mountain pose",
+    "seconds": 40,
+    "side": false,
+    "cue": "Stand tall, feet together or hip width, weight even across both feet. Lift the chest, relax the shoulders, breathe slowly.",
+    "image": "/classes/yoga/Tadasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Chair pose",
+    "seconds": 30,
+    "side": false,
+    "cue": "Bend your knees and sit back as if into a chair, arms reaching up. Keep your weight in your heels and your chest lifted.",
+    "image": "/classes/yoga/Utkatasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Triangle pose",
+    "seconds": 35,
+    "side": true,
+    "cue": "Feet wide, front toes pointing forward. Reach over the front leg, lower that hand to your shin and stretch the other arm to the ceiling.",
+    "image": "/classes/yoga/Trikonasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Extended side angle",
+    "seconds": 35,
+    "side": true,
+    "cue": "Feet wide, bend the front knee over the ankle. Rest your forearm on the thigh or hand by the foot and reach the top arm over your ear.",
+    "image": "/classes/yoga/Utthita_Parshvakonasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Half moon",
+    "seconds": 25,
+    "side": true,
+    "cue": "From a bent front knee, put your hand down ahead of the foot and lift the back leg to hip height. Use a block or chair under the hand if needed.",
+    "image": "/classes/yoga/Ardha_Chandrasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Tree pose",
+    "seconds": 30,
+    "side": true,
+    "cue": "Stand on one leg and place the other foot on the calf or inner thigh, never on the knee. Hands together at the chest or overhead.",
+    "image": "/classes/yoga/Vriksasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Plank",
+    "seconds": 30,
+    "side": false,
+    "cue": "Hands under shoulders, body in one straight line from head to heels. Squeeze your legs and do not let the hips sag.",
+    "image": "/classes/yoga/Chaturanga_Dandasana_high.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Cobra",
+    "seconds": 30,
+    "side": false,
+    "cue": "Lie face down, hands under shoulders. Lift your chest using your back, elbows close, shoulders away from your ears.",
+    "image": "/classes/yoga/Bhujangasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Hero pose",
+    "seconds": 45,
+    "side": false,
+    "cue": "Kneel and sit back between or on your heels, spine tall, hands on thighs. Sit on a block or cushion if your knees complain.",
+    "image": "/classes/yoga/Virasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   }
+  ]
+ },
+ {
+  "id": "yoga_floor",
+  "kind": "yoga",
+  "title": "Seated and floor",
+  "level": "Moderate",
+  "needs": [
+   "mat"
+  ],
+  "about": "Seated poses and twists, then back bends, ending with the legs up. Skip or ease any pose that pinches.",
+  "steps": [
+   {
+    "name": "Hero pose",
+    "seconds": 45,
+    "side": false,
+    "cue": "Kneel and sit back between or on your heels, spine tall, hands on thighs. Sit on a block or cushion if your knees complain.",
+    "image": "/classes/yoga/Virasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Cow face pose",
+    "seconds": 35,
+    "side": true,
+    "cue": "Sit with one knee stacked over the other. Reach one arm up and one behind your back and clasp hands, or hold a strap between them.",
+    "image": "/classes/yoga/Gomukhasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Head to knee fold",
+    "seconds": 40,
+    "side": true,
+    "cue": "Sit with one leg straight and the other foot against the inner thigh. Fold forward over the straight leg with a long back.",
+    "image": "/classes/yoga/Janusirsasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Seated twist",
+    "seconds": 35,
+    "side": true,
+    "cue": "Sit tall, cross one foot over the other knee. Turn toward the raised knee, using your arm against it to deepen the turn gently.",
+    "image": "/classes/yoga/Ardha_Matsyendrasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Boat pose",
+    "seconds": 25,
+    "side": false,
+    "cue": "Balance on your sit bones, chest lifted, legs raised. Keep the knees bent if straight legs make your back round.",
+    "image": "/classes/yoga/Paripurna_Navasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Locust",
+    "seconds": 25,
+    "side": false,
+    "cue": "Lie face down, arms by your sides. Lift chest, arms and legs off the floor together and look just ahead of you.",
+    "image": "/classes/yoga/Salabhasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Bow pose",
+    "seconds": 25,
+    "side": false,
+    "cue": "Face down, bend your knees and hold your ankles. Kick the feet back into your hands to lift the chest and thighs.",
+    "image": "/classes/yoga/Dhanurasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Camel",
+    "seconds": 25,
+    "side": false,
+    "cue": "Kneel upright, hands on your lower back. Lift the chest and lean back; reach for your heels only if it is comfortable.",
+    "image": "/classes/yoga/Ustrasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Fish pose",
+    "seconds": 30,
+    "side": false,
+    "cue": "Lie on your back, forearms on the floor, and lift your chest so the crown of your head rests lightly down. Keep the weight on your arms.",
+    "image": "/classes/yoga/Matsyasana.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   },
+   {
+    "name": "Supported legs up",
+    "seconds": 45,
+    "side": false,
+    "cue": "Lie on your back, lift your legs and hips, and hold your hips with your hands, elbows on the floor. For an easier version, keep hips down and rest your legs up a wall.",
+    "image": "/classes/yoga/Viparita_Karani.jpg",
+    "credit": "Kennguru, CC BY 3.0, via Wikimedia Commons"
+   }
+  ]
+ }
+]
